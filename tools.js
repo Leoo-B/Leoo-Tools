@@ -1,5 +1,5 @@
 // ==========================================
-// PARTIKEL CANVAS
+// PARTIKEL CANVAS – LEBIH TERANG & GEDE
 // ==========================================
 (function initParticles() {
     var canvas = document.getElementById('particles-canvas');
@@ -15,21 +15,29 @@
     resize();
     window.addEventListener('resize', resize);
 
-    var count = Math.min(80, Math.floor((w * h) / 15000));
+    // Jumlah partikel ditambah, ukuran lebih gede, opacity lebih tinggi
+    var count = Math.min(120, Math.floor((w * h) / 12000));
     for (var i = 0; i < count; i++) {
         particles.push({
             x: Math.random() * w,
             y: Math.random() * h,
-            r: Math.random() * 2 + 0.5,
-            dx: (Math.random() - 0.5) * 0.3,
-            dy: (Math.random() - 0.5) * 0.3,
-            o: Math.random() * 0.5 + 0.3
+            r: Math.random() * 3 + 2, // ukuran 2–5px (sebelumnya 0.5–2.5)
+            dx: (Math.random() - 0.5) * 0.4,
+            dy: (Math.random() - 0.5) * 0.4,
+            o: Math.random() * 0.4 + 0.6 // opacity 0.6–1.0 (sebelumnya 0.3–0.8)
         });
     }
 
     function draw() {
         ctx.clearRect(0, 0, w, h);
-        ctx.fillStyle = 'rgba(168, 85, 247, 0.6)';
+
+        // Efek glow untuk partikel
+        ctx.shadowColor = 'rgba(168, 85, 247, 0.8)';
+        ctx.shadowBlur = 15;
+
+        // Warna partikel lebih terang
+        ctx.fillStyle = 'rgba(200, 170, 255, 0.9)';
+
         for (var i = 0; i < particles.length; i++) {
             var p = particles[i];
             ctx.globalAlpha = p.o;
@@ -44,6 +52,7 @@
             if (p.y > h) p.y = 0;
         }
         ctx.globalAlpha = 1;
+        ctx.shadowBlur = 0; // reset
         requestAnimationFrame(draw);
     }
     draw();
