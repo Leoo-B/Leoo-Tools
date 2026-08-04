@@ -3,39 +3,44 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="theme-color" content="#030008">
-    <title>⚡ All Tools Leoo</title>
+    <meta name="theme-color" content="#0f0e1a">
+    <title>⚡ Leoo Tools Pro</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Poppins:wght@300;400;500;600;700&display=swap">
 </head>
 <body>
-
-<!-- SPLASH SCREEN (loading awal) -->
+<!-- SPLASH SCREEN -->
 <div class="splash-screen" id="splash">
     <div class="nx-grid"></div>
-    <div class="nx-rings">
-        <div class="nx-ring"></div><div class="nx-ring"></div><div class="nx-ring"></div>
-        <div class="nx-ring"></div><div class="nx-ring"></div>
-    </div>
+    <div class="nx-rings"><div class="nx-ring"></div><div class="nx-ring"></div><div class="nx-ring"></div><div class="nx-ring"></div><div class="nx-ring"></div></div>
     <div class="nx-orb"></div>
     <div class="splash-title">All tools Leoo</div>
     <div class="splash-sub">By Galang</div>
-    <div class="nx-bar-wrap">
-        <div class="nx-bar-track"><div class="nx-bar-fill"></div></div>
-    </div>
+    <div class="nx-bar-wrap"><div class="nx-bar-track"><div class="nx-bar-fill"></div></div></div>
     <div class="nx-status" id="nexusShellStatus">menyiapkan tools</div>
 </div>
 
-<!-- DASHBOARD UTAMA -->
+<!-- DASHBOARD -->
 <div class="dashboard" id="dashboard">
     <!-- Navbar -->
     <div class="navbar">
-        <div class="brand">⚡ Leoo <small>V1.0</small></div>
+        <div class="brand">⚡ Leoo V 1.0 <small>v.2108</small></div>
         <div class="nav-search">
             <span>🔍</span>
-            <input type="text" id="searchInput" placeholder="Cari tools...">
+            <input type="text" id="searchInput" placeholder="Cari tools... (Ctrl+K)">
+            <span class="shortcut-hint">⌘K</span>
         </div>
-        <div style="font-size:1.2rem; opacity:0.4;">✨</div>
+        <div style="display:flex; gap:12px; align-items:center;">
+            <button class="theme-toggle" id="themeToggle" title="Toggle tema (Dark/Light)">🌙</button>
+            <span style="font-size:1.2rem; opacity:0.4;">✨</span>
+        </div>
+    </div>
+
+    <!-- Statistik -->
+    <div class="stats-bar" id="statsBar">
+        <span>📦 Total Tools: <strong id="totalTools">0</strong></span>
+        <span>🏷️ Kategori: <strong id="activeCategory">Semua</strong></span>
+        <span>🕒 Terakhir: <strong id="lastOpened">-</strong></span>
     </div>
 
     <!-- Filter Kategori -->
@@ -46,28 +51,24 @@
         <span class="chip" data-cat="text">📝 Text</span>
     </div>
 
-    <!-- Grid Tempat Tools -->
+    <!-- Grid Tools -->
     <div class="tools-grid" id="toolsGrid"></div>
 
-    <div class="footer-credit">⚡ Leoo Tools · By <span>Galang</span> 
+    <!-- Halaman Tool (Full Page) -->
+    <div class="tool-page" id="toolPage" style="display:none;">
+        <div class="tool-page-header">
+            <button class="btn-back" onclick="closeToolPage()">← Kembali</button>
+            <h2 id="toolPageTitle">Tool</h2>
+        </div>
+        <div class="tool-page-body" id="toolPageBody">
+            <!-- Konten tool akan diisi oleh tools.js -->
+        </div>
     </div>
-</div>
 
-<!-- MODAL POPUP -->
-<div class="modal-overlay" id="modal">
-    <div class="modal-box">
-        <div class="modal-header">
-            <h2 id="modalTitle">🚀 Tool</h2>
-            <button class="close-btn" onclick="closeModal()">✕</button>
-        </div>
-        <div class="modal-body" id="modalBody">
-            <!-- Konten dinamis diisi oleh tools.js -->
-        </div>
-    </div>
+    <div class="footer-credit">⚡ Leoo Tools Pro · Dihidupkan oleh <span>GeminiXD</span> · Shortcut: ESC tutup, Ctrl+K cari</div>
 </div>
 
 <script src="splash.js"></script>
 <script src="tools.js"></script>
-
 </body>
 </html>
