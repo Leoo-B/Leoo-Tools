@@ -1,13 +1,13 @@
 (function() {
-    // Tunggu 4.8 detik (sesuai animasi), lalu sembunyikan splash & tampilkan dashboard
+    // Splash durasi 5 detik (sesuai permintaan)
     setTimeout(function() {
         var splash = document.getElementById('splash');
         var dashboard = document.getElementById('dashboard');
         if (splash) splash.classList.add('hide');
         if (dashboard) dashboard.classList.add('active');
-    }, 4800);
+    }, 5000);
 
-    // Proteksi biar orang gabisa inspect element (kayak aslinya)
+    // Proteksi inspect element
     document.addEventListener('contextmenu', function(e) { e.preventDefault(); });
     document.addEventListener('keydown', function(e) {
         var key = String(e.key || '').toLowerCase();
