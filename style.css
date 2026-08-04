@@ -236,7 +236,7 @@ body {
     padding: 0 30px 40px;
     max-width: 1400px;
     margin: 0 auto;
-    background: rgba(var(--bg-primary-rgb), 0.70);
+    background: rgba(var(--bg-primary-rgb), 0.45);
     backdrop-filter: blur(4px);
     -webkit-backdrop-filter: blur(4px);
     border-left: 1px solid rgba(168,85,247,0.05);
