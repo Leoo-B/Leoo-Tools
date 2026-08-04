@@ -1,4 +1,5 @@
 (function() {
+    // Tampilkan splash selama 5 detik, lalu sembunyikan dan tampilkan dashboard
     setTimeout(function() {
         var splash = document.getElementById('splash');
         var dashboard = document.getElementById('dashboard');
@@ -6,10 +7,14 @@
         if (dashboard) dashboard.classList.add('active');
     }, 5000);
 
+    // Proteksi inspect
     document.addEventListener('contextmenu', function(e) { e.preventDefault(); });
     document.addEventListener('keydown', function(e) {
         var key = String(e.key || '').toLowerCase();
         var blocked = key === 'f12' || (e.ctrlKey && e.shiftKey && (key === 'i' || key === 'j' || key === 'c')) || (e.ctrlKey && key === 'u');
-        if (blocked) { e.preventDefault(); e.stopPropagation(); }
+        if (blocked) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
     });
 })();
