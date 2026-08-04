@@ -1,9 +1,9 @@
 // ==========================================
-// 1. PARTIKEL BACKGROUND (Bintang Jatuh Pelan)
+// 1. PARTIKEL BACKGROUND (Fix: pindah ke DOMContentLoaded)
 // ==========================================
-(function initParticles() {
+function initParticles() {
     var canvas = document.getElementById('particles-canvas');
-    if (!canvas) return;
+    if (!canvas) return; // kalo ga ada, keluar
     var ctx = canvas.getContext('2d');
     var particles = [];
     var w, h;
@@ -12,8 +12,8 @@
         w = canvas.width = window.innerWidth;
         h = canvas.height = window.innerHeight;
     }
+    resize(); // panggil langsung
     window.addEventListener('resize', resize);
-    resize();
 
     var count = Math.min(80, Math.floor((w * h) / 15000));
     for (var i = 0; i < count; i++) {
@@ -47,7 +47,7 @@
         requestAnimationFrame(draw);
     }
     draw();
-})();
+}
 
 // ==========================================
 // 2. TOAST NOTIFICATION
@@ -339,9 +339,12 @@ window.copyColor = function(type) {
 };
 
 // ==========================================
-// 9. EVENT LISTENER & INIT
+// 9. EVENT LISTENER & INIT (Partikel + lainnya)
 // ==========================================
 document.addEventListener('DOMContentLoaded', function() {
+    // Jalankan partikel setelah DOM ready
+    initParticles();
+
     // Theme Toggle
     var theme = localStorage.getItem('theme') || 'dark';
     document.documentElement.setAttribute('data-theme', theme);
