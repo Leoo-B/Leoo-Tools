@@ -147,24 +147,11 @@ window.openTool = function(toolId) {
     }
 };
 
-// ===== TUTUP TOOL PAGE =====
+// ===== TUTUP TOOL PAGE (Kembali ke Lobby) =====
 window.closeToolPage = function() {
     document.body.classList.remove('tool-open');
     document.getElementById('toolPage').classList.remove('active');
 };
-
-// ===== SHORTCUT =====
-document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape') {
-        if (document.body.classList.contains('tool-open')) {
-            closeToolPage();
-        }
-    }
-    if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
-        e.preventDefault();
-        document.getElementById('searchInput').focus();
-    }
-});
 
 // ===== TOGGLE THEMA =====
 document.addEventListener('DOMContentLoaded', function() {
@@ -193,7 +180,7 @@ document.addEventListener('DOMContentLoaded', function() {
     updateStats();
 });
 
-// ===== FUNGSI TOOLS (sama) =====
+// ===== FUNGSI TOOLS (semua berfungsi) =====
 window.generatePassword = function() {
     var len = parseInt(document.getElementById('passLength').value) || 16;
     var chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()_+-=[]{}|;:,.<>?';
@@ -201,12 +188,20 @@ window.generatePassword = function() {
     for (var i = 0; i < len; i++) pass += chars.charAt(Math.floor(Math.random() * chars.length));
     document.getElementById('passResult').textContent = pass;
 };
+
 window.formatJson = function() {
     var input = document.getElementById('jsonInput').value.trim();
     var result = document.getElementById('jsonResult');
-    try { var parsed = JSON.parse(input); result.textContent = JSON.stringify(parsed, null, 2); result.style.borderLeftColor = '#4ade80'; } 
-    catch(e) { result.textContent = '❌ Error: ' + e.message; result.style.borderLeftColor = '#f87171'; }
+    try {
+        var parsed = JSON.parse(input);
+        result.textContent = JSON.stringify(parsed, null, 2);
+        result.style.borderLeftColor = '#4ade80';
+    } catch(e) {
+        result.textContent = '❌ Error: ' + e.message;
+        result.style.borderLeftColor = '#f87171';
+    }
 };
+
 window.convertUnit = function() {
     var val = parseFloat(document.getElementById('unitInput').value);
     var dir = document.getElementById('unitDirection').value;
@@ -222,16 +217,25 @@ window.convertUnit = function() {
     }
     result.textContent = '✅ ' + output;
 };
+
 window.encodeBase64 = function() {
     var input = document.getElementById('base64Input').value;
-    try { document.getElementById('base64Result').textContent = btoa(unescape(encodeURIComponent(input))); } 
-    catch(e) { document.getElementById('base64Result').textContent = '❌ Gagal encode: ' + e.message; }
+    try {
+        document.getElementById('base64Result').textContent = btoa(unescape(encodeURIComponent(input)));
+    } catch(e) {
+        document.getElementById('base64Result').textContent = '❌ Gagal encode: ' + e.message;
+    }
 };
+
 window.decodeBase64 = function() {
     var input = document.getElementById('base64Input').value;
-    try { document.getElementById('base64Result').textContent = decodeURIComponent(escape(atob(input))); } 
-    catch(e) { document.getElementById('base64Result').textContent = '❌ Gagal decode (cek format base64): ' + e.message; }
+    try {
+        document.getElementById('base64Result').textContent = decodeURIComponent(escape(atob(input)));
+    } catch(e) {
+        document.getElementById('base64Result').textContent = '❌ Gagal decode (cek format base64): ' + e.message;
+    }
 };
+
 window.analyzeText = function() {
     var txt = document.getElementById('counterInput').value;
     var chars = txt.length;
@@ -239,12 +243,15 @@ window.analyzeText = function() {
     var lines = txt === '' ? 0 : txt.split(/\n/).length;
     var spaces = (txt.match(/ /g) || []).length;
     var sentences = (txt.match(/[.!?]+/g) || []).length;
-    document.getElementById('counterResult').innerHTML = '📊 <b>' + chars + '</b> huruf | <b>' + words + '</b> kata | <b>' + lines + '</b> baris | <b>' + spaces + '</b> spasi | <b>' + sentences + '</b> kalimat';
+    document.getElementById('counterResult').innerHTML =
+        '📊 <b>' + chars + '</b> huruf | <b>' + words + '</b> kata | <b>' + lines + '</b> baris | <b>' + spaces + '</b> spasi | <b>' + sentences + '</b> kalimat';
 };
+
 function hexToRgb(hex) {
     var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
     return result ? { r: parseInt(result[1],16), g: parseInt(result[2],16), b: parseInt(result[3],16) } : { r:0,g:0,b:0 };
 }
+
 window.copyColor = function(type) {
     var picker = document.getElementById('colorPicker');
     var val = picker.value;
