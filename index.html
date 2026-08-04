@@ -10,8 +10,8 @@
 </head>
 <body>
 
-<!-- CANVAS PARTIKEL (tapi pake DIV) -->
-<!-- PARTIKEL DIV bakal dibuat oleh tools.js -->
+<!-- CANVAS PARTIKEL -->
+<canvas id="particles-canvas"></canvas>
 
 <!-- TOAST CONTAINER -->
 <div class="toast-container" id="toastContainer"></div>
@@ -39,7 +39,10 @@
             <span>🔍</span>
             <input type="text" id="searchInput" placeholder="Cari tools...">
         </div>
-        <button class="theme-toggle" id="themeToggle" title="Toggle tema (Dark/Light)">🌙</button>
+        <div style="display:flex; gap:12px; align-items:center;">
+            <button class="theme-toggle" id="themeToggle" title="Toggle tema (Dark/Light)">🌙</button>
+            <span style="font-size:1.2rem; opacity:0.4;">✨</span>
+        </div>
     </div>
 
     <!-- Statistik -->
@@ -47,6 +50,7 @@
         <span>📦 Total Tools: <strong id="totalTools">0</strong></span>
         <span>🏷️ Kategori: <strong id="activeCategory">Semua</strong></span>
         <span>🕒 Terakhir: <strong id="lastOpened">-</strong></span>
+        <span>🚀 <strong id="usageCounter">0</strong> tools telah digunakan hari ini</span>
     </div>
 
     <!-- Filter Kategori -->
