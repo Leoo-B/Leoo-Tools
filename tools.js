@@ -1,9 +1,12 @@
 // ==========================================
-// 1. PARTIKEL BACKGROUND (Fix: pindah ke DOMContentLoaded)
+// 1. PARTIKEL BACKGROUND (Fix V2 - Lebih Robust)
 // ==========================================
 function initParticles() {
     var canvas = document.getElementById('particles-canvas');
-    if (!canvas) return; // kalo ga ada, keluar
+    if (!canvas) {
+        console.warn('Canvas partikel tidak ditemukan');
+        return;
+    }
     var ctx = canvas.getContext('2d');
     var particles = [];
     var w, h;
@@ -11,8 +14,14 @@ function initParticles() {
     function resize() {
         w = canvas.width = window.innerWidth;
         h = canvas.height = window.innerHeight;
+        // Pastikan canvas selalu di belakang
+        canvas.style.width = '100%';
+        canvas.style.height = '100%';
     }
-    resize(); // panggil langsung
+
+    // Panggil resize sekarang dan setelah 100ms (buat HP)
+    resize();
+    setTimeout(resize, 100);
     window.addEventListener('resize', resize);
 
     var count = Math.min(80, Math.floor((w * h) / 15000));
@@ -29,7 +38,8 @@ function initParticles() {
 
     function draw() {
         ctx.clearRect(0, 0, w, h);
-        ctx.fillStyle = 'rgba(168, 85, 247, 0.5)';
+        // Warna bintang: ungu muda dengan transparansi
+        ctx.fillStyle = 'rgba(168, 85, 247, 0.6)';
         for (var i = 0; i < particles.length; i++) {
             var p = particles[i];
             ctx.globalAlpha = p.o;
@@ -339,10 +349,10 @@ window.copyColor = function(type) {
 };
 
 // ==========================================
-// 9. EVENT LISTENER & INIT (Partikel + lainnya)
+// 9. INIT (Partikel + Lainnya)
 // ==========================================
 document.addEventListener('DOMContentLoaded', function() {
-    // Jalankan partikel setelah DOM ready
+    // Jalankan partikel
     initParticles();
 
     // Theme Toggle
@@ -371,4 +381,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
     renderTools();
     updateStats();
+
+    // Extra: resize ulang setelah 500ms buat jaga-jaga
+    setTimeout(function() {
+        window.dispatchEvent(new Event('resize'));
+    }, 500);
 });
