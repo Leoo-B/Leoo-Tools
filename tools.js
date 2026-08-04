@@ -1,62 +1,21 @@
 // ==========================================
-// 1. PARTIKEL BACKGROUND (Fix V2 - Lebih Robust)
+// 1. PARTIKEL DIV (Lebih Ringan & Pasti Muncul)
 // ==========================================
-function initParticles() {
-    var canvas = document.getElementById('particles-canvas');
-    if (!canvas) {
-        console.warn('Canvas partikel tidak ditemukan');
-        return;
-    }
-    var ctx = canvas.getContext('2d');
-    var particles = [];
-    var w, h;
-
-    function resize() {
-        w = canvas.width = window.innerWidth;
-        h = canvas.height = window.innerHeight;
-        // Pastikan canvas selalu di belakang
-        canvas.style.width = '100%';
-        canvas.style.height = '100%';
-    }
-
-    // Panggil resize sekarang dan setelah 100ms (buat HP)
-    resize();
-    setTimeout(resize, 100);
-    window.addEventListener('resize', resize);
-
-    var count = Math.min(80, Math.floor((w * h) / 15000));
+function createParticlesDiv() {
+    var count = 35; // jumlah bintang
     for (var i = 0; i < count; i++) {
-        particles.push({
-            x: Math.random() * w,
-            y: Math.random() * h,
-            r: Math.random() * 2 + 0.5,
-            dx: (Math.random() - 0.5) * 0.3,
-            dy: (Math.random() - 0.5) * 0.3,
-            o: Math.random() * 0.5 + 0.3
-        });
+        var el = document.createElement('div');
+        el.className = 'particle';
+        var size = Math.random() * 4 + 2; // 2–6px
+        el.style.width = size + 'px';
+        el.style.height = size + 'px';
+        el.style.left = Math.random() * 100 + '%';
+        el.style.top = Math.random() * 100 + '%';
+        el.style.animationDuration = (Math.random() * 15 + 10) + 's'; // 10–25 detik
+        el.style.animationDelay = (Math.random() * 15) + 's';
+        el.style.background = 'rgba(168, 85, 247, ' + (Math.random() * 0.5 + 0.3) + ')';
+        document.body.appendChild(el);
     }
-
-    function draw() {
-        ctx.clearRect(0, 0, w, h);
-        // Warna bintang: ungu muda dengan transparansi
-        ctx.fillStyle = 'rgba(168, 85, 247, 0.6)';
-        for (var i = 0; i < particles.length; i++) {
-            var p = particles[i];
-            ctx.globalAlpha = p.o;
-            ctx.beginPath();
-            ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-            ctx.fill();
-            p.x += p.dx;
-            p.y += p.dy;
-            if (p.x < 0) p.x = w;
-            if (p.x > w) p.x = 0;
-            if (p.y < 0) p.y = h;
-            if (p.y > h) p.y = 0;
-        }
-        ctx.globalAlpha = 1;
-        requestAnimationFrame(draw);
-    }
-    draw();
 }
 
 // ==========================================
@@ -93,7 +52,7 @@ function showToast(message) {
 })();
 
 // ==========================================
-// 4. DATA TOOLS
+// 4. DATA TOOLS (tetap sama)
 // ==========================================
 var tools = [
     { name: "Password Generator", icon: "🔑", cat: "utility", desc: "Bikin password super kuat.", id: "password" },
@@ -157,7 +116,7 @@ function renderTools() {
 }
 
 // ==========================================
-// 7. BUKA / TUTUP TOOL
+// 7. BUKA / TUTUP TOOL (sama)
 // ==========================================
 window.openTool = function(toolId) {
     var tool = tools.find(function(t) { return t.id === toolId; });
@@ -252,7 +211,7 @@ window.closeToolPage = function() {
 };
 
 // ==========================================
-// 8. FUNGSI TOOLS (dengan Toast)
+// 8. FUNGSI TOOLS (sama)
 // ==========================================
 window.generatePassword = function() {
     var len = parseInt(document.getElementById('passLength').value) || 16;
@@ -349,11 +308,11 @@ window.copyColor = function(type) {
 };
 
 // ==========================================
-// 9. INIT (Partikel + Lainnya)
+// 9. INIT
 // ==========================================
 document.addEventListener('DOMContentLoaded', function() {
-    // Jalankan partikel
-    initParticles();
+    // Buat partikel div (pengganti canvas)
+    createParticlesDiv();
 
     // Theme Toggle
     var theme = localStorage.getItem('theme') || 'dark';
@@ -381,9 +340,4 @@ document.addEventListener('DOMContentLoaded', function() {
 
     renderTools();
     updateStats();
-
-    // Extra: resize ulang setelah 500ms buat jaga-jaga
-    setTimeout(function() {
-        window.dispatchEvent(new Event('resize'));
-    }, 500);
 });
