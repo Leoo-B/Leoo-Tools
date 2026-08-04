@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#030008">
+    <title>⚡ All Tools Nexus · Real Edition</title>
+    <!-- Panggil file CSS eksternal -->
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Poppins:wght@300;400;500;600;700&display=swap">
+</head>
+<body>
+
+<!-- SPLASH SCREEN (loading awal) -->
+<div class="splash-screen" id="splash">
+    <div class="nx-grid"></div>
+    <div class="nx-rings">
+        <div class="nx-ring"></div><div class="nx-ring"></div><div class="nx-ring"></div>
+        <div class="nx-ring"></div><div class="nx-ring"></div>
+    </div>
+    <div class="nx-orb"></div>
+    <div class="splash-title">⚡ All Tools Nexus</div>
+    <div class="splash-sub">by Vyan · Real Edition</div>
+    <div class="nx-bar-wrap">
+        <div class="nx-bar-track"><div class="nx-bar-fill"></div></div>
+    </div>
+    <div class="nx-status" id="nexusShellStatus">Mengaktifkan tools asli...</div>
+</div>
+
+<!-- DASHBOARD UTAMA -->
+<div class="dashboard" id="dashboard">
+    <!-- Navbar -->
+    <div class="navbar">
+        <div class="brand">⚡ NEXUS <small>v.2108</small></div>
+        <div class="nav-search">
+            <span>🔍</span>
+            <input type="text" id="searchInput" placeholder="Cari tools...">
+        </div>
+        <div style="font-size:1.2rem; opacity:0.4;">✨</div>
+    </div>
+
+    <!-- Filter Kategori -->
+    <div class="categories" id="categoryFilter">
+        <span class="chip active" data-cat="all">⚡ Semua</span>
+        <span class="chip" data-cat="utility">🛠 Utility</span>
+        <span class="chip" data-cat="dev">💻 Dev</span>
+        <span class="chip" data-cat="text">📝 Text</span>
+    </div>
+
+    <!-- Grid Tempat Tools -->
+    <div class="tools-grid" id="toolsGrid"></div>
+
+    <div class="footer-credit">⚡ Nexus Clone · Dihidupkan oleh <span>GeminiXD</span> · Beneran Jalan!</div>
+</div>
+
+<!-- MODAL POPUP (buat interaksi tools) -->
+<div class="modal-overlay" id="modal">
+    <div class="modal-box">
+        <div class="modal-header">
+            <h2 id="modalTitle">🚀 Tool</h2>
+            <button class="close-btn" onclick="closeModal()">✕</button>
+        </div>
+        <div class="modal-body" id="modalBody">
+            <!-- Konten dinamis diisi oleh tools.js -->
+        </div>
+    </div>
+</div>
+
+<!-- Panggil file JavaScript eksternal (URUTAN PENTING!) -->
+<script src="splash.js"></script>
+<script src="tools.js"></script>
+
+</body>
+</html>
