@@ -41,7 +41,7 @@ body {
 }
 
 /* ============================================================
-   PARTIKEL DIV (NEON GLOW) - PASTI MUNCUL & TEMBUS DI BELAKANG
+   PARTIKEL DIV (NEON GLOW) - TEMBUS DI BELAKANG
    ============================================================ */
 .particle {
     position: fixed;
@@ -58,14 +58,10 @@ body {
     100% { transform: translateY(0px) translateX(0px) scale(1); opacity: 0.3; }
 }
 
-/* KONTEN UTAMA ADA DI ATAS PARTIKEL, TAPI BACKGROUNDNYA TEMBUS PANDANG */
-.dashboard, .splash-screen { 
-    position: relative; 
-    z-index: 1; 
-}
+.dashboard, .splash-screen { position: relative; z-index: 1; }
 
 /* ============================================================
-   SPLASH SCREEN (LOADING)
+   SPLASH SCREEN
    ============================================================ */
 .splash-screen {
     position: fixed; inset: 0; z-index: 9999; background: #0f0e1a;
@@ -143,28 +139,32 @@ body {
 @keyframes nxFadeUp { from { opacity:0; transform:translateY(9px); } to { opacity:1; transform:translateY(0); } }
 
 /* ============================================================
-   DASHBOARD (BACKGROUND SEMI-TRANSPARAN BIAR PARTIKEL TEMBUS)
+   DASHBOARD - LEBIH TRANSPARAN (GLASSMORPHISM)
    ============================================================ */
 .dashboard { 
     display: none; 
     padding: 20px 30px 40px; 
     max-width:1400px; 
     margin:0 auto;
-    background: rgba(var(--bg-primary-rgb), 0.88);
-    backdrop-filter: blur(2px);
-    -webkit-backdrop-filter: blur(2px);
+    background: rgba(var(--bg-primary-rgb), 0.70); /* Lebih transparan dari 0.88 */
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
     min-height:100vh;
     transition: background var(--transition);
+    border-left: 1px solid rgba(168,85,247,0.05);
+    border-right: 1px solid rgba(168,85,247,0.05);
 }
 .dashboard.active { display: block; }
 
-/* Elemen-elemen di dalam dashboard tetap solid biar teks kebaca */
+/* Elemen di dalam dashboard tetap solid biar teks kebaca */
 .navbar, .stats-bar, .categories, .tools-grid, .tool-page, .footer-credit {
     position: relative;
     z-index: 2;
 }
 
-/* Navbar */
+/* ============================================================
+   Navbar, Stats, Categories, Tools Grid, Tool Page (Tetap Sama)
+   ============================================================ */
 .navbar {
     display: flex; justify-content: space-between; align-items: center;
     padding:18px 0; border-bottom:1px solid var(--border-color);
@@ -194,7 +194,6 @@ body {
 }
 .theme-toggle:hover { background:var(--bg-card-hover); border-color:var(--accent); }
 
-/* Statistik */
 .stats-bar {
     display:flex; flex-wrap:wrap; gap:12px 20px;
     padding:12px 0 10px; border-bottom:1px solid var(--border-color);
@@ -202,7 +201,6 @@ body {
 }
 .stats-bar strong { color:var(--text-primary); font-weight:600; }
 
-/* Kategori */
 .categories {
     display:flex; flex-wrap:wrap; gap:8px;
     margin:16px 0 20px; padding-bottom:14px;
@@ -217,7 +215,6 @@ body {
 .chip:hover { background:var(--bg-card-hover); color:var(--text-primary); border-color:var(--border-color); }
 .chip.active { background:var(--accent); color:#fff; border-color:var(--accent); box-shadow:0 0 25px var(--accent-glow); }
 
-/* Grid Tools */
 .tools-grid {
     display:grid; grid-template-columns:repeat(auto-fill, minmax(170px,1fr));
     gap:20px; margin-top:6px;
@@ -248,7 +245,6 @@ body {
     color:var(--accent-light); letter-spacing:0.5px;
 }
 
-/* Skeleton Loading */
 .skeleton {
     background:var(--bg-card); border-radius:24px; padding:22px 18px;
     border:1px solid var(--border-color); animation:pulse 1.5s ease-in-out infinite;
@@ -259,7 +255,7 @@ body {
 @keyframes pulse { 0%,100%{ opacity:0.5; } 50%{ opacity:1; } }
 
 /* ============================================================
-   TOAST NOTIFICATION
+   TOAST, SCROLL TOP, TOOL PAGE (SAMA)
    ============================================================ */
 .toast-container {
     position:fixed; bottom:30px; left:50%; transform:translateX(-50%);
@@ -283,9 +279,6 @@ body {
     to { opacity:0; transform:translateY(-20px) scale(0.95); }
 }
 
-/* ============================================================
-   SCROLL TO TOP BUTTON
-   ============================================================ */
 .scroll-top {
     position:fixed; bottom:80px; right:20px; z-index:999;
     width:50px; height:50px; border-radius:50%;
@@ -299,9 +292,6 @@ body {
 .scroll-top:hover { transform:scale(1.1); opacity:1; background:var(--accent-light); }
 .scroll-top.show { display:flex; }
 
-/* ============================================================
-   TOOL PAGE (FULLSCREEN)
-   ============================================================ */
 .tool-page {
     display:none; position:relative; padding:10px 0 30px;
     animation:fadeIn 0.3s ease;
@@ -363,7 +353,6 @@ body {
     border-left:3px solid var(--accent-light);
 }
 
-/* Saat tool page aktif, sembunyikan elemen navbar tertentu */
 body.tool-open .nav-search,
 body.tool-open .theme-toggle { display:none !important; }
 body.tool-open .stats-bar,
@@ -371,7 +360,6 @@ body.tool-open .categories,
 body.tool-open .tools-grid { display:none !important; }
 body.tool-open .tool-page { display:block !important; }
 
-/* Footer */
 .footer-credit {
     margin-top:50px; text-align:center; font-size:0.65rem;
     color:var(--text-secondary); opacity:0.4; letter-spacing:3px;
@@ -380,15 +368,11 @@ body.tool-open .tool-page { display:block !important; }
 }
 .footer-credit span { color:var(--accent); opacity:0.7; }
 
-/* Animasi tambahan */
 @keyframes fadeIn {
     from { opacity:0; transform:translateY(12px); }
     to { opacity:1; transform:translateY(0); }
 }
 
-/* ============================================================
-   RESPONSIVE (HP)
-   ============================================================ */
 @media (max-width:600px) {
     .dashboard { padding:15px; }
     .brand { font-size:1.3rem; }
@@ -397,4 +381,4 @@ body.tool-open .tool-page { display:block !important; }
     .tool-page-header h2 { font-size:1.1rem; }
     .tool-page-body { padding:0 4px; }
     .scroll-top { width:44px; height:44px; font-size:1.2rem; bottom:70px; right:15px; }
-              }
+                            }
