@@ -1,17 +1,17 @@
 // ==========================================
-// 1. PARTIKEL DIV (Lebih Ringan & Pasti Muncul)
+// 1. PARTIKEL DIV (NEON GLOW)
 // ==========================================
 function createParticlesDiv() {
-    var count = 35; // jumlah bintang
+    var count = 35;
     for (var i = 0; i < count; i++) {
         var el = document.createElement('div');
         el.className = 'particle';
-        var size = Math.random() * 4 + 2; // 2–6px
+        var size = Math.random() * 4 + 2;
         el.style.width = size + 'px';
         el.style.height = size + 'px';
         el.style.left = Math.random() * 100 + '%';
         el.style.top = Math.random() * 100 + '%';
-        el.style.animationDuration = (Math.random() * 15 + 10) + 's'; // 10–25 detik
+        el.style.animationDuration = (Math.random() * 15 + 10) + 's';
         el.style.animationDelay = (Math.random() * 15) + 's';
         el.style.background = 'rgba(168, 85, 247, ' + (Math.random() * 0.5 + 0.3) + ')';
         document.body.appendChild(el);
@@ -52,7 +52,7 @@ function showToast(message) {
 })();
 
 // ==========================================
-// 4. DATA TOOLS (tetap sama)
+// 4. DATA TOOLS
 // ==========================================
 var tools = [
     { name: "Password Generator", icon: "🔑", cat: "utility", desc: "Bikin password super kuat.", id: "password" },
@@ -116,7 +116,7 @@ function renderTools() {
 }
 
 // ==========================================
-// 7. BUKA / TUTUP TOOL (sama)
+// 7. BUKA / TUTUP TOOL
 // ==========================================
 window.openTool = function(toolId) {
     var tool = tools.find(function(t) { return t.id === toolId; });
@@ -211,7 +211,7 @@ window.closeToolPage = function() {
 };
 
 // ==========================================
-// 8. FUNGSI TOOLS (sama)
+// 8. FUNGSI TOOLS (dengan Toast)
 // ==========================================
 window.generatePassword = function() {
     var len = parseInt(document.getElementById('passLength').value) || 16;
@@ -311,10 +311,8 @@ window.copyColor = function(type) {
 // 9. INIT
 // ==========================================
 document.addEventListener('DOMContentLoaded', function() {
-    // Buat partikel div (pengganti canvas)
     createParticlesDiv();
 
-    // Theme Toggle
     var theme = localStorage.getItem('theme') || 'dark';
     document.documentElement.setAttribute('data-theme', theme);
     var toggle = document.getElementById('themeToggle');
@@ -328,7 +326,6 @@ document.addEventListener('DOMContentLoaded', function() {
         showToast(next === 'dark' ? '🌙 Mode Gelap' : '☀️ Mode Terang');
     });
 
-    // Search & Filter
     document.getElementById('searchInput').addEventListener('input', function() { renderTools(); });
     document.querySelectorAll('.chip').forEach(function(chip) {
         chip.addEventListener('click', function() {
