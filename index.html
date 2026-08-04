@@ -10,19 +10,16 @@
 </head>
 <body>
 
-<!-- CANVAS PARTIKEL -->
 <canvas id="particles-canvas"></canvas>
-
-<!-- TOAST CONTAINER -->
 <div class="toast-container" id="toastContainer"></div>
-
-<!-- SCROLL TO TOP -->
 <button class="scroll-top" id="scrollTopBtn" title="Ke Atas">↑</button>
 
 <!-- SPLASH SCREEN -->
 <div class="splash-screen" id="splash">
     <div class="nx-grid"></div>
-    <div class="nx-rings"><div class="nx-ring"></div><div class="nx-ring"></div><div class="nx-ring"></div><div class="nx-ring"></div><div class="nx-ring"></div></div>
+    <div class="nx-rings">
+        <div class="nx-ring"></div><div class="nx-ring"></div><div class="nx-ring"></div><div class="nx-ring"></div><div class="nx-ring"></div>
+    </div>
     <div class="nx-orb"></div>
     <div class="splash-title">All tools Leoo</div>
     <div class="splash-sub">By Galang</div>
@@ -32,7 +29,6 @@
 
 <!-- DASHBOARD -->
 <div class="dashboard" id="dashboard">
-    <!-- Navbar -->
     <div class="navbar">
         <div class="brand">⚡ Leoo V 1.0 <small>V 1.0</small></div>
         <div class="nav-search" id="navSearch">
@@ -45,7 +41,6 @@
         </div>
     </div>
 
-    <!-- Statistik -->
     <div class="stats-bar" id="statsBar">
         <span>📦 Total Tools: <strong id="totalTools">0</strong></span>
         <span>🏷️ Kategori: <strong id="activeCategory">Semua</strong></span>
@@ -53,7 +48,6 @@
         <span>🚀 <strong id="usageCounter">0</strong> tools telah digunakan hari ini</span>
     </div>
 
-    <!-- Filter Kategori -->
     <div class="categories" id="categoryFilter">
         <span class="chip active" data-cat="all">⚡ Semua</span>
         <span class="chip" data-cat="utility">🛠 Utility</span>
@@ -61,10 +55,8 @@
         <span class="chip" data-cat="text">📝 Text</span>
     </div>
 
-    <!-- Grid Tools -->
     <div class="tools-grid" id="toolsGrid"></div>
 
-    <!-- Halaman Tool (Full Page) -->
     <div class="tool-page" id="toolPage" style="display:none;">
         <div class="tool-page-header">
             <button class="btn-back" onclick="closeToolPage()">← Back Lobby</button>
