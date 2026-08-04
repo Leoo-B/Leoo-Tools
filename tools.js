@@ -59,17 +59,33 @@
 })();
 
 // ==========================================
-// TOAST
+// TOAST – MAKSIMAL 3 TUMPUKAN
 // ==========================================
 function showToast(message) {
     var container = document.getElementById('toastContainer');
     if (!container) return;
+
+    // Hapus toast paling lama jika sudah ada 3
+    var currentToasts = container.querySelectorAll('.toast');
+    if (currentToasts.length >= 3) {
+        var oldestToast = currentToasts[0];
+        if (oldestToast) {
+            // Hapus langsung tanpa animasi biar cepat
+            oldestToast.remove();
+        }
+    }
+
+    // Buat toast baru
     var toast = document.createElement('div');
     toast.className = 'toast';
     toast.textContent = message;
     container.appendChild(toast);
+
+    // Hapus otomatis setelah 3 detik
     setTimeout(function() {
-        if (toast.parentNode) toast.remove();
+        if (toast.parentNode) {
+            toast.remove();
+        }
     }, 3000);
 }
 
