@@ -1,21 +1,57 @@
 // ==========================================
-// 1. PARTIKEL DIV (NEON GLOW)
+// COUNTER PENGGUNAAN
 // ==========================================
-function createParticlesDiv() {
-    var count = 35;
-    for (var i = 0; i < count; i++) {
-        var el = document.createElement('div');
-        el.className = 'particle';
-        var size = Math.random() * 4 + 2;
-        el.style.width = size + 'px';
-        el.style.height = size + 'px';
-        el.style.left = Math.random() * 100 + '%';
-        el.style.top = Math.random() * 100 + '%';
-        el.style.animationDuration = (Math.random() * 15 + 10) + 's';
-        el.style.animationDelay = (Math.random() * 15) + 's';
-        el.style.background = 'rgba(168, 85, 247, ' + (Math.random() * 0.5 + 0.3) + ')';
-        document.body.appendChild(el);
+var totalUsage = parseInt(localStorage.getItem('totalUsage')) || 0;
+
+// ==========================================
+// 1. PARTIKEL BACKGROUND (Canvas)
+// ==========================================
+function initParticles() {
+    var canvas = document.getElementById('particles-canvas');
+    if (!canvas) return;
+    var ctx = canvas.getContext('2d');
+    var particles = [];
+    var w, h;
+
+    function resize() {
+        w = canvas.width = window.innerWidth;
+        h = canvas.height = window.innerHeight;
     }
+    resize();
+    window.addEventListener('resize', resize);
+
+    var count = Math.min(80, Math.floor((w * h) / 15000));
+    for (var i = 0; i < count; i++) {
+        particles.push({
+            x: Math.random() * w,
+            y: Math.random() * h,
+            r: Math.random() * 2 + 0.5,
+            dx: (Math.random() - 0.5) * 0.3,
+            dy: (Math.random() - 0.5) * 0.3,
+            o: Math.random() * 0.5 + 0.3
+        });
+    }
+
+    function draw() {
+        ctx.clearRect(0, 0, w, h);
+        ctx.fillStyle = 'rgba(168, 85, 247, 0.6)';
+        for (var i = 0; i < particles.length; i++) {
+            var p = particles[i];
+            ctx.globalAlpha = p.o;
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+            ctx.fill();
+            p.x += p.dx;
+            p.y += p.dy;
+            if (p.x < 0) p.x = w;
+            if (p.x > w) p.x = 0;
+            if (p.y < 0) p.y = h;
+            if (p.y > h) p.y = 0;
+        }
+        ctx.globalAlpha = 1;
+        requestAnimationFrame(draw);
+    }
+    draw();
 }
 
 // ==========================================
@@ -77,7 +113,32 @@ function updateStats() {
 }
 
 // ==========================================
-// 6. RENDER GRID
+// 6. COUNTER + ANIMASI COUNT-UP
+// ==========================================
+function updateUsageCounter() {
+    var el = document.getElementById('usageCounter');
+    if (!el) return;
+    var oldVal = parseInt(el.textContent) || 0;
+    var newVal = totalUsage;
+    var duration = 400;
+    var startTime = performance.now();
+
+    function animateCount(now) {
+        var elapsed = now - startTime;
+        var progress = Math.min(elapsed / duration, 1);
+        var current = Math.floor(oldVal + (newVal - oldVal) * progress);
+        el.textContent = current;
+        if (progress < 1) {
+            requestAnimationFrame(animateCount);
+        } else {
+            el.textContent = newVal;
+        }
+    }
+    requestAnimationFrame(animateCount);
+}
+
+// ==========================================
+// 7. RENDER GRID
 // ==========================================
 function renderTools() {
     var grid = document.getElementById('toolsGrid');
@@ -116,7 +177,7 @@ function renderTools() {
 }
 
 // ==========================================
-// 7. BUKA / TUTUP TOOL
+// 8. BUKA / TUTUP TOOL
 // ==========================================
 window.openTool = function(toolId) {
     var tool = tools.find(function(t) { return t.id === toolId; });
@@ -211,7 +272,7 @@ window.closeToolPage = function() {
 };
 
 // ==========================================
-// 8. FUNGSI TOOLS (dengan Toast)
+// 9. FUNGSI TOOLS (dengan counter)
 // ==========================================
 window.generatePassword = function() {
     var len = parseInt(document.getElementById('passLength').value) || 16;
@@ -220,6 +281,9 @@ window.generatePassword = function() {
     for (var i = 0; i < len; i++) pass += chars.charAt(Math.floor(Math.random() * chars.length));
     document.getElementById('passResult').textContent = pass;
     showToast('🔑 Password berhasil digenerate!');
+    totalUsage += 1;
+    localStorage.setItem('totalUsage', totalUsage);
+    updateUsageCounter();
 };
 
 window.formatJson = function() {
@@ -235,13 +299,20 @@ window.formatJson = function() {
         result.style.borderLeftColor = '#f87171';
         showToast('❌ Error JSON: ' + e.message);
     }
+    totalUsage += 1;
+    localStorage.setItem('totalUsage', totalUsage);
+    updateUsageCounter();
 };
 
 window.convertUnit = function() {
     var val = parseFloat(document.getElementById('unitInput').value);
     var dir = document.getElementById('unitDirection').value;
     var result = document.getElementById('unitResult');
-    if (isNaN(val)) { result.textContent = '⚠️ Masukkan angka dulu bro!'; showToast('⚠️ Masukkan angka!'); return; }
+    if (isNaN(val)) {
+        result.textContent = '⚠️ Masukkan angka dulu bro!';
+        showToast('⚠️ Masukkan angka!');
+        return;
+    }
     var output = '';
     switch(dir) {
         case 'CF': output = val + '°C = ' + (val * 9/5 + 32).toFixed(2) + '°F'; break;
@@ -252,6 +323,9 @@ window.convertUnit = function() {
     }
     result.textContent = '✅ ' + output;
     showToast('🌡️ Konversi selesai!');
+    totalUsage += 1;
+    localStorage.setItem('totalUsage', totalUsage);
+    updateUsageCounter();
 };
 
 window.encodeBase64 = function() {
@@ -263,6 +337,9 @@ window.encodeBase64 = function() {
         document.getElementById('base64Result').textContent = '❌ Gagal encode: ' + e.message;
         showToast('❌ Gagal encode');
     }
+    totalUsage += 1;
+    localStorage.setItem('totalUsage', totalUsage);
+    updateUsageCounter();
 };
 
 window.decodeBase64 = function() {
@@ -274,6 +351,9 @@ window.decodeBase64 = function() {
         document.getElementById('base64Result').textContent = '❌ Gagal decode (cek format base64): ' + e.message;
         showToast('❌ Gagal decode');
     }
+    totalUsage += 1;
+    localStorage.setItem('totalUsage', totalUsage);
+    updateUsageCounter();
 };
 
 window.analyzeText = function() {
@@ -285,6 +365,9 @@ window.analyzeText = function() {
     var sentences = (txt.match(/[.!?]+/g) || []).length;
     document.getElementById('counterResult').innerHTML = '📊 <b>' + chars + '</b> huruf | <b>' + words + '</b> kata | <b>' + lines + '</b> baris | <b>' + spaces + '</b> spasi | <b>' + sentences + '</b> kalimat';
     showToast('📊 Analisis teks selesai!');
+    totalUsage += 1;
+    localStorage.setItem('totalUsage', totalUsage);
+    updateUsageCounter();
 };
 
 function hexToRgb(hex) {
@@ -302,17 +385,22 @@ window.copyColor = function(type) {
         var res = document.getElementById('colorResult');
         res.textContent = '✅ "' + text + '" berhasil di-copy!';
         setTimeout(function() { res.innerHTML = 'HEX: ' + val + ' | RGB: rgb(' + rgb.r + ',' + rgb.g + ',' + rgb.b + ')'; }, 2000);
+        totalUsage += 1;
+        localStorage.setItem('totalUsage', totalUsage);
+        updateUsageCounter();
     }).catch(function() {
         showToast('⚠️ Gagal copy, silakan salin manual');
     });
 };
 
 // ==========================================
-// 9. INIT
+// 10. INIT
 // ==========================================
 document.addEventListener('DOMContentLoaded', function() {
-    createParticlesDiv();
+    // Partikel
+    initParticles();
 
+    // Theme Toggle
     var theme = localStorage.getItem('theme') || 'dark';
     document.documentElement.setAttribute('data-theme', theme);
     var toggle = document.getElementById('themeToggle');
@@ -326,6 +414,7 @@ document.addEventListener('DOMContentLoaded', function() {
         showToast(next === 'dark' ? '🌙 Mode Gelap' : '☀️ Mode Terang');
     });
 
+    // Search & Filter
     document.getElementById('searchInput').addEventListener('input', function() { renderTools(); });
     document.querySelectorAll('.chip').forEach(function(chip) {
         chip.addEventListener('click', function() {
@@ -334,6 +423,9 @@ document.addEventListener('DOMContentLoaded', function() {
             renderTools();
         });
     });
+
+    // Init counter
+    document.getElementById('usageCounter').textContent = totalUsage;
 
     renderTools();
     updateStats();
