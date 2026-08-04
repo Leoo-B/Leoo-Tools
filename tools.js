@@ -1,4 +1,90 @@
-// ===== DATA TOOLS =====
+// ==========================================
+// 1. PARTIKEL BACKGROUND (Bintang Jatuh Pelan)
+// ==========================================
+(function initParticles() {
+    var canvas = document.getElementById('particles-canvas');
+    if (!canvas) return;
+    var ctx = canvas.getContext('2d');
+    var particles = [];
+    var w, h;
+
+    function resize() {
+        w = canvas.width = window.innerWidth;
+        h = canvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resize);
+    resize();
+
+    var count = Math.min(80, Math.floor((w * h) / 15000));
+    for (var i = 0; i < count; i++) {
+        particles.push({
+            x: Math.random() * w,
+            y: Math.random() * h,
+            r: Math.random() * 2 + 0.5,
+            dx: (Math.random() - 0.5) * 0.3,
+            dy: (Math.random() - 0.5) * 0.3,
+            o: Math.random() * 0.5 + 0.3
+        });
+    }
+
+    function draw() {
+        ctx.clearRect(0, 0, w, h);
+        ctx.fillStyle = 'rgba(168, 85, 247, 0.5)';
+        for (var i = 0; i < particles.length; i++) {
+            var p = particles[i];
+            ctx.globalAlpha = p.o;
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+            ctx.fill();
+            p.x += p.dx;
+            p.y += p.dy;
+            if (p.x < 0) p.x = w;
+            if (p.x > w) p.x = 0;
+            if (p.y < 0) p.y = h;
+            if (p.y > h) p.y = 0;
+        }
+        ctx.globalAlpha = 1;
+        requestAnimationFrame(draw);
+    }
+    draw();
+})();
+
+// ==========================================
+// 2. TOAST NOTIFICATION
+// ==========================================
+function showToast(message) {
+    var container = document.getElementById('toastContainer');
+    if (!container) return;
+    var toast = document.createElement('div');
+    toast.className = 'toast';
+    toast.textContent = message;
+    container.appendChild(toast);
+    setTimeout(function() {
+        if (toast.parentNode) toast.remove();
+    }, 3000);
+}
+
+// ==========================================
+// 3. SCROLL TO TOP
+// ==========================================
+(function() {
+    var btn = document.getElementById('scrollTopBtn');
+    if (!btn) return;
+    window.addEventListener('scroll', function() {
+        if (window.scrollY > 300) {
+            btn.classList.add('show');
+        } else {
+            btn.classList.remove('show');
+        }
+    });
+    btn.addEventListener('click', function() {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+})();
+
+// ==========================================
+// 4. DATA TOOLS
+// ==========================================
 var tools = [
     { name: "Password Generator", icon: "🔑", cat: "utility", desc: "Bikin password super kuat.", id: "password" },
     { name: "JSON Formatter", icon: "📋", cat: "dev", desc: "Rapihin & validasi JSON.", id: "json" },
@@ -8,10 +94,12 @@ var tools = [
     { name: "Color Picker Pro", icon: "🎨", cat: "utility", desc: "Pilih warna + salin kode.", id: "color" },
 ];
 
-// ===== STATISTIK =====
+// ==========================================
+// 5. STATISTIK
+// ==========================================
 var lastOpened = localStorage.getItem('lastOpened') || '-';
 
-function updateStats(category) {
+function updateStats() {
     document.getElementById('totalTools').textContent = tools.length;
     var activeChip = document.querySelector('.chip.active');
     var cat = activeChip ? activeChip.textContent.trim() : 'Semua';
@@ -19,7 +107,9 @@ function updateStats(category) {
     document.getElementById('lastOpened').textContent = lastOpened;
 }
 
-// ===== RENDER GRID =====
+// ==========================================
+// 6. RENDER GRID
+// ==========================================
 function renderTools() {
     var grid = document.getElementById('toolsGrid');
     var searchVal = document.getElementById('searchInput').value.toLowerCase();
@@ -56,17 +146,17 @@ function renderTools() {
     }, 300);
 }
 
-// ===== BUKA TOOL (Full Page) =====
+// ==========================================
+// 7. BUKA / TUTUP TOOL
+// ==========================================
 window.openTool = function(toolId) {
     var tool = tools.find(function(t) { return t.id === toolId; });
     if (!tool) return;
 
-    // Simpan ke localStorage
     lastOpened = tool.name;
     localStorage.setItem('lastOpened', lastOpened);
     updateStats();
 
-    // Sembunyikan grid & kategori, tampilkan halaman tool
     document.body.classList.add('tool-open');
     document.getElementById('toolPage').classList.add('active');
     document.getElementById('toolPageTitle').textContent = tool.icon + ' ' + tool.name;
@@ -131,7 +221,6 @@ window.openTool = function(toolId) {
     }
     body.innerHTML = html;
 
-    // Event khusus color picker
     if (toolId === 'color') {
         setTimeout(function() {
             var picker = document.getElementById('colorPicker');
@@ -147,46 +236,21 @@ window.openTool = function(toolId) {
     }
 };
 
-// ===== TUTUP TOOL PAGE (Kembali ke Lobby) =====
 window.closeToolPage = function() {
     document.body.classList.remove('tool-open');
     document.getElementById('toolPage').classList.remove('active');
 };
 
-// ===== TOGGLE THEMA =====
-document.addEventListener('DOMContentLoaded', function() {
-    var theme = localStorage.getItem('theme') || 'dark';
-    document.documentElement.setAttribute('data-theme', theme);
-    var toggle = document.getElementById('themeToggle');
-    toggle.textContent = theme === 'dark' ? '🌙' : '☀️';
-    toggle.addEventListener('click', function() {
-        var current = document.documentElement.getAttribute('data-theme');
-        var next = current === 'dark' ? 'light' : 'dark';
-        document.documentElement.setAttribute('data-theme', next);
-        localStorage.setItem('theme', next);
-        toggle.textContent = next === 'dark' ? '🌙' : '☀️';
-    });
-
-    // Event listener search & chip
-    document.getElementById('searchInput').addEventListener('input', function() { renderTools(); });
-    document.querySelectorAll('.chip').forEach(function(chip) {
-        chip.addEventListener('click', function() {
-            document.querySelectorAll('.chip').forEach(function(c) { c.classList.remove('active'); });
-            this.classList.add('active');
-            renderTools();
-        });
-    });
-    renderTools();
-    updateStats();
-});
-
-// ===== FUNGSI TOOLS (semua berfungsi) =====
+// ==========================================
+// 8. FUNGSI TOOLS (dengan Toast)
+// ==========================================
 window.generatePassword = function() {
     var len = parseInt(document.getElementById('passLength').value) || 16;
     var chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()_+-=[]{}|;:,.<>?';
     var pass = '';
     for (var i = 0; i < len; i++) pass += chars.charAt(Math.floor(Math.random() * chars.length));
     document.getElementById('passResult').textContent = pass;
+    showToast('🔑 Password berhasil digenerate!');
 };
 
 window.formatJson = function() {
@@ -196,9 +260,11 @@ window.formatJson = function() {
         var parsed = JSON.parse(input);
         result.textContent = JSON.stringify(parsed, null, 2);
         result.style.borderLeftColor = '#4ade80';
+        showToast('✅ JSON berhasil diformat!');
     } catch(e) {
         result.textContent = '❌ Error: ' + e.message;
         result.style.borderLeftColor = '#f87171';
+        showToast('❌ Error JSON: ' + e.message);
     }
 };
 
@@ -206,7 +272,7 @@ window.convertUnit = function() {
     var val = parseFloat(document.getElementById('unitInput').value);
     var dir = document.getElementById('unitDirection').value;
     var result = document.getElementById('unitResult');
-    if (isNaN(val)) { result.textContent = '⚠️ Masukkan angka dulu bro!'; return; }
+    if (isNaN(val)) { result.textContent = '⚠️ Masukkan angka dulu bro!'; showToast('⚠️ Masukkan angka!'); return; }
     var output = '';
     switch(dir) {
         case 'CF': output = val + '°C = ' + (val * 9/5 + 32).toFixed(2) + '°F'; break;
@@ -216,14 +282,17 @@ window.convertUnit = function() {
         default: output = 'Error';
     }
     result.textContent = '✅ ' + output;
+    showToast('🌡️ Konversi selesai!');
 };
 
 window.encodeBase64 = function() {
     var input = document.getElementById('base64Input').value;
     try {
         document.getElementById('base64Result').textContent = btoa(unescape(encodeURIComponent(input)));
+        showToast('🔒 Encode berhasil!');
     } catch(e) {
         document.getElementById('base64Result').textContent = '❌ Gagal encode: ' + e.message;
+        showToast('❌ Gagal encode');
     }
 };
 
@@ -231,8 +300,10 @@ window.decodeBase64 = function() {
     var input = document.getElementById('base64Input').value;
     try {
         document.getElementById('base64Result').textContent = decodeURIComponent(escape(atob(input)));
+        showToast('🔓 Decode berhasil!');
     } catch(e) {
         document.getElementById('base64Result').textContent = '❌ Gagal decode (cek format base64): ' + e.message;
+        showToast('❌ Gagal decode');
     }
 };
 
@@ -243,8 +314,8 @@ window.analyzeText = function() {
     var lines = txt === '' ? 0 : txt.split(/\n/).length;
     var spaces = (txt.match(/ /g) || []).length;
     var sentences = (txt.match(/[.!?]+/g) || []).length;
-    document.getElementById('counterResult').innerHTML =
-        '📊 <b>' + chars + '</b> huruf | <b>' + words + '</b> kata | <b>' + lines + '</b> baris | <b>' + spaces + '</b> spasi | <b>' + sentences + '</b> kalimat';
+    document.getElementById('counterResult').innerHTML = '📊 <b>' + chars + '</b> huruf | <b>' + words + '</b> kata | <b>' + lines + '</b> baris | <b>' + spaces + '</b> spasi | <b>' + sentences + '</b> kalimat';
+    showToast('📊 Analisis teks selesai!');
 };
 
 function hexToRgb(hex) {
@@ -258,8 +329,43 @@ window.copyColor = function(type) {
     var rgb = hexToRgb(val);
     var text = type === 'hex' ? val : 'rgb(' + rgb.r + ', ' + rgb.g + ', ' + rgb.b + ')';
     navigator.clipboard.writeText(text).then(function() {
+        showToast('✅ "' + text + '" berhasil di-copy!');
         var res = document.getElementById('colorResult');
         res.textContent = '✅ "' + text + '" berhasil di-copy!';
         setTimeout(function() { res.innerHTML = 'HEX: ' + val + ' | RGB: rgb(' + rgb.r + ',' + rgb.g + ',' + rgb.b + ')'; }, 2000);
-    }).catch(function() { alert('Copy manual aja bro: ' + text); });
+    }).catch(function() {
+        showToast('⚠️ Gagal copy, silakan salin manual');
+    });
 };
+
+// ==========================================
+// 9. EVENT LISTENER & INIT
+// ==========================================
+document.addEventListener('DOMContentLoaded', function() {
+    // Theme Toggle
+    var theme = localStorage.getItem('theme') || 'dark';
+    document.documentElement.setAttribute('data-theme', theme);
+    var toggle = document.getElementById('themeToggle');
+    toggle.textContent = theme === 'dark' ? '🌙' : '☀️';
+    toggle.addEventListener('click', function() {
+        var current = document.documentElement.getAttribute('data-theme');
+        var next = current === 'dark' ? 'light' : 'dark';
+        document.documentElement.setAttribute('data-theme', next);
+        localStorage.setItem('theme', next);
+        toggle.textContent = next === 'dark' ? '🌙' : '☀️';
+        showToast(next === 'dark' ? '🌙 Mode Gelap' : '☀️ Mode Terang');
+    });
+
+    // Search & Filter
+    document.getElementById('searchInput').addEventListener('input', function() { renderTools(); });
+    document.querySelectorAll('.chip').forEach(function(chip) {
+        chip.addEventListener('click', function() {
+            document.querySelectorAll('.chip').forEach(function(c) { c.classList.remove('active'); });
+            this.classList.add('active');
+            renderTools();
+        });
+    });
+
+    renderTools();
+    updateStats();
+});
