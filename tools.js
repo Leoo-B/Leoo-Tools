@@ -1,12 +1,7 @@
 // ==========================================
-// COUNTER PENGGUNAAN
+// PARTIKEL CANVAS
 // ==========================================
-var totalUsage = parseInt(localStorage.getItem('totalUsage')) || 0;
-
-// ==========================================
-// 1. PARTIKEL BACKGROUND (Canvas)
-// ==========================================
-function initParticles() {
+(function initParticles() {
     var canvas = document.getElementById('particles-canvas');
     if (!canvas) return;
     var ctx = canvas.getContext('2d');
@@ -52,10 +47,10 @@ function initParticles() {
         requestAnimationFrame(draw);
     }
     draw();
-}
+})();
 
 // ==========================================
-// 2. TOAST NOTIFICATION
+// TOAST
 // ==========================================
 function showToast(message) {
     var container = document.getElementById('toastContainer');
@@ -70,7 +65,7 @@ function showToast(message) {
 }
 
 // ==========================================
-// 3. SCROLL TO TOP
+// SCROLL TOP
 // ==========================================
 (function() {
     var btn = document.getElementById('scrollTopBtn');
@@ -88,7 +83,7 @@ function showToast(message) {
 })();
 
 // ==========================================
-// 4. DATA TOOLS
+// DATA TOOLS
 // ==========================================
 var tools = [
     { name: "Password Generator", icon: "🔑", cat: "utility", desc: "Bikin password super kuat.", id: "password" },
@@ -100,21 +95,10 @@ var tools = [
 ];
 
 // ==========================================
-// 5. STATISTIK
+// COUNTER
 // ==========================================
-var lastOpened = localStorage.getItem('lastOpened') || '-';
+var totalUsage = parseInt(localStorage.getItem('totalUsage')) || 0;
 
-function updateStats() {
-    document.getElementById('totalTools').textContent = tools.length;
-    var activeChip = document.querySelector('.chip.active');
-    var cat = activeChip ? activeChip.textContent.trim() : 'Semua';
-    document.getElementById('activeCategory').textContent = cat;
-    document.getElementById('lastOpened').textContent = lastOpened;
-}
-
-// ==========================================
-// 6. COUNTER + ANIMASI COUNT-UP
-// ==========================================
 function updateUsageCounter() {
     var el = document.getElementById('usageCounter');
     if (!el) return;
@@ -138,7 +122,20 @@ function updateUsageCounter() {
 }
 
 // ==========================================
-// 7. RENDER GRID
+// STATISTIK
+// ==========================================
+var lastOpened = localStorage.getItem('lastOpened') || '-';
+
+function updateStats() {
+    document.getElementById('totalTools').textContent = tools.length;
+    var activeChip = document.querySelector('.chip.active');
+    var cat = activeChip ? activeChip.textContent.trim() : 'Semua';
+    document.getElementById('activeCategory').textContent = cat;
+    document.getElementById('lastOpened').textContent = lastOpened;
+}
+
+// ==========================================
+// RENDER GRID
 // ==========================================
 function renderTools() {
     var grid = document.getElementById('toolsGrid');
@@ -177,7 +174,7 @@ function renderTools() {
 }
 
 // ==========================================
-// 8. BUKA / TUTUP TOOL
+// BUKA / TUTUP TOOL
 // ==========================================
 window.openTool = function(toolId) {
     var tool = tools.find(function(t) { return t.id === toolId; });
@@ -272,8 +269,14 @@ window.closeToolPage = function() {
 };
 
 // ==========================================
-// 9. FUNGSI TOOLS (dengan counter)
+// FUNGSI TOOLS (dengan counter)
 // ==========================================
+function incrementUsage() {
+    totalUsage += 1;
+    localStorage.setItem('totalUsage', totalUsage);
+    updateUsageCounter();
+}
+
 window.generatePassword = function() {
     var len = parseInt(document.getElementById('passLength').value) || 16;
     var chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()_+-=[]{}|;:,.<>?';
@@ -281,9 +284,7 @@ window.generatePassword = function() {
     for (var i = 0; i < len; i++) pass += chars.charAt(Math.floor(Math.random() * chars.length));
     document.getElementById('passResult').textContent = pass;
     showToast('🔑 Password berhasil digenerate!');
-    totalUsage += 1;
-    localStorage.setItem('totalUsage', totalUsage);
-    updateUsageCounter();
+    incrementUsage();
 };
 
 window.formatJson = function() {
@@ -294,25 +295,19 @@ window.formatJson = function() {
         result.textContent = JSON.stringify(parsed, null, 2);
         result.style.borderLeftColor = '#4ade80';
         showToast('✅ JSON berhasil diformat!');
+        incrementUsage();
     } catch(e) {
         result.textContent = '❌ Error: ' + e.message;
         result.style.borderLeftColor = '#f87171';
         showToast('❌ Error JSON: ' + e.message);
     }
-    totalUsage += 1;
-    localStorage.setItem('totalUsage', totalUsage);
-    updateUsageCounter();
 };
 
 window.convertUnit = function() {
     var val = parseFloat(document.getElementById('unitInput').value);
     var dir = document.getElementById('unitDirection').value;
     var result = document.getElementById('unitResult');
-    if (isNaN(val)) {
-        result.textContent = '⚠️ Masukkan angka dulu bro!';
-        showToast('⚠️ Masukkan angka!');
-        return;
-    }
+    if (isNaN(val)) { result.textContent = '⚠️ Masukkan angka dulu bro!'; showToast('⚠️ Masukkan angka!'); return; }
     var output = '';
     switch(dir) {
         case 'CF': output = val + '°C = ' + (val * 9/5 + 32).toFixed(2) + '°F'; break;
@@ -323,9 +318,7 @@ window.convertUnit = function() {
     }
     result.textContent = '✅ ' + output;
     showToast('🌡️ Konversi selesai!');
-    totalUsage += 1;
-    localStorage.setItem('totalUsage', totalUsage);
-    updateUsageCounter();
+    incrementUsage();
 };
 
 window.encodeBase64 = function() {
@@ -333,13 +326,11 @@ window.encodeBase64 = function() {
     try {
         document.getElementById('base64Result').textContent = btoa(unescape(encodeURIComponent(input)));
         showToast('🔒 Encode berhasil!');
+        incrementUsage();
     } catch(e) {
         document.getElementById('base64Result').textContent = '❌ Gagal encode: ' + e.message;
         showToast('❌ Gagal encode');
     }
-    totalUsage += 1;
-    localStorage.setItem('totalUsage', totalUsage);
-    updateUsageCounter();
 };
 
 window.decodeBase64 = function() {
@@ -347,13 +338,11 @@ window.decodeBase64 = function() {
     try {
         document.getElementById('base64Result').textContent = decodeURIComponent(escape(atob(input)));
         showToast('🔓 Decode berhasil!');
+        incrementUsage();
     } catch(e) {
         document.getElementById('base64Result').textContent = '❌ Gagal decode (cek format base64): ' + e.message;
         showToast('❌ Gagal decode');
     }
-    totalUsage += 1;
-    localStorage.setItem('totalUsage', totalUsage);
-    updateUsageCounter();
 };
 
 window.analyzeText = function() {
@@ -365,9 +354,7 @@ window.analyzeText = function() {
     var sentences = (txt.match(/[.!?]+/g) || []).length;
     document.getElementById('counterResult').innerHTML = '📊 <b>' + chars + '</b> huruf | <b>' + words + '</b> kata | <b>' + lines + '</b> baris | <b>' + spaces + '</b> spasi | <b>' + sentences + '</b> kalimat';
     showToast('📊 Analisis teks selesai!');
-    totalUsage += 1;
-    localStorage.setItem('totalUsage', totalUsage);
-    updateUsageCounter();
+    incrementUsage();
 };
 
 function hexToRgb(hex) {
@@ -385,22 +372,17 @@ window.copyColor = function(type) {
         var res = document.getElementById('colorResult');
         res.textContent = '✅ "' + text + '" berhasil di-copy!';
         setTimeout(function() { res.innerHTML = 'HEX: ' + val + ' | RGB: rgb(' + rgb.r + ',' + rgb.g + ',' + rgb.b + ')'; }, 2000);
-        totalUsage += 1;
-        localStorage.setItem('totalUsage', totalUsage);
-        updateUsageCounter();
+        incrementUsage();
     }).catch(function() {
         showToast('⚠️ Gagal copy, silakan salin manual');
     });
 };
 
 // ==========================================
-// 10. INIT
+// INIT
 // ==========================================
 document.addEventListener('DOMContentLoaded', function() {
-    // Partikel
-    initParticles();
-
-    // Theme Toggle
+    // Tema
     var theme = localStorage.getItem('theme') || 'dark';
     document.documentElement.setAttribute('data-theme', theme);
     var toggle = document.getElementById('themeToggle');
@@ -424,7 +406,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // Init counter
+    // Inisialisasi counter
     document.getElementById('usageCounter').textContent = totalUsage;
 
     renderTools();
