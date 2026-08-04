@@ -10,8 +10,13 @@
 </head>
 <body>
 
+<!-- PARTIKEL (Canvas) -->
 <canvas id="particles-canvas"></canvas>
+
+<!-- TOAST -->
 <div class="toast-container" id="toastContainer"></div>
+
+<!-- SCROLL TOP -->
 <button class="scroll-top" id="scrollTopBtn" title="Ke Atas">↑</button>
 
 <!-- SPLASH SCREEN -->
@@ -29,6 +34,7 @@
 
 <!-- DASHBOARD -->
 <div class="dashboard" id="dashboard">
+    <!-- Navbar -->
     <div class="navbar">
         <div class="brand">⚡ Leoo V 1.0 <small>V 1.0</small></div>
         <div class="nav-search" id="navSearch">
@@ -41,6 +47,7 @@
         </div>
     </div>
 
+    <!-- Stats -->
     <div class="stats-bar" id="statsBar">
         <span>📦 Total Tools: <strong id="totalTools">0</strong></span>
         <span>🏷️ Kategori: <strong id="activeCategory">Semua</strong></span>
@@ -48,6 +55,7 @@
         <span>🚀 <strong id="usageCounter">0</strong> tools telah digunakan hari ini</span>
     </div>
 
+    <!-- Kategori -->
     <div class="categories" id="categoryFilter">
         <span class="chip active" data-cat="all">⚡ Semua</span>
         <span class="chip" data-cat="utility">🛠 Utility</span>
@@ -55,8 +63,10 @@
         <span class="chip" data-cat="text">📝 Text</span>
     </div>
 
+    <!-- Grid Tools -->
     <div class="tools-grid" id="toolsGrid"></div>
 
+    <!-- Halaman Tool (Full Page) -->
     <div class="tool-page" id="toolPage" style="display:none;">
         <div class="tool-page-header">
             <button class="btn-back" onclick="closeToolPage()">← Back Lobby</button>
