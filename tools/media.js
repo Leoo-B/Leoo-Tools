@@ -1,86 +1,97 @@
 // ==========================================
-// IMAGE ENHANCER (xBRZ - UMD version)
+// IMAGE ENHANCER (xBRZ - ES Module version)
 // ==========================================
 
-window.enhanceImage = function() {
-    var fileInput = document.getElementById('imageInput');
-    var result = document.getElementById('imageResult');
-    var preview = document.getElementById('imagePreview');
+// Import xBRZ Scaler
+import { Scaler } from '@kayahr/xbrz';
 
-    // 1. Validasi file
+// Fungsi utama (gak pake window, karena dipanggil dari event listener)
+function handleEnhance() {
+    const fileInput = document.getElementById('imageInput');
+    const result = document.getElementById('imageResult');
+    const preview = document.getElementById('imagePreview');
+
     if (!fileInput.files || fileInput.files.length === 0) {
         result.textContent = '⚠️ Upload gambar dulu!';
         return;
     }
 
-    var file = fileInput.files[0];
+    const file = fileInput.files[0];
 
     if (file.size > 10 * 1024 * 1024) {
         result.textContent = '⚠️ Ukuran gambar terlalu besar! Maksimal 10MB.';
         return;
     }
 
-    var reader = new FileReader();
+    const reader = new FileReader();
+
     reader.onload = function(e) {
-        var img = new Image();
+        const img = new Image();
+
         img.onload = function() {
             try {
-                // 2. Cek library xBRZ
-                if (typeof window.xbrz === 'undefined') {
-                    throw new Error('Library xBRZ tidak ditemukan. Pastikan script sudah di-load.');
-                }
-
-                // 3. Baca pixel gambar ke canvas
-                var srcCanvas = document.createElement('canvas');
+                // 1. Baca pixel gambar ke canvas
+                const srcCanvas = document.createElement('canvas');
                 srcCanvas.width = img.width;
                 srcCanvas.height = img.height;
-                var srcCtx = srcCanvas.getContext('2d');
+                const srcCtx = srcCanvas.getContext('2d');
                 srcCtx.drawImage(img, 0, 0);
-                var imageData = srcCtx.getImageData(0, 0, img.width, img.height);
-                var srcData = new Uint8ClampedArray(imageData.data);
+                const imageData = srcCtx.getImageData(0, 0, img.width, img.height);
+                const srcData = new Uint8ClampedArray(imageData.data);
 
-                // 4. Upscale pake xBRZ (skala 2x)
-                var scaleFactor = 2; // bisa diubah ke 3 atau 4
-                var targetWidth = img.width * scaleFactor;
-                var targetHeight = img.height * scaleFactor;
-                var targetData = new Uint8ClampedArray(targetWidth * targetHeight * 4);
+                // 2. Upscale pake xBRZ (skala 2x)
+                const scaleFactor = 2;
+                const scaler = new Scaler(img.width, img.height, scaleFactor);
+                const targetData = scaler.scale(srcData);
 
-                // Panggil fungsi xBRZ dari UMD
-                window.xbrz.scale(
-                    imageData.data,
-                    img.width,
-                    img.height,
-                    targetData,
-                    targetWidth,
-                    targetHeight,
-                    scaleFactor,
-                    null // parameter optional
-                );
-
-                // 5. Tampilkan hasil ke canvas baru
-                var targetCanvas = document.createElement('canvas');
-                targetCanvas.width = targetWidth;
-                targetCanvas.height = targetHeight;
-                var targetCtx = targetCanvas.getContext('2d');
-                var targetImageData = new ImageData(targetData, targetWidth, targetHeight);
+                // 3. Tampilkan hasil ke canvas baru
+                const targetCanvas = document.createElement('canvas');
+                targetCanvas.width = scaler.targetWidth;
+                targetCanvas.height = scaler.targetHeight;
+                const targetCtx = targetCanvas.getContext('2d');
+                const targetImageData = new ImageData(targetData, scaler.targetWidth, scaler.targetHeight);
                 targetCtx.putImageData(targetImageData, 0, 0);
 
-                // 6. Convert ke URL gambar
-                var resultUrl = targetCanvas.toDataURL('image/png');
+                // 4. Convert ke URL gambar
+                const resultUrl = targetCanvas.toDataURL('image/png');
 
-                // 7. Tampilkan di preview
-                preview.innerHTML = '<img src="' + resultUrl + '" alt="Upscaled" style="max-width:100%; border-radius:16px; margin-top:12px;">';
-                result.innerHTML = '✅ Gambar berhasil di-upscale! <br> <a href="' + resultUrl + '" download style="color:var(--accent-light);">Download hasil</a>';
-                
-                showToast('✨ Gambar berhasil di-upscale!');
-                incrementUsage();
+                // 5. Tampilkan di preview
+                preview.innerHTML = `<img src="${resultUrl}" alt="Upscaled" style="max-width:100%; border-radius:16px; margin-top:12px;">`;
+                result.innerHTML = `✅ Gambar berhasil di-upscale! <br> <a href="${resultUrl}" download style="color:var(--accent-light);">Download hasil</a>`;
+
+                if (typeof showToast === 'function') {
+                    showToast('✨ Gambar berhasil di-upscale!');
+                }
+                if (typeof incrementUsage === 'function') {
+                    incrementUsage();
+                }
 
             } catch (err) {
-                result.textContent = '❌ Error: ' + err.message;
-                showToast('❌ Gagal upscale gambar');
+                result.textContent = `❌ Error: ${err.message}`;
+                if (typeof showToast === 'function') {
+                    showToast('❌ Gagal upscale gambar');
+                }
             }
         };
+
         img.src = e.target.result;
     };
+
     reader.readAsDataURL(file);
-};
+}
+
+// ==========================================
+// PASANG EVENT LISTENER KE TOMBOL (setelah DOM ready)
+// ==========================================
+document.addEventListener('DOMContentLoaded', function() {
+    // Karena tombol dibuat dinamis di core.js, kita pake event delegation
+    // atau kita tunggu tombol muncul.
+    // Cara paling aman: pake MutationObserver atau observer sederhana.
+    // Tapi kita bisa langsung pake event listener ke document
+    // dengan mengecek target.id.
+    document.addEventListener('click', function(e) {
+        if (e.target && e.target.id === 'enhanceBtn') {
+            handleEnhance();
+        }
+    });
+});
