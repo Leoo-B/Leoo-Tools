@@ -79,16 +79,23 @@
 </div>
 
 <!-- ========================================================= -->
-<!-- SCRIPT LOADER UNTUK SEMUA TOOLS                           -->
+<!-- SCRIPT LOADER UNTUK SEMUA TOOLS (KECUALI IMAGE.JS)       -->
 <!-- ========================================================= -->
 <script src="splash.js"></script>
 <script src="loader.js"></script>
 
 <!-- ========================================================= -->
-<!-- xBRZ LIBRARY (UMD VERSION) + IMAGE.JS                     -->
+<!-- IMPORT MAP BUAT xBRZ + LOAD IMAGE.JS SEBAGAI MODULE      -->
 <!-- ========================================================= -->
-<script src="https://cdn.jsdelivr.net/npm/@d2-projects/xbrz/dist/xbrz.js"></script>
-<script src="tools/image.js"></script>
+<script type="importmap">
+{
+    "imports": {
+        "@kayahr/xbrz": "https://cdn.jsdelivr.net/npm/@kayahr/xbrz@1.1.2/dist/index.js"
+    }
+}
+</script>
+
+<script type="module" src="tools/image.js"></script>
 
 </body>
 </html>
