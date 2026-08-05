@@ -7,7 +7,6 @@
     <title>⚡ Leoo Tools Pro</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Poppins:wght@300;400;500;600;700&display=swap">
-    <script src="https://cdn.jsdelivr.net/npm/pica@9.0.1/dist/pica.min.js"></script>
 </head>
 <body>
 
@@ -35,6 +34,7 @@
 
 <!-- DASHBOARD -->
 <div class="dashboard" id="dashboard">
+    <!-- Navbar -->
     <div class="navbar">
         <div class="brand">⚡ Leoo V 1.0 <small>V 1.0</small></div>
         <div class="nav-search" id="navSearch">
@@ -47,6 +47,7 @@
         </div>
     </div>
 
+    <!-- Stats -->
     <div class="stats-bar" id="statsBar">
         <span>📦 Total Tools: <strong id="totalTools">0</strong></span>
         <span>🏷️ Kategori: <strong id="activeCategory">Semua</strong></span>
@@ -54,6 +55,7 @@
         <span>🚀 <strong id="usageCounter">0</strong> tools telah digunakan hari ini</span>
     </div>
 
+    <!-- Kategori -->
     <div class="categories" id="categoryFilter">
         <span class="chip active" data-cat="all">⚡ Semua</span>
         <span class="chip" data-cat="utility">🛠 Utility</span>
@@ -61,8 +63,10 @@
         <span class="chip" data-cat="text">📝 Text</span>
     </div>
 
+    <!-- Grid Tools -->
     <div class="tools-grid" id="toolsGrid"></div>
 
+    <!-- Halaman Tool (Full Page) -->
     <div class="tool-page" id="toolPage" style="display:none;">
         <div class="tool-page-header">
             <button class="btn-back" onclick="closeToolPage()">← Back Lobby</button>
@@ -74,8 +78,24 @@
     <div class="footer-credit">⚡ Leoo Tools Pro · Dihidupkan oleh <span>GeminiXD</span></div>
 </div>
 
-<!-- SCRIPT LOADER -->
+<!-- ========================================================= -->
+<!-- SCRIPT LOADER UNTUK SEMUA TOOLS (KECUALI IMAGE.JS)       -->
+<!-- ========================================================= -->
 <script src="splash.js"></script>
 <script src="loader.js"></script>
+
+<!-- ========================================================= -->
+<!-- IMPORT MAP & IMAGE.JS (ES MODULE)                         -->
+<!-- ========================================================= -->
+<script type="importmap">
+{
+    "imports": {
+        "@kayahr/xbrz": "https://cdn.jsdelivr.net/npm/@kayahr/xbrz@1.1.2/dist/index.js"
+    }
+}
+</script>
+
+<script type="module" src="tools/image.js"></script>
+
 </body>
 </html>
