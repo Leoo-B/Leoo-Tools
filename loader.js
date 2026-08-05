@@ -10,10 +10,10 @@
         'tools/base64.js',
         'tools/counter.js',
         'tools/color.js',
-        'tools/media.js',
         'tools/weather.js',
         'tools/urlshort.js',
         'tools/image.js',
+        'tools/mediadownload.js',
         'tools/news.js'
     ];
 
