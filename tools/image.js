@@ -5,13 +5,12 @@
 // Import xBRZ Scaler
 import { Scaler } from '@kayahr/xbrz';
 
-// Fungsi utama (tetap pake window biar bisa dipanggil dari HTML)
-window.enhanceImage = function() {
+// Fungsi utama (gak pake window, karena dipanggil dari event listener)
+function handleEnhance() {
     const fileInput = document.getElementById('imageInput');
     const result = document.getElementById('imageResult');
     const preview = document.getElementById('imagePreview');
 
-    // 1. Validasi file
     if (!fileInput.files || fileInput.files.length === 0) {
         result.textContent = '⚠️ Upload gambar dulu!';
         return;
@@ -19,7 +18,6 @@ window.enhanceImage = function() {
 
     const file = fileInput.files[0];
 
-    // 2. Batasi ukuran (max 10MB biar gak berat)
     if (file.size > 10 * 1024 * 1024) {
         result.textContent = '⚠️ Ukuran gambar terlalu besar! Maksimal 10MB.';
         return;
@@ -32,7 +30,7 @@ window.enhanceImage = function() {
 
         img.onload = function() {
             try {
-                // 3. Baca pixel gambar ke canvas
+                // 1. Baca pixel gambar ke canvas
                 const srcCanvas = document.createElement('canvas');
                 srcCanvas.width = img.width;
                 srcCanvas.height = img.height;
@@ -41,12 +39,12 @@ window.enhanceImage = function() {
                 const imageData = srcCtx.getImageData(0, 0, img.width, img.height);
                 const srcData = new Uint8ClampedArray(imageData.data);
 
-                // 4. Upscale pake xBRZ (skala 2x)
-                const scaleFactor = 2; // bisa diubah ke 3 atau 4
+                // 2. Upscale pake xBRZ (skala 2x)
+                const scaleFactor = 2;
                 const scaler = new Scaler(img.width, img.height, scaleFactor);
                 const targetData = scaler.scale(srcData);
 
-                // 5. Tampilkan hasil ke canvas baru
+                // 3. Tampilkan hasil ke canvas baru
                 const targetCanvas = document.createElement('canvas');
                 targetCanvas.width = scaler.targetWidth;
                 targetCanvas.height = scaler.targetHeight;
@@ -54,14 +52,13 @@ window.enhanceImage = function() {
                 const targetImageData = new ImageData(targetData, scaler.targetWidth, scaler.targetHeight);
                 targetCtx.putImageData(targetImageData, 0, 0);
 
-                // 6. Convert ke URL gambar
+                // 4. Convert ke URL gambar
                 const resultUrl = targetCanvas.toDataURL('image/png');
 
-                // 7. Tampilkan di preview & kasih link download
+                // 5. Tampilkan di preview
                 preview.innerHTML = `<img src="${resultUrl}" alt="Upscaled" style="max-width:100%; border-radius:16px; margin-top:12px;">`;
                 result.innerHTML = `✅ Gambar berhasil di-upscale! <br> <a href="${resultUrl}" download style="color:var(--accent-light);">Download hasil</a>`;
-                
-                // 8. Panggil fungsi dari core.js
+
                 if (typeof showToast === 'function') {
                     showToast('✨ Gambar berhasil di-upscale!');
                 }
@@ -81,4 +78,20 @@ window.enhanceImage = function() {
     };
 
     reader.readAsDataURL(file);
-};
+}
+
+// ==========================================
+// PASANG EVENT LISTENER KE TOMBOL (setelah DOM ready)
+// ==========================================
+document.addEventListener('DOMContentLoaded', function() {
+    // Karena tombol dibuat dinamis di core.js, kita pake event delegation
+    // atau kita tunggu tombol muncul.
+    // Cara paling aman: pake MutationObserver atau observer sederhana.
+    // Tapi kita bisa langsung pake event listener ke document
+    // dengan mengecek target.id.
+    document.addEventListener('click', function(e) {
+        if (e.target && e.target.id === 'enhanceBtn') {
+            handleEnhance();
+        }
+    });
+});
