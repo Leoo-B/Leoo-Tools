@@ -1,5 +1,5 @@
 // ==========================================
-// URL SHORTENER (is.gd – GRATIS, TANPA API KEY)
+// URL SHORTENER (TinyURL – GRATIS, NO API KEY)
 // ==========================================
 window.shortenUrl = function() {
     var url = document.getElementById('urlInput').value.trim();
@@ -7,14 +7,15 @@ window.shortenUrl = function() {
     if (!url) { result.textContent = '⚠️ Masukkan link dulu!'; return; }
     result.textContent = '⏳ Sedang memendekkan...';
 
-    fetch('https://is.gd/create.php?format=json&url=' + encodeURIComponent(url))
+    // TinyURL API – gratis, no key, stabil
+    fetch('https://tinyurl.com/api-create.php?url=' + encodeURIComponent(url))
     .then(function(response) {
         if (!response.ok) throw new Error('Gagal memendekkan');
-        return response.json();
+        return response.text();
     })
     .then(function(data) {
-        if (data.shorturl) {
-            result.innerHTML = '✅ Link pendek: <a href="' + data.shorturl + '" target="_blank" style="color:var(--accent-light);">' + data.shorturl + '</a>';
+        if (data && data.startsWith('https://tinyurl.com/')) {
+            result.innerHTML = '✅ Link pendek: <a href="' + data + '" target="_blank" style="color:var(--accent-light);">' + data + '</a>';
             showToast('✂️ Link berhasil dipendekkan!');
             incrementUsage();
         } else {
