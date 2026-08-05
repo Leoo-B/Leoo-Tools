@@ -282,12 +282,12 @@ window.openTool = function(toolId) {
                     '<div class="result-box" id="urlResult">Hasil link pendek akan muncul di sini</div>';
             break;
         case 'image':
-            html += '<label>🖼️ Upload Gambar</label>' +
-                    '<input type="file" id="imageInput" accept="image/*" style="width:100%; background:var(--bg-card); border:1px solid var(--border-color); border-radius:16px; padding:12px; color:var(--text-primary);">' +
-                    '<button class="btn-primary" id="enhanceBtn">✨ HD-kan</button>' +  // <-- INI YANG DIUBAH
-                    '<div class="result-box" id="imageResult">Upload gambar, lalu klik HD-kan.</div>' +
-                    '<div id="imagePreview" style="margin-top:12px;"></div>';
-            break;
+    html += '<label>🖼️ Upload Gambar</label>' +
+            '<input type="file" id="imageInput" accept="image/*" style="width:100%; background:var(--bg-card); border:1px solid var(--border-color); border-radius:16px; padding:12px; color:var(--text-primary);">' +
+            '<button class="btn-primary" onclick="enhanceImage()">✨ HD-kan</button>' +
+            '<div class="result-box" id="imageResult">Upload gambar, lalu klik HD-kan.</div>' +
+            '<div id="imagePreview" style="margin-top:12px;"></div>';
+    break;
         case 'news':
             html += '<label>📰 Pilih Kategori</label>' +
                     '<select id="newsCategory" style="width:100%; background:var(--bg-card); border:1px solid var(--border-color); border-radius:16px; padding:14px 18px; color:var(--text-primary);">' +
