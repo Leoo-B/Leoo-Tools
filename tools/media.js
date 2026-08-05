@@ -1,5 +1,5 @@
 // ==========================================
-// MEDIA DOWNLOADER (GRATIS, TANPA API KEY)
+// MEDIA DOWNLOADER (Cobalt API – GRATIS, NO KEY, SUPPORT 20+ PLATFORM)
 // ==========================================
 window.downloadMedia = function() {
     var platform = document.getElementById('mediaPlatform').value;
@@ -8,22 +8,29 @@ window.downloadMedia = function() {
     if (!link) { result.textContent = '⚠️ Masukkan link dulu bro!'; return; }
     result.textContent = '⏳ Sedang memproses...';
 
-    var apiUrl = 'https://allmediadownloader.p.rapidapi.com/download?url=' + encodeURIComponent(link) + '&platform=' + platform;
-
+    // Cobalt API – gratis, no key, support TikTok, YT, IG, FB, dll
+    var apiUrl = 'https://api.cobalt.tools/api/json';
+    
     fetch(apiUrl, {
-        headers: {
-            'x-rapidapi-host': 'allmediadownloader.p.rapidapi.com',
-            'x-rapidapi-key': ''
-        }
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            url: link,
+            videoQuality: '720',
+            audioFormat: 'mp3'
+        })
     })
     .then(function(response) {
-        if (!response.ok) throw new Error('Gagal fetch API');
+        if (!response.ok) throw new Error('Gagal fetch Cobalt API');
         return response.json();
     })
     .then(function(data) {
-        if (data.error) { result.textContent = '❌ ' + data.error; return; }
-        if (data.download_link) {
-            result.innerHTML = '✅ Link download: <a href="' + data.download_link + '" target="_blank" style="color:var(--accent-light);">' + data.download_link + '</a>';
+        if (data.status === 'error') {
+            result.textContent = '❌ ' + (data.text || 'Gagal download media');
+            return;
+        }
+        if (data.url) {
+            result.innerHTML = '✅ Link download: <a href="' + data.url + '" target="_blank" style="color:var(--accent-light);">' + data.url + '</a>';
             showToast('📥 Link download siap!');
             incrementUsage();
         } else {
@@ -31,7 +38,7 @@ window.downloadMedia = function() {
         }
     })
     .catch(function(err) {
-        result.textContent = '❌ Error: ' + err.message + '. Coba lagi atau gunakan platform lain.';
+        result.textContent = '❌ Error: ' + err.message + '. Coba lagi atau platform lain.';
         showToast('❌ Gagal download media');
     });
 };
