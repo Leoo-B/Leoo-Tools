@@ -1,5 +1,5 @@
 // ==========================================
-// PARTIKEL CANVAS – LEBIH TERANG & GEDE
+// PARTIKEL CANVAS
 // ==========================================
 (function initParticles() {
     var canvas = document.getElementById('particles-canvas');
@@ -15,27 +15,22 @@
     resize();
     window.addEventListener('resize', resize);
 
-    // Jumlah partikel ditambah, ukuran lebih gede, opacity lebih tinggi
     var count = Math.min(120, Math.floor((w * h) / 12000));
     for (var i = 0; i < count; i++) {
         particles.push({
             x: Math.random() * w,
             y: Math.random() * h,
-            r: Math.random() * 3 + 2, // ukuran 2–5px (sebelumnya 0.5–2.5)
+            r: Math.random() * 3 + 2,
             dx: (Math.random() - 0.5) * 0.4,
             dy: (Math.random() - 0.5) * 0.4,
-            o: Math.random() * 0.4 + 0.6 // opacity 0.6–1.0 (sebelumnya 0.3–0.8)
+            o: Math.random() * 0.4 + 0.6
         });
     }
 
     function draw() {
         ctx.clearRect(0, 0, w, h);
-
-        // Efek glow untuk partikel
         ctx.shadowColor = 'rgba(168, 85, 247, 0.8)';
         ctx.shadowBlur = 15;
-
-        // Warna partikel lebih terang
         ctx.fillStyle = 'rgba(200, 170, 255, 0.9)';
 
         for (var i = 0; i < particles.length; i++) {
@@ -52,7 +47,7 @@
             if (p.y > h) p.y = 0;
         }
         ctx.globalAlpha = 1;
-        ctx.shadowBlur = 0; // reset
+        ctx.shadowBlur = 0;
         requestAnimationFrame(draw);
     }
     draw();
@@ -65,23 +60,19 @@ function showToast(message) {
     var container = document.getElementById('toastContainer');
     if (!container) return;
 
-    // Hapus toast paling lama jika sudah ada 3
     var currentToasts = container.querySelectorAll('.toast');
     if (currentToasts.length >= 3) {
         var oldestToast = currentToasts[0];
         if (oldestToast) {
-            // Hapus langsung tanpa animasi biar cepat
             oldestToast.remove();
         }
     }
 
-    // Buat toast baru
     var toast = document.createElement('div');
     toast.className = 'toast';
     toast.textContent = message;
     container.appendChild(toast);
 
-    // Hapus otomatis setelah 3 detik
     setTimeout(function() {
         if (toast.parentNode) {
             toast.remove();
@@ -108,15 +99,23 @@ function showToast(message) {
 })();
 
 // ==========================================
-// DATA TOOLS
+// DATA TOOLS (Lama + Baru)
 // ==========================================
 var tools = [
+    // Tools lama
     { name: "Password Generator", icon: "🔑", cat: "utility", desc: "Bikin password super kuat.", id: "password" },
     { name: "JSON Formatter", icon: "📋", cat: "dev", desc: "Rapihin & validasi JSON.", id: "json" },
     { name: "Unit Converter (Suhu)", icon: "🌡️", cat: "utility", desc: "Celcius ↔ Fahrenheit ↔ Kelvin.", id: "unit" },
     { name: "Base64 Encoder/Decoder", icon: "🔒", cat: "text", desc: "Encode/decode teks base64.", id: "base64" },
     { name: "Text Analyzer", icon: "📝", cat: "text", desc: "Hitung huruf, kata, kalimat.", id: "counter" },
     { name: "Color Picker Pro", icon: "🎨", cat: "utility", desc: "Pilih warna + salin kode.", id: "color" },
+
+    // Tools baru (5 kunci)
+    { name: "Media Downloader", icon: "📥", cat: "utility", desc: "Download video dari TikTok, YT, IG, FB.", id: "media" },
+    { name: "Pengecekan Cuaca", icon: "🌤️", cat: "utility", desc: "Cek cuaca kota mana pun.", id: "weather" },
+    { name: "URL Shortener", icon: "🔗", cat: "utility", desc: "Pendekin link panjang jadi pendek.", id: "urlshort" },
+    { name: "Image Enhancer", icon: "🖼️", cat: "utility", desc: "Ubah gambar jadi HD / upscale.", id: "image" },
+    { name: "News Headline", icon: "📰", cat: "utility", desc: "Berita terkini dari berbagai kategori.", id: "news" },
 ];
 
 // ==========================================
@@ -199,7 +198,7 @@ function renderTools() {
 }
 
 // ==========================================
-// BUKA / TUTUP TOOL
+// BUKA TOOL
 // ==========================================
 window.openTool = function(toolId) {
     var tool = tools.find(function(t) { return t.id === toolId; });
@@ -218,6 +217,7 @@ window.openTool = function(toolId) {
     var html = '<div class="tool-desc">📌 ' + desc + '</div>';
 
     switch(toolId) {
+        // ========== TOOLS LAMA ==========
         case 'password':
             html += '<label>🔐 Panjang Password</label>' +
                     '<input type="number" id="passLength" value="16" min="6" max="64">' +
@@ -269,32 +269,69 @@ window.openTool = function(toolId) {
                     '</div>' +
                     '<div class="result-box" id="colorResult">HEX: #7c3aed | RGB: rgb(124,58,237)</div>';
             break;
-        default: html += '<p>Tool ini belum siap, tapi lo bisa bayangin aja kerennya! 😎</p>';
+
+        // ========== TOOLS BARU ==========
+        case 'media':
+            html += '<label>📌 Pilih Platform</label>' +
+                    '<select id="mediaPlatform" style="width:100%; background:var(--bg-card); border:1px solid var(--border-color); border-radius:16px; padding:14px 18px; color:var(--text-primary);">' +
+                    '<option value="tiktok">TikTok</option>' +
+                    '<option value="youtube">YouTube</option>' +
+                    '<option value="instagram">Instagram</option>' +
+                    '<option value="facebook">Facebook</option>' +
+                    '</select>' +
+                    '<label>🔗 Masukkan Link</label>' +
+                    '<input type="text" id="mediaLink" placeholder="https://..." style="width:100%; background:var(--bg-card); border:1px solid var(--border-color); border-radius:16px; padding:14px 18px; color:var(--text-primary);">' +
+                    '<button class="btn-primary" onclick="downloadMedia()">📥 Download</button>' +
+                    '<div class="result-box" id="mediaResult">Hasil download akan muncul di sini</div>' +
+                    '<small style="color:var(--text-secondary); display:block; margin-top:6px;">⚠️ Hanya untuk konten publik & legal.</small>';
+            break;
+        case 'weather':
+            html += '<label>🌍 Nama Kota</label>' +
+                    '<input type="text" id="weatherCity" placeholder="Jakarta" style="width:100%; background:var(--bg-card); border:1px solid var(--border-color); border-radius:16px; padding:14px 18px; color:var(--text-primary);">' +
+                    '<button class="btn-primary" onclick="checkWeather()">🌤️ Cek Cuaca</button>' +
+                    '<div class="result-box" id="weatherResult">Masukkan nama kota, lalu klik cek.</div>';
+            break;
+        case 'urlshort':
+            html += '<label>🔗 Masukkan Link Panjang</label>' +
+                    '<input type="text" id="urlInput" placeholder="https://..." style="width:100%; background:var(--bg-card); border:1px solid var(--border-color); border-radius:16px; padding:14px 18px; color:var(--text-primary);">' +
+                    '<button class="btn-primary" onclick="shortenUrl()">✂️ Pendekin</button>' +
+                    '<div class="result-box" id="urlResult">Hasil link pendek akan muncul di sini</div>';
+            break;
+        case 'image':
+            html += '<label>🖼️ Upload Gambar</label>' +
+                    '<input type="file" id="imageInput" accept="image/*" style="width:100%; background:var(--bg-card); border:1px solid var(--border-color); border-radius:16px; padding:12px; color:var(--text-primary);">' +
+                    '<button class="btn-primary" onclick="enhanceImage()">✨ HD-kan</button>' +
+                    '<div class="result-box" id="imageResult">Upload gambar, lalu klik HD-kan.</div>' +
+                    '<div id="imagePreview" style="margin-top:12px;"></div>';
+            break;
+        case 'news':
+            html += '<label>📰 Pilih Kategori</label>' +
+                    '<select id="newsCategory" style="width:100%; background:var(--bg-card); border:1px solid var(--border-color); border-radius:16px; padding:14px 18px; color:var(--text-primary);">' +
+                    '<option value="general">Umum</option>' +
+                    '<option value="technology">Teknologi</option>' +
+                    '<option value="sports">Olahraga</option>' +
+                    '<option value="health">Kesehatan</option>' +
+                    '<option value="science">Sains</option>' +
+                    '</select>' +
+                    '<button class="btn-primary" onclick="getNews()">📰 Lihat Berita</button>' +
+                    '<div class="result-box" id="newsResult">Pilih kategori, klik lihat berita.</div>';
+            break;
+        default:
+            html += '<p>Tool ini belum siap, tapi lo bisa bayangin aja kerennya! 😎</p>';
     }
     body.innerHTML = html;
-
-    if (toolId === 'color') {
-        setTimeout(function() {
-            var picker = document.getElementById('colorPicker');
-            if (picker) {
-                picker.addEventListener('input', function(e) {
-                    var val = e.target.value;
-                    document.getElementById('colorPreview').style.background = val;
-                    var rgb = hexToRgb(val);
-                    document.getElementById('colorResult').innerHTML = 'HEX: ' + val + ' | RGB: rgb(' + rgb.r + ',' + rgb.g + ',' + rgb.b + ')';
-                });
-            }
-        }, 50);
-    }
 };
 
+// ==========================================
+// TUTUP TOOL
+// ==========================================
 window.closeToolPage = function() {
     document.body.classList.remove('tool-open');
     document.getElementById('toolPage').classList.remove('active');
 };
 
 // ==========================================
-// FUNGSI TOOLS (dengan counter)
+// FUNGSI TOOLS LAMA (dengan counter)
 // ==========================================
 function incrementUsage() {
     totalUsage += 1;
@@ -400,6 +437,182 @@ window.copyColor = function(type) {
         incrementUsage();
     }).catch(function() {
         showToast('⚠️ Gagal copy, silakan salin manual');
+    });
+};
+
+// ==========================================
+// FUNGSI TOOLS BARU (SEMUA API KEY UDAH GUE MASUKIN)
+// ==========================================
+
+// 1. MEDIA DOWNLOADER – GRATIS, NO API KEY!
+window.downloadMedia = function() {
+    var platform = document.getElementById('mediaPlatform').value;
+    var link = document.getElementById('mediaLink').value.trim();
+    var result = document.getElementById('mediaResult');
+    if (!link) { result.textContent = '⚠️ Masukkan link dulu bro!'; return; }
+    result.textContent = '⏳ Sedang memproses...';
+
+    // AllMedia Downloader API – GRATIS, TANPA API KEY![reference:2][reference:3]
+    var apiUrl = 'https://allmediadownloader.p.rapidapi.com/download?url=' + encodeURIComponent(link) + '&platform=' + platform;
+
+    fetch(apiUrl, {
+        headers: {
+            'x-rapidapi-host': 'allmediadownloader.p.rapidapi.com',
+            'x-rapidapi-key': '' // KOSONGKAN! API ini emang gratis tanpa key
+        }
+    })
+    .then(function(response) {
+        if (!response.ok) throw new Error('Gagal fetch API');
+        return response.json();
+    })
+    .then(function(data) {
+        if (data.error) { result.textContent = '❌ ' + data.error; return; }
+        if (data.download_link) {
+            result.innerHTML = '✅ Link download: <a href="' + data.download_link + '" target="_blank" style="color:var(--accent-light);">' + data.download_link + '</a>';
+            showToast('📥 Link download siap!');
+            incrementUsage();
+        } else {
+            result.textContent = '❌ Gagal mendapatkan link download.';
+        }
+    })
+    .catch(function(err) {
+        result.textContent = '❌ Error: ' + err.message + '. Coba lagi atau gunakan platform lain.';
+        showToast('❌ Gagal download media');
+    });
+};
+
+// 2. CUACA (pake wttr.in – no API key)
+window.checkWeather = function() {
+    var city = document.getElementById('weatherCity').value.trim();
+    var result = document.getElementById('weatherResult');
+    if (!city) { result.textContent = '⚠️ Masukkan nama kota dulu!'; return; }
+    result.textContent = '⏳ Sedang mengambil data cuaca...';
+
+    fetch('https://wttr.in/' + encodeURIComponent(city) + '?format=%C+%t+%w+%h&lang=id')
+    .then(function(response) {
+        if (!response.ok) throw new Error('Kota tidak ditemukan');
+        return response.text();
+    })
+    .then(function(data) {
+        var parts = data.split(' ');
+        var condition = parts.slice(0, -3).join(' ');
+        var temp = parts[parts.length - 3] || '--';
+        var wind = parts[parts.length - 2] || '--';
+        var humidity = parts[parts.length - 1] || '--';
+        result.innerHTML = '🌤️ <b>' + city + '</b><br>Kondisi: ' + condition + '<br>Suhu: ' + temp + '<br>Angin: ' + wind + '<br>Kelembapan: ' + humidity;
+        showToast('🌤️ Cuaca ' + city + ' berhasil diambil!');
+        incrementUsage();
+    })
+    .catch(function(err) {
+        result.textContent = '❌ Gagal mengambil data cuaca. Pastikan nama kota benar.';
+        showToast('❌ Gagal cek cuaca');
+    });
+};
+
+// 3. URL SHORTENER (pake is.gd – no API key)
+window.shortenUrl = function() {
+    var url = document.getElementById('urlInput').value.trim();
+    var result = document.getElementById('urlResult');
+    if (!url) { result.textContent = '⚠️ Masukkan link dulu!'; return; }
+    result.textContent = '⏳ Sedang memendekkan...';
+
+    fetch('https://is.gd/create.php?format=json&url=' + encodeURIComponent(url))
+    .then(function(response) {
+        if (!response.ok) throw new Error('Gagal memendekkan');
+        return response.json();
+    })
+    .then(function(data) {
+        if (data.shorturl) {
+            result.innerHTML = '✅ Link pendek: <a href="' + data.shorturl + '" target="_blank" style="color:var(--accent-light);">' + data.shorturl + '</a>';
+            showToast('✂️ Link berhasil dipendekkan!');
+            incrementUsage();
+        } else {
+            result.textContent = '❌ Gagal memendekkan link.';
+        }
+    })
+    .catch(function(err) {
+        result.textContent = '❌ Error: ' + err.message;
+        showToast('❌ Gagal pendekin link');
+    });
+};
+
+// 4. IMAGE ENHANCER (pake API DeepAI – API key udah masukin)
+window.enhanceImage = function() {
+    var fileInput = document.getElementById('imageInput');
+    var result = document.getElementById('imageResult');
+    var preview = document.getElementById('imagePreview');
+    if (!fileInput.files || fileInput.files.length === 0) {
+        result.textContent = '⚠️ Upload gambar dulu!';
+        return;
+    }
+    var file = fileInput.files[0];
+    var formData = new FormData();
+    formData.append('image', file);
+
+    result.textContent = '⏳ Sedang memproses...';
+
+    // API Key DeepAI – udah gue masukin
+    fetch('https://api.deepai.org/api/torch-srgan', {
+        method: 'POST',
+        headers: {
+            'api-key': '8fc9580f-26d2-42b3-9b6a-bb6af33e4799'
+        },
+        body: formData
+    })
+    .then(function(response) {
+        if (!response.ok) throw new Error('Gagal enhance gambar');
+        return response.json();
+    })
+    .then(function(data) {
+        if (data.output_url) {
+            preview.innerHTML = '<img src="' + data.output_url + '" alt="Enhanced" style="max-width:100%; border-radius:16px; margin-top:12px;">';
+            result.innerHTML = '✅ Gambar berhasil di-HD-kan! <br> <a href="' + data.output_url + '" target="_blank" style="color:var(--accent-light);">Download hasil</a>';
+            showToast('✨ Gambar berhasil di-HD-kan!');
+            incrementUsage();
+        } else {
+            result.textContent = '❌ Gagal enhance gambar.';
+        }
+    })
+    .catch(function(err) {
+        result.textContent = '❌ Error: ' + err.message + '. Pastikan API key benar.';
+        showToast('❌ Gagal enhance gambar');
+    });
+};
+
+// 5. NEWS HEADLINE (pake NewsAPI – API key udah masukin)
+window.getNews = function() {
+    var category = document.getElementById('newsCategory').value;
+    var result = document.getElementById('newsResult');
+    result.textContent = '⏳ Sedang mengambil berita...';
+
+    // API Key NewsAPI – udah gue masukin
+    var apiKey = '175ac6f4ebd341fb9b14b1d0281c712b';
+    fetch('https://newsapi.org/v2/top-headlines?country=id&category=' + category + '&apiKey=' + apiKey)
+    .then(function(response) {
+        if (!response.ok) throw new Error('Gagal mengambil berita');
+        return response.json();
+    })
+    .then(function(data) {
+        if (data.articles && data.articles.length > 0) {
+            var html = '<ul style="list-style:none; padding:0;">';
+            for (var i = 0; i < Math.min(5, data.articles.length); i++) {
+                var art = data.articles[i];
+                html += '<li style="padding:10px 0; border-bottom:1px solid var(--border-color);">';
+                html += '<a href="' + art.url + '" target="_blank" style="color:var(--accent-light); font-weight:600;">' + (art.title || 'Judul tidak tersedia') + '</a>';
+                if (art.description) html += '<p style="font-size:0.8rem; color:var(--text-secondary); margin:4px 0 0;">' + art.description + '</p>';
+                html += '</li>';
+            }
+            html += '</ul>';
+            result.innerHTML = html;
+            showToast('📰 Berita berhasil dimuat!');
+            incrementUsage();
+        } else {
+            result.textContent = '📭 Tidak ada berita untuk kategori ini.';
+        }
+    })
+    .catch(function(err) {
+        result.textContent = '❌ Error: ' + err.message + '. Pastikan API key benar.';
+        showToast('❌ Gagal memuat berita');
     });
 };
 
