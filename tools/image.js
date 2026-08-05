@@ -1,70 +1,84 @@
 // ==========================================
-// IMAGE ENHANCER (pica - upscale di browser, no server)
+// IMAGE ENHANCER (xBRZ - ES Module version)
 // ==========================================
-window.enhanceImage = function() {
-    var fileInput = document.getElementById('imageInput');
-    var result = document.getElementById('imageResult');
-    var preview = document.getElementById('imagePreview');
 
-    // 1. Validasi: cek apakah ada file yang diupload
+// Import xBRZ Scaler
+import { Scaler } from '@kayahr/xbrz';
+
+// Fungsi utama (tetap pake window biar bisa dipanggil dari HTML)
+window.enhanceImage = function() {
+    const fileInput = document.getElementById('imageInput');
+    const result = document.getElementById('imageResult');
+    const preview = document.getElementById('imagePreview');
+
+    // 1. Validasi file
     if (!fileInput.files || fileInput.files.length === 0) {
         result.textContent = '⚠️ Upload gambar dulu!';
         return;
     }
 
-    var file = fileInput.files[0];
+    const file = fileInput.files[0];
 
-    // 2. Batasi ukuran file (max 10MB)
+    // 2. Batasi ukuran (max 10MB biar gak berat)
     if (file.size > 10 * 1024 * 1024) {
         result.textContent = '⚠️ Ukuran gambar terlalu besar! Maksimal 10MB.';
         return;
     }
 
-    var reader = new FileReader();
+    const reader = new FileReader();
+
     reader.onload = function(e) {
-        var img = new Image();
+        const img = new Image();
+
         img.onload = function() {
             try {
-                // 3. Cek library pica
-                var pica = window.pica || window.Pica;
-                if (!pica) {
-                    throw new Error('Library pica tidak ditemukan. Pastikan script sudah di-load.');
+                // 3. Baca pixel gambar ke canvas
+                const srcCanvas = document.createElement('canvas');
+                srcCanvas.width = img.width;
+                srcCanvas.height = img.height;
+                const srcCtx = srcCanvas.getContext('2d');
+                srcCtx.drawImage(img, 0, 0);
+                const imageData = srcCtx.getImageData(0, 0, img.width, img.height);
+                const srcData = new Uint8ClampedArray(imageData.data);
+
+                // 4. Upscale pake xBRZ (skala 2x)
+                const scaleFactor = 2; // bisa diubah ke 3 atau 4
+                const scaler = new Scaler(img.width, img.height, scaleFactor);
+                const targetData = scaler.scale(srcData);
+
+                // 5. Tampilkan hasil ke canvas baru
+                const targetCanvas = document.createElement('canvas');
+                targetCanvas.width = scaler.targetWidth;
+                targetCanvas.height = scaler.targetHeight;
+                const targetCtx = targetCanvas.getContext('2d');
+                const targetImageData = new ImageData(targetData, scaler.targetWidth, scaler.targetHeight);
+                targetCtx.putImageData(targetImageData, 0, 0);
+
+                // 6. Convert ke URL gambar
+                const resultUrl = targetCanvas.toDataURL('image/png');
+
+                // 7. Tampilkan di preview & kasih link download
+                preview.innerHTML = `<img src="${resultUrl}" alt="Upscaled" style="max-width:100%; border-radius:16px; margin-top:12px;">`;
+                result.innerHTML = `✅ Gambar berhasil di-upscale! <br> <a href="${resultUrl}" download style="color:var(--accent-light);">Download hasil</a>`;
+                
+                // 8. Panggil fungsi dari core.js
+                if (typeof showToast === 'function') {
+                    showToast('✨ Gambar berhasil di-upscale!');
+                }
+                if (typeof incrementUsage === 'function') {
+                    incrementUsage();
                 }
 
-                // 4. Tentukan skala (2x, 3x, atau 4x)
-                var scale = 2; // bisa diubah ke 3 atau 4
-                var canvas = document.createElement('canvas');
-                canvas.width = img.width * scale;
-                canvas.height = img.height * scale;
-
-                result.innerHTML = '⏳ Sedang memproses... <br> <small style="color:var(--text-secondary);">Upscale 2x, bisa makan waktu 2-5 detik</small>';
-
-                // 5. Proses upscale pake pica
-                pica().resize(img, canvas, {
-                    quality: 3,          // 0-3, makin tinggi makin bagus
-                    alpha: true,
-                    unsharpAmount: 80,   // ketajaman
-                    unsharpRadius: 0.6
-                })
-                .then(function() {
-                    // 6. Tampilkan hasil
-                    var resultUrl = canvas.toDataURL('image/png');
-                    preview.innerHTML = '<img src="' + resultUrl + '" alt="Upscaled" style="max-width:100%; border-radius:16px; margin-top:12px;">';
-                    result.innerHTML = '✅ Gambar berhasil di-upscale! <br> <a href="' + resultUrl + '" download style="color:var(--accent-light);">Download hasil</a>';
-                    showToast('✨ Gambar berhasil di-upscale!');
-                    incrementUsage();
-                })
-                .catch(function(err) {
-                    result.textContent = '❌ Error saat resize: ' + err.message;
-                    showToast('❌ Gagal upscale gambar');
-                });
-
             } catch (err) {
-                result.textContent = '❌ Error: ' + err.message;
-                showToast('❌ Gagal upscale gambar');
+                result.textContent = `❌ Error: ${err.message}`;
+                if (typeof showToast === 'function') {
+                    showToast('❌ Gagal upscale gambar');
+                }
             }
         };
+
         img.src = e.target.result;
     };
+
     reader.readAsDataURL(file);
 };
