@@ -284,7 +284,7 @@ window.openTool = function(toolId) {
         case 'image':
             html += '<label>🖼️ Upload Gambar</label>' +
                     '<input type="file" id="imageInput" accept="image/*" style="width:100%; background:var(--bg-card); border:1px solid var(--border-color); border-radius:16px; padding:12px; color:var(--text-primary);">' +
-                    '<button class="btn-primary" onclick="enhanceImage()">✨ HD-kan</button>' +
+                    '<button class="btn-primary" id="enhanceBtn">✨ HD-kan</button>' +  // <-- INI YANG DIUBAH
                     '<div class="result-box" id="imageResult">Upload gambar, lalu klik HD-kan.</div>' +
                     '<div id="imagePreview" style="margin-top:12px;"></div>';
             break;
@@ -311,9 +311,8 @@ window.closeToolPage = function() {
     document.getElementById('toolPage').classList.remove('active');
 };
 
-// ---------- INIT GLOBAL (dipanggil loader setelah semua file dimuat) ----------
+// ---------- INIT GLOBAL ----------
 window.initAll = function() {
-    // Tema
     var theme = localStorage.getItem('theme') || 'dark';
     document.documentElement.setAttribute('data-theme', theme);
     var toggle = document.getElementById('themeToggle');
@@ -327,7 +326,6 @@ window.initAll = function() {
         showToast(next === 'dark' ? '🌙 Mode Gelap' : '☀️ Mode Terang');
     });
 
-    // Search & Filter
     document.getElementById('searchInput').addEventListener('input', function() { renderTools(); });
     document.querySelectorAll('.chip').forEach(function(chip) {
         chip.addEventListener('click', function() {
@@ -337,7 +335,6 @@ window.initAll = function() {
         });
     });
 
-    // Counter
     document.getElementById('usageCounter').textContent = totalUsage;
 
     renderTools();
