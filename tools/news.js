@@ -1,13 +1,13 @@
 // ==========================================
-// NEWS HEADLINE (NewsAPI – API KEY UDAH MASUK)
+// NEWS HEADLINE (GNews API – GRATIS, NO KEY, SUPPORT INDONESIA)
 // ==========================================
 window.getNews = function() {
     var category = document.getElementById('newsCategory').value;
     var result = document.getElementById('newsResult');
     result.textContent = '⏳ Sedang mengambil berita...';
 
-    var apiKey = '175ac6f4ebd341fb9b14b1d0281c712b';
-    fetch('https://newsapi.org/v2/top-headlines?country=id&category=' + category + '&apiKey=' + apiKey)
+    // GNews API – gratis, no key, support Indonesia
+    fetch('https://gnews.io/api/v4/top-headlines?category=' + category + '&lang=id&country=id&max=5')
     .then(function(response) {
         if (!response.ok) throw new Error('Gagal mengambil berita');
         return response.json();
@@ -31,7 +31,7 @@ window.getNews = function() {
         }
     })
     .catch(function(err) {
-        result.textContent = '❌ Error: ' + err.message + '. Pastikan API key benar.';
+        result.textContent = '❌ Error: ' + err.message + '. Coba lagi nanti.';
         showToast('❌ Gagal memuat berita');
     });
 };
