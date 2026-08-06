@@ -1,95 +1,79 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Leoo-Tools Pro</title>
-
-  <!-- Script Anti-Blink Dark Mode (FOUC Fix) -->
-  <script>
-    (function() {
-      const savedTheme = localStorage.getItem('theme');
-      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-      if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
-        document.documentElement.classList.add('dark');
-      } else {
-        document.documentElement.classList.remove('dark');
-      }
-    })();
-  </script>
-
-  <link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#ffffff">
+    <title>⚡ Leoo Tools Pro</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
 </head>
 <body>
 
-  <!-- Splash Screen -->
-  <div id="splash-screen" class="splash-screen">
-    <div class="splash-content">
-      <div class="splash-logo">
-        <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
-      </div>
-      <h2>Leoo-Tools Pro</h2>
-      <p>Mengubah antarmuka...</p>
-    </div>
-  </div>
+<!-- TOAST -->
+<div class="toast-container" id="toastContainer"></div>
 
-  <!-- Navbar -->
-  <header class="navbar">
-    <div class="nav-container">
-      <div class="nav-brand">
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
-        <span>Leoo-Tools</span>
-      </div>
-      <div class="nav-actions">
-        <div class="usage-counter">
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-          <span id="usage-count">0</span> Digunakan
+<!-- SCROLL TOP -->
+<button class="scroll-top" id="scrollTopBtn" title="Ke Atas">↑</button>
+
+<!-- SPLASH SCREEN -->
+<div class="splash-screen" id="splash">
+    <div class="splash-mesh"></div>
+    <div class="splash-title">Leoo Tools</div>
+    <div class="splash-sub">By Galang</div>
+    <div class="nx-bar-wrap"><div class="nx-bar-track"><div class="nx-bar-fill"></div></div></div>
+    <div class="nx-status" id="nexusShellStatus">menyiapkan tools</div>
+</div>
+
+<!-- DASHBOARD -->
+<div class="dashboard" id="dashboard">
+    <!-- Navbar -->
+    <div class="navbar">
+        <div class="brand">⚡ Leoo V 1.0 <small>V 1.0</small></div>
+        <div class="nav-search" id="navSearch">
+            <span>🔍</span>
+            <input type="text" id="searchInput" placeholder="Cari tools...">
         </div>
-        <button id="theme-toggle" class="theme-btn" aria-label="Toggle Theme">
-          <svg class="sun-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
-          <svg class="moon-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
-        </button>
-      </div>
-    </div>
-  </header>
-
-  <!-- Main Container -->
-  <main class="main-content">
-    <section class="hero">
-      <h1>Kumpulan Perkakas Digital Modern</h1>
-      <p>Akses berbagai alat produktivitas dan pemrosesan media dalam satu dasbor cepat.</p>
-      
-      <!-- Category Filter -->
-      <div class="category-filter" id="category-filter">
-        <button class="filter-btn active" data-category="all">Semua Alat</button>
-        <button class="filter-btn" data-category="media">Media & API</button>
-        <button class="filter-btn" data-category="utility">Utilitas Teks & Web</button>
-        <button class="filter-btn" data-category="image">Gambar</button>
-      </div>
-    </section>
-
-    <!-- Dashboard Tools Grid -->
-    <section class="tools-grid" id="tools-grid"></section>
-  </main>
-
-  <!-- Modal Container Dynamic -->
-  <div id="tool-modal" class="modal">
-    <div class="modal-content">
-      <div class="modal-header">
-        <div class="modal-title-wrapper">
-          <span id="modal-icon"></span>
-          <h3 id="modal-title"></h3>
+        <div style="display:flex; gap:12px; align-items:center;">
+            <button class="theme-toggle" id="themeToggle" title="Toggle tema (Dark/Light)">🌙</button>
         </div>
-        <button class="close-btn" id="modal-close">&times;</button>
-      </div>
-      <div class="modal-body" id="modal-body"></div>
     </div>
-  </div>
 
-  <!-- Toast Notification -->
-  <div id="toast" class="toast"></div>
+    <!-- Stats -->
+    <div class="stats-bar" id="statsBar">
+        <span>📦 Total Tools: <strong id="totalTools">0</strong></span>
+        <span>🏷️ Kategori: <strong id="activeCategory">Semua</strong></span>
+        <span>🕒 Terakhir: <strong id="lastOpened">-</strong></span>
+        <span>🚀 <strong id="usageCounter">0</strong> tools telah digunakan hari ini</span>
+    </div>
 
-  <script src="splash.js"></script>
-  <script src="loader.js"></script>
+    <!-- Kategori -->
+    <div class="categories" id="categoryFilter">
+        <span class="chip active" data-cat="all">⚡ Semua</span>
+        <span class="chip" data-cat="utility">🛠 Utility</span>
+        <span class="chip" data-cat="dev">💻 Dev</span>
+        <span class="chip" data-cat="text">📝 Text</span>
+    </div>
+
+    <!-- Grid Tools -->
+    <div class="tools-grid" id="toolsGrid"></div>
+
+    <!-- Halaman Tool (Full Page) -->
+    <div class="tool-page" id="toolPage" style="display:none;">
+        <div class="tool-page-header">
+            <button class="btn-back" onclick="closeToolPage()">← Back Lobby</button>
+            <h2 id="toolPageTitle">Tool</h2>
+        </div>
+        <div class="tool-page-body" id="toolPageBody"></div>
+    </div>
+
+    <div class="footer-credit">⚡ Leoo Tools Pro · Dihidupkan oleh <span>GeminiXD</span></div>
+</div>
+
+<!-- ========================================================= -->
+<!-- SCRIPT LOADER UNTUK SEMUA TOOLS                           -->
+<!-- ========================================================= -->
+<script src="splash.js"></script>
+<script src="loader.js"></script>
 </body>
 </html>
