@@ -5,7 +5,7 @@
         var dashboard = document.getElementById('dashboard');
         if (splash) splash.classList.add('hide');
         if (dashboard) dashboard.classList.add('active');
-    }, 1500);
+    }, 3000);
 
     // Proteksi inspect
     document.addEventListener('contextmenu', function(e) { e.preventDefault(); });
