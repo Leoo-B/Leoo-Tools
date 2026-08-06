@@ -2,59 +2,6 @@
 // CORE – Data Tools, Render, Partikel, Toast, Scroll, Counter, Stats
 // ==========================================
 
-// ---------- PARTIKEL CANVAS ----------
-(function initParticles() {
-    var canvas = document.getElementById('particles-canvas');
-    if (!canvas) return;
-    var ctx = canvas.getContext('2d');
-    var particles = [];
-    var w, h;
-
-    function resize() {
-        w = canvas.width = window.innerWidth;
-        h = canvas.height = window.innerHeight;
-    }
-    resize();
-    window.addEventListener('resize', resize);
-
-    var count = Math.min(120, Math.floor((w * h) / 12000));
-    for (var i = 0; i < count; i++) {
-        particles.push({
-            x: Math.random() * w,
-            y: Math.random() * h,
-            r: Math.random() * 3 + 2,
-            dx: (Math.random() - 0.5) * 0.4,
-            dy: (Math.random() - 0.5) * 0.4,
-            o: Math.random() * 0.4 + 0.6
-        });
-    }
-
-    function draw() {
-        ctx.clearRect(0, 0, w, h);
-        ctx.shadowColor = 'rgba(168, 85, 247, 0.8)';
-        ctx.shadowBlur = 15;
-        ctx.fillStyle = 'rgba(200, 170, 255, 0.9)';
-
-        for (var i = 0; i < particles.length; i++) {
-            var p = particles[i];
-            ctx.globalAlpha = p.o;
-            ctx.beginPath();
-            ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-            ctx.fill();
-            p.x += p.dx;
-            p.y += p.dy;
-            if (p.x < 0) p.x = w;
-            if (p.x > w) p.x = 0;
-            if (p.y < 0) p.y = h;
-            if (p.y > h) p.y = 0;
-        }
-        ctx.globalAlpha = 1;
-        ctx.shadowBlur = 0;
-        requestAnimationFrame(draw);
-    }
-    draw();
-})();
-
 // ---------- TOAST (max 3) ----------
 window.showToast = function(message) {
     var container = document.getElementById('toastContainer');
@@ -334,16 +281,16 @@ window.closeToolPage = function() {
 
 // ---------- INIT GLOBAL ----------
 window.initAll = function() {
-    var theme = localStorage.getItem('theme') || 'dark';
+    var theme = localStorage.getItem('theme') || 'light';
     document.documentElement.setAttribute('data-theme', theme);
     var toggle = document.getElementById('themeToggle');
-    toggle.textContent = theme === 'dark' ? '🌙' : '☀️';
+    toggle.textContent = theme === 'dark' ? '☀️' : '🌙';
     toggle.addEventListener('click', function() {
         var current = document.documentElement.getAttribute('data-theme');
         var next = current === 'dark' ? 'light' : 'dark';
         document.documentElement.setAttribute('data-theme', next);
         localStorage.setItem('theme', next);
-        toggle.textContent = next === 'dark' ? '🌙' : '☀️';
+        toggle.textContent = next === 'dark' ? '☀️' : '🌙';
         showToast(next === 'dark' ? '🌙 Mode Gelap' : '☀️ Mode Terang');
     });
 
