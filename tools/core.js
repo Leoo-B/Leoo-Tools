@@ -100,7 +100,10 @@ var tools = [
     { name: "Base64 Encoder/Decoder", icon: "🔒", cat: "text", desc: "Encode/decode teks base64.", id: "base64" },
     { name: "Text Analyzer", icon: "📝", cat: "text", desc: "Hitung huruf, kata, kalimat.", id: "counter" },
     { name: "Color Picker Pro", icon: "🎨", cat: "utility", desc: "Pilih warna + salin kode.", id: "color" },
-    { name: "Media Downloader", icon: "📥", cat: "utility", desc: "Download video dari TikTok, YT, IG, FB.", id: "media" },
+    { name: "TikTok Downloader", icon: "🎵", cat: "utility", desc: "Download video TikTok tanpa watermark.", id: "tiktok" },
+    { name: "YouTube Downloader", icon: "▶️", cat: "utility", desc: "Download video YouTube.", id: "youtube" },
+    { name: "Instagram Downloader", icon: "📸", cat: "utility", desc: "Download foto/video dari Instagram.", id: "instagram" },
+    { name: "Facebook Downloader", icon: "📘", cat: "utility", desc: "Download video dari Facebook.", id: "facebook" },
     { name: "Pengecekan Cuaca", icon: "🌤️", cat: "utility", desc: "Cek cuaca kota mana pun.", id: "weather" },
     { name: "URL Shortener", icon: "🔗", cat: "utility", desc: "Pendekin link panjang jadi pendek.", id: "urlshort" },
     { name: "Image Enhancer", icon: "🖼️", cat: "utility", desc: "Ubah gambar jadi HD / upscale.", id: "image" },
@@ -255,18 +258,36 @@ window.openTool = function(toolId) {
                     '</div>' +
                     '<div class="result-box" id="colorResult">HEX: #7c3aed | RGB: rgb(124,58,237)</div>';
             break;
-        case 'media':
-            html += '<label>📌 Pilih Platform</label>' +
-                    '<select id="mediaPlatform" style="width:100%; background:var(--bg-card); border:1px solid var(--border-color); border-radius:16px; padding:14px 18px; color:var(--text-primary);">' +
-                    '<option value="tiktok">TikTok</option>' +
-                    '<option value="youtube">YouTube</option>' +
-                    '<option value="instagram">Instagram</option>' +
-                    '<option value="facebook">Facebook</option>' +
-                    '</select>' +
-                    '<label>🔗 Masukkan Link</label>' +
-                    '<input type="text" id="mediaLink" placeholder="https://..." style="width:100%; background:var(--bg-card); border:1px solid var(--border-color); border-radius:16px; padding:14px 18px; color:var(--text-primary);">' +
-                    '<button class="btn-primary" onclick="downloadMedia()">📥 Download</button>' +
-                    '<div class="result-box" id="mediaResult">Hasil download akan muncul di sini</div>' +
+        case 'tiktok':
+            html += '<label>🔗 Masukkan Link TikTok</label>' +
+                    '<input type="text" id="tiktokLink" placeholder="https://www.tiktok.com/@user/video/..." style="width:100%; background:var(--bg-card); border:1px solid var(--border-color); border-radius:16px; padding:14px 18px; color:var(--text-primary);">' +
+                    '<button class="btn-primary" onclick="downloadTiktok()">📥 Download</button>' +
+                    '<div class="result-box" id="tiktokResult">Hasil download akan muncul di sini</div>' +
+                    '<div id="tiktokPreview" style="margin-top:12px;"></div>' +
+                    '<small style="color:var(--text-secondary); display:block; margin-top:6px;">⚠️ Hanya untuk konten publik & legal.</small>';
+            break;
+        case 'youtube':
+            html += '<label>🔗 Masukkan Link YouTube</label>' +
+                    '<input type="text" id="youtubeLink" placeholder="https://youtube.com/watch?v=..." style="width:100%; background:var(--bg-card); border:1px solid var(--border-color); border-radius:16px; padding:14px 18px; color:var(--text-primary);">' +
+                    '<button class="btn-primary" onclick="downloadYoutube()">📥 Download</button>' +
+                    '<div class="result-box" id="youtubeResult">Hasil download akan muncul di sini</div>' +
+                    '<div id="youtubePreview" style="margin-top:12px;"></div>' +
+                    '<small style="color:var(--text-secondary); display:block; margin-top:6px;">⚠️ Kualitas terbatas 360p (video+audio nyatu). Hanya untuk konten publik & legal.</small>';
+            break;
+        case 'instagram':
+            html += '<label>🔗 Masukkan Link Instagram</label>' +
+                    '<input type="text" id="instagramLink" placeholder="https://www.instagram.com/p/..." style="width:100%; background:var(--bg-card); border:1px solid var(--border-color); border-radius:16px; padding:14px 18px; color:var(--text-primary);">' +
+                    '<button class="btn-primary" onclick="downloadInstagram()">📥 Download</button>' +
+                    '<div class="result-box" id="instagramResult">Hasil download akan muncul di sini</div>' +
+                    '<div id="instagramPreview" style="margin-top:12px;"></div>' +
+                    '<small style="color:var(--text-secondary); display:block; margin-top:6px;">⚠️ Hanya untuk konten publik & legal.</small>';
+            break;
+        case 'facebook':
+            html += '<label>🔗 Masukkan Link Facebook</label>' +
+                    '<input type="text" id="facebookLink" placeholder="https://www.facebook.com/.../videos/..." style="width:100%; background:var(--bg-card); border:1px solid var(--border-color); border-radius:16px; padding:14px 18px; color:var(--text-primary);">' +
+                    '<button class="btn-primary" onclick="downloadFacebook()">📥 Download</button>' +
+                    '<div class="result-box" id="facebookResult">Hasil download akan muncul di sini</div>' +
+                    '<div id="facebookPreview" style="margin-top:12px;"></div>' +
                     '<small style="color:var(--text-secondary); display:block; margin-top:6px;">⚠️ Hanya untuk konten publik & legal.</small>';
             break;
         case 'weather':
