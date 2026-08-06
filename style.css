@@ -8,67 +8,94 @@ html, body {
     box-sizing: border-box;
 }
 
-/* ===== ROOT VARIABEL — Design system: Vercel ===== */
+/* ===== ROOT VARIABEL — Design system: Vercel (official DESIGN.md tokens) ===== */
 :root {
-    --bg-primary: #ffffff;
+    --canvas: #ffffff;
+    --canvas-soft: #fafafa;
+    --canvas-soft-2: #f5f5f5;
+    --ink: #171717;
+    --body-text: #4d4d4d;
+    --mute: #888888;
+    --hairline: #ebebeb;
+    --hairline-strong: #a1a1a1;
+    --primary: #171717;
+    --on-primary: #ffffff;
+    --link: #0070f3;
+    --link-deep: #0761d1;
+
+    /* Backward-compatible aliases dipakai di komponen lain (weather.js, urlshort.js, dll via var()) */
+    --bg-primary: var(--canvas);
     --bg-primary-rgb: 255, 255, 255;
-    --bg-secondary: #fafafa;
-    --bg-card: #ffffff;
-    --bg-card-hover: #fafafa;
-    --text-primary: #171717;
-    --text-secondary: #4d4d4d;
-    --text-tertiary: #666666;
-    --ring: rgba(0, 0, 0, 0.08);
-    --ring-strong: rgb(235, 235, 235);
-    --accent: #171717;
-    --accent-light: #0072f5;
-    --accent-glow: rgba(0, 0, 0, 0.06);
-    --focus-ring: hsla(212, 100%, 48%, 1);
-    --badge-bg: #ebf5ff;
-    --badge-text: #0068d6;
-    --shadow-card: var(--ring) 0px 0px 0px 1px, rgba(0, 0, 0, 0.04) 0px 2px 2px, #fafafa 0px 0px 0px 1px;
-    --shadow-ring: var(--ring) 0px 0px 0px 1px;
+    --bg-card: var(--canvas);
+    --bg-card-hover: var(--canvas-soft);
+    --text-primary: var(--ink);
+    --text-secondary: var(--body-text);
+    --accent: var(--primary);
+    --accent-light: var(--link);
+
+    /* Elevation — formula resmi dari DESIGN.md (stacked shadow, bukan single drop-shadow) */
+    --shadow-l1: inset 0 0 0 1px var(--hairline);
+    --shadow-l3: inset 0 0 0 1px var(--hairline), 0px 2px 2px rgba(0,0,0,0.04), 0px 8px 8px -8px rgba(0,0,0,0.04);
+    --shadow-l4: inset 0 0 0 1px var(--hairline), 0px 2px 2px rgba(0,0,0,0.04), 0px 8px 16px -4px rgba(0,0,0,0.04);
+
+    --radius-sm: 6px;
+    --radius-md: 8px;
+    --radius-lg: 12px;
+    --radius-pill-sm: 64px;
+    --radius-pill: 100px;
+
     --transition: 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 [data-theme="dark"] {
-    --bg-primary: #171717;
+    /* Ekstensi dari brand's own "polarity-flipped dark band" concept (showcase-band-dark)
+       diterapkan site-wide — bukan token resmi terpisah, karena DESIGN.md aslinya cuma
+       dokumentasiin light mode. Ink jadi canvas, canvas jadi ink. */
+    --canvas: #171717;
+    --canvas-soft: #1f1f1f;
+    --canvas-soft-2: #262626;
+    --ink: #fafafa;
+    --body-text: #a1a1a1;
+    --mute: #737373;
+    --hairline: rgba(255,255,255,0.1);
+    --hairline-strong: rgba(255,255,255,0.24);
+    --primary: #fafafa;
+    --on-primary: #171717;
+    --link: #4f9dff;
+
+    --bg-primary: var(--canvas);
     --bg-primary-rgb: 23, 23, 23;
-    --bg-secondary: #1f1f1f;
-    --bg-card: #1f1f1f;
-    --bg-card-hover: #262626;
-    --text-primary: #fafafa;
-    --text-secondary: #a1a1a1;
-    --text-tertiary: #808080;
-    --ring: rgba(255, 255, 255, 0.1);
-    --ring-strong: rgba(255, 255, 255, 0.16);
-    --accent: #fafafa;
-    --accent-light: #4f9dff;
-    --accent-glow: rgba(255, 255, 255, 0.06);
-    --badge-bg: rgba(0, 114, 243, 0.14);
-    --badge-text: #4f9dff;
-    --shadow-card: var(--ring) 0px 0px 0px 1px, rgba(0, 0, 0, 0.3) 0px 2px 2px, #1f1f1f 0px 0px 0px 1px;
-    --shadow-ring: var(--ring) 0px 0px 0px 1px;
+    --bg-card: var(--canvas);
+    --bg-card-hover: var(--canvas-soft);
+    --text-primary: var(--ink);
+    --text-secondary: var(--body-text);
+    --accent: var(--primary);
+    --accent-light: var(--link);
+
+    --shadow-l3: inset 0 0 0 1px var(--hairline), 0px 2px 2px rgba(0,0,0,0.3), 0px 8px 8px -8px rgba(0,0,0,0.3);
+    --shadow-l4: inset 0 0 0 1px var(--hairline), 0px 2px 2px rgba(0,0,0,0.3), 0px 8px 16px -4px rgba(0,0,0,0.3);
 }
 
 body {
-    background: var(--bg-primary);
-    font-family: 'Inter', Arial, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif;
-    color: var(--text-primary);
+    background: var(--canvas-soft);
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    font-feature-settings: "ss01", "ss02";
+    color: var(--ink);
     overflow-x: hidden;
     transition: background var(--transition), color var(--transition);
     -webkit-font-smoothing: antialiased;
 }
 
-/* ===== SPLASH SCREEN — minimal, no glow/particles ===== */
+/* ===== SPLASH SCREEN — hero moment: mesh gradient (satu-satunya tempat gradient dipakai) ===== */
 .splash-screen {
     position: fixed;
     inset: 0;
     z-index: 9999;
-    background: var(--bg-primary);
+    background: var(--canvas);
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
+    overflow: hidden;
     transition: opacity 0.4s ease, visibility 0.4s ease;
 }
 .splash-screen.hide {
@@ -76,27 +103,50 @@ body {
     visibility: hidden;
     pointer-events: none;
 }
+/* Mesh gradient — stop warna persis dari DESIGN.md: develop / preview / ship */
+.splash-mesh {
+    position: absolute;
+    top: -20%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 140vw;
+    height: 70vh;
+    max-width: 1200px;
+    background:
+        radial-gradient(circle at 20% 30%, #007cf0 0%, transparent 45%),
+        radial-gradient(circle at 45% 20%, #00dfd8 0%, transparent 40%),
+        radial-gradient(circle at 65% 40%, #7928ca 0%, transparent 45%),
+        radial-gradient(circle at 80% 25%, #ff0080 0%, transparent 40%),
+        radial-gradient(circle at 55% 55%, #ff4d4d 0%, transparent 45%),
+        radial-gradient(circle at 75% 60%, #f9cb28 0%, transparent 40%);
+    filter: blur(60px) saturate(130%);
+    opacity: 0.55;
+    pointer-events: none;
+}
 .splash-title {
+    position: relative;
     font-family: 'Inter', sans-serif;
     font-size: clamp(1.75rem, 5vw, 2.5rem);
     font-weight: 600;
     letter-spacing: -1.28px;
-    color: var(--text-primary);
+    color: var(--ink);
     opacity: 0;
     animation: splashFadeIn 0.5s ease 0.15s forwards;
 }
 .splash-sub {
-    font-family: 'Roboto Mono', ui-monospace, monospace;
+    position: relative;
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
     font-size: 0.68rem;
-    letter-spacing: 3px;
-    color: var(--text-tertiary);
-    font-weight: 500;
+    letter-spacing: 2px;
+    color: var(--mute);
+    font-weight: 400;
     text-transform: uppercase;
     margin-top: 8px;
     opacity: 0;
     animation: splashFadeIn 0.5s ease 0.3s forwards;
 }
 .nx-bar-wrap {
+    position: relative;
     width: min(180px, 50vw);
     margin-top: 28px;
     opacity: 0;
@@ -105,14 +155,14 @@ body {
 .nx-bar-track {
     width: 100%;
     height: 2px;
-    background: var(--ring-strong);
+    background: var(--hairline);
     border-radius: 2px;
     overflow: hidden;
 }
 .nx-bar-fill {
     height: 100%;
     width: 0%;
-    background: var(--text-primary);
+    background: var(--ink);
     border-radius: 2px;
     animation: nxBarFill 0.9s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.5s forwards;
 }
@@ -121,10 +171,11 @@ body {
     100% { width: 100%; }
 }
 .nx-status {
-    font-family: 'Roboto Mono', ui-monospace, monospace;
+    position: relative;
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
     font-size: 0.6rem;
     letter-spacing: 2px;
-    color: var(--text-tertiary);
+    color: var(--mute);
     text-transform: uppercase;
     margin-top: 12px;
     opacity: 0;
@@ -142,10 +193,10 @@ body {
     justify-content: flex-start;
     align-items: stretch;
     min-height: 100vh;
-    padding: 0 30px 40px;
+    padding: 0 24px 40px;
     max-width: 1200px;
     margin: 0 auto;
-    background: var(--bg-primary);
+    background: var(--canvas-soft);
 }
 .dashboard.active {
     display: flex;
@@ -156,33 +207,38 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 18px 0;
-    box-shadow: 0px 1px 0px 0px var(--ring);
+    padding: 0 0;
+    height: 64px;
+    box-shadow: inset 0 -1px 0 0 var(--hairline);
     flex-wrap: wrap;
     gap: 12px;
     position: sticky;
     top: 0;
-    background: var(--bg-primary);
+    background: var(--canvas);
     z-index: 10;
+    margin: 0 -24px;
+    padding-left: 24px;
+    padding-right: 24px;
 }
 .brand {
     font-family: 'Inter', sans-serif;
     font-size: 1.25rem;
     font-weight: 600;
     letter-spacing: -0.96px;
-    color: var(--text-primary);
+    color: var(--ink);
 }
 .brand small {
-    font-size: 0.65rem;
-    font-weight: 500;
-    color: var(--text-tertiary);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.62rem;
+    font-weight: 400;
+    color: var(--mute);
     letter-spacing: 1px;
     margin-left: 6px;
 }
 .nav-search {
-    background: var(--bg-primary);
-    box-shadow: var(--shadow-ring);
-    border-radius: 6px;
+    background: var(--canvas);
+    box-shadow: var(--shadow-l1);
+    border-radius: var(--radius-sm);
     padding: 8px 16px;
     display: flex;
     align-items: center;
@@ -190,37 +246,39 @@ body {
     flex: 1;
     max-width: 380px;
     min-width: 160px;
+    height: 40px;
     transition: box-shadow var(--transition);
 }
 .nav-search:focus-within {
-    box-shadow: 0 0 0 2px var(--focus-ring);
+    box-shadow: 0 0 0 2px var(--link);
 }
 .nav-search input {
     background: transparent;
     border: none;
     outline: none;
-    color: var(--text-primary);
+    color: var(--ink);
     font-family: 'Inter', sans-serif;
-    font-size: 0.9rem;
+    font-size: 0.875rem;
     width: 100%;
     padding: 6px 0;
 }
 .nav-search input::placeholder {
-    color: var(--text-tertiary);
+    color: var(--mute);
 }
 .theme-toggle {
-    background: var(--bg-primary);
-    box-shadow: var(--shadow-ring);
+    background: var(--canvas);
+    box-shadow: var(--shadow-l1);
     border: none;
-    border-radius: 6px;
+    border-radius: var(--radius-sm);
     padding: 8px 14px;
+    height: 40px;
     cursor: pointer;
-    color: var(--text-primary);
+    color: var(--ink);
     font-size: 1rem;
     transition: var(--transition);
 }
 .theme-toggle:hover {
-    background: var(--bg-card-hover);
+    background: var(--canvas-soft);
 }
 
 /* === STATS === */
@@ -228,51 +286,54 @@ body {
     display: flex;
     flex-wrap: wrap;
     gap: 12px 20px;
-    padding: 14px 0;
-    box-shadow: 0px 1px 0px 0px var(--ring);
+    padding: 16px 0;
+    box-shadow: inset 0 -1px 0 0 var(--hairline);
     margin-bottom: 2px;
-    font-size: 0.72rem;
-    color: var(--text-tertiary);
-    font-family: 'Roboto Mono', ui-monospace, monospace;
+    font-size: 0.75rem;
+    color: var(--mute);
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
 }
 .stats-bar strong {
-    color: var(--text-primary);
-    font-weight: 600;
+    color: var(--ink);
+    font-weight: 500;
 }
 
-/* === KATEGORI (pill nav, sesuai spec "Large Pill Navigation") === */
+/* === KATEGORI — komponen "tab-ghost" (5-up pill tab row, radius pill-sm 64px) === */
 .categories {
     display: flex;
     flex-wrap: wrap;
     gap: 8px;
     margin: 16px 0 12px;
     padding-bottom: 16px;
-    box-shadow: 0px 1px 0px 0px var(--ring);
+    box-shadow: inset 0 -1px 0 0 var(--hairline);
 }
 .chip {
-    padding: 8px 16px;
-    border-radius: 100px;
-    font-size: 0.7rem;
-    font-weight: 500;
-    letter-spacing: 0.2px;
+    padding: 0 16px;
+    height: 32px;
+    display: inline-flex;
+    align-items: center;
+    border-radius: var(--radius-pill-sm);
+    font-size: 0.75rem;
+    font-weight: 400;
+    letter-spacing: 0;
     cursor: pointer;
-    background: var(--bg-primary);
-    color: var(--text-secondary);
-    box-shadow: var(--shadow-ring);
+    background: var(--canvas);
+    color: var(--body-text);
+    box-shadow: var(--shadow-l1);
     transition: var(--transition);
-    text-transform: uppercase;
+    text-transform: none;
 }
 .chip:hover {
-    background: var(--bg-card-hover);
-    color: var(--text-primary);
+    background: var(--canvas-soft);
+    color: var(--ink);
 }
 .chip.active {
-    background: var(--accent);
-    color: var(--bg-primary);
+    background: var(--primary);
+    color: var(--on-primary);
     box-shadow: none;
 }
 
-/* === TOOLS GRID + CARDS === */
+/* === TOOLS GRID + CARDS — komponen "card-marketing" (radius 8px, Level 3 shadow) === */
 .tools-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
@@ -285,17 +346,17 @@ body {
     100% { opacity: 1; transform: translateY(0); }
 }
 .tool-card {
-    background: var(--bg-card);
-    box-shadow: var(--shadow-card);
-    border-radius: 8px;
-    padding: 20px 16px;
+    background: var(--canvas);
+    box-shadow: var(--shadow-l3);
+    border-radius: var(--radius-md);
+    padding: 24px;
     transition: box-shadow var(--transition), transform var(--transition);
     cursor: pointer;
     position: relative;
 }
 .tool-card:hover {
     transform: translateY(-2px);
-    box-shadow: var(--ring-strong) 0px 0px 0px 1px, rgba(0, 0, 0, 0.06) 0px 4px 8px;
+    box-shadow: var(--shadow-l4);
 }
 .tool-card .icon {
     font-size: 1.9rem;
@@ -303,64 +364,68 @@ body {
     margin-bottom: 8px;
 }
 .tool-card h4 {
-    font-size: 0.92rem;
+    font-size: 1rem;
     font-weight: 600;
     letter-spacing: -0.32px;
-    color: var(--text-primary);
+    color: var(--ink);
     margin: 6px 0;
 }
 .tool-card p {
-    font-size: 0.72rem;
-    color: var(--text-secondary);
+    font-size: 0.8125rem;
+    color: var(--body-text);
     line-height: 1.5;
 }
+/* komponen "badge-secondary" — netral, bukan biru */
 .tool-card .badge {
     position: absolute;
-    top: 14px;
-    right: 14px;
-    font-size: 0.55rem;
-    font-weight: 500;
-    background: var(--badge-bg);
-    padding: 2px 10px;
+    top: 16px;
+    right: 16px;
+    font-size: 0.6875rem;
+    font-weight: 400;
+    background: var(--canvas-soft);
+    padding: 0 8px;
+    height: 20px;
+    display: inline-flex;
+    align-items: center;
     border-radius: 9999px;
-    color: var(--badge-text);
-    letter-spacing: 0.3px;
+    color: var(--body-text);
+    letter-spacing: 0;
 }
 
 /* === SKELETON === */
 .skeleton {
-    background: var(--bg-card);
-    border-radius: 8px;
-    padding: 20px 18px;
-    box-shadow: var(--shadow-ring);
+    background: var(--canvas);
+    border-radius: var(--radius-md);
+    padding: 24px;
+    box-shadow: var(--shadow-l1);
     animation: pulse 1.5s ease-in-out infinite;
 }
 .skeleton .skeleton-icon {
     width: 36px;
     height: 36px;
-    border-radius: 6px;
-    background: var(--bg-card-hover);
+    border-radius: var(--radius-sm);
+    background: var(--canvas-soft);
     margin-bottom: 12px;
 }
 .skeleton .skeleton-title {
     width: 70%;
     height: 14px;
     border-radius: 4px;
-    background: var(--bg-card-hover);
+    background: var(--canvas-soft);
     margin-bottom: 8px;
 }
 .skeleton .skeleton-desc {
     width: 90%;
     height: 10px;
     border-radius: 4px;
-    background: var(--bg-card-hover);
+    background: var(--canvas-soft);
 }
 @keyframes pulse {
     0%, 100% { opacity: 0.5; }
     50% { opacity: 1; }
 }
 
-/* === TOAST — plain shadow-bordered card, no glass/glow === */
+/* === TOAST — komponen "ex-toast": card-marketing chrome + Level 4 shadow === */
 .toast-container {
     position: fixed;
     bottom: 30px;
@@ -372,13 +437,13 @@ body {
     pointer-events: none;
 }
 .toast {
-    background: var(--bg-primary);
-    box-shadow: var(--shadow-card);
-    border-radius: 8px;
+    background: var(--canvas);
+    box-shadow: var(--shadow-l4);
+    border-radius: var(--radius-md);
     padding: 12px 18px;
-    color: var(--text-primary);
-    font-size: 0.82rem;
-    font-weight: 500;
+    color: var(--ink);
+    font-size: 0.8125rem;
+    font-weight: 400;
     text-align: center;
     pointer-events: auto;
     animation: slideUp 0.3s ease forwards, fadeOut 0.3s ease 2.6s forwards;
@@ -392,7 +457,7 @@ body {
     to { opacity: 0; transform: translateY(-10px); }
 }
 
-/* === SCROLL TOP === */
+/* === SCROLL TOP — komponen "icon-button-circular": canvas + hairline border, bukan solid fill === */
 .scroll-top {
     position: fixed;
     bottom: 80px;
@@ -400,13 +465,13 @@ body {
     z-index: 999;
     width: 44px;
     height: 44px;
-    border-radius: 50%;
-    background: var(--accent);
-    color: var(--bg-primary);
+    border-radius: 9999px;
+    background: var(--canvas);
+    color: var(--ink);
     border: none;
-    font-size: 1.3rem;
-    font-weight: 600;
-    box-shadow: var(--shadow-ring);
+    box-shadow: var(--shadow-l3);
+    font-size: 1.2rem;
+    font-weight: 500;
     cursor: pointer;
     transition: var(--transition);
     display: none;
@@ -414,7 +479,7 @@ body {
     justify-content: center;
 }
 .scroll-top:hover {
-    opacity: 0.85;
+    background: var(--canvas-soft);
 }
 .scroll-top.show { display: flex; }
 
@@ -431,19 +496,21 @@ body {
     align-items: center;
     gap: 16px;
     padding-bottom: 20px;
-    box-shadow: 0px 1px 0px 0px var(--ring);
+    box-shadow: inset 0 -1px 0 0 var(--hairline);
     margin-bottom: 24px;
     flex-wrap: wrap;
 }
+/* Tombol pakai skala "button-primary-sm" — pill 100px, konsisten dipakai di semua tombol app */
 .tool-page-header .btn-back {
-    background: var(--accent);
+    background: var(--primary);
     border: none;
-    border-radius: 6px;
-    padding: 8px 18px;
+    border-radius: var(--radius-pill);
+    padding: 0 20px;
+    height: 36px;
     font-family: 'Inter', sans-serif;
-    font-size: 0.82rem;
+    font-size: 0.875rem;
     font-weight: 500;
-    color: var(--bg-primary);
+    color: var(--on-primary);
     cursor: pointer;
     transition: var(--transition);
 }
@@ -452,10 +519,10 @@ body {
 }
 .tool-page-header h2 {
     font-family: 'Inter', sans-serif;
-    font-size: 1.2rem;
+    font-size: 1.25rem;
     font-weight: 600;
     letter-spacing: -0.6px;
-    color: var(--text-primary);
+    color: var(--ink);
     margin: 0;
 }
 .tool-page-body {
@@ -464,43 +531,49 @@ body {
     width: 100%;
 }
 .tool-page-body label {
-    font-size: 0.7rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.68rem;
     text-transform: uppercase;
     letter-spacing: 1px;
-    color: var(--text-tertiary);
-    font-weight: 500;
+    color: var(--mute);
+    font-weight: 400;
     display: block;
     margin: 20px 0 6px;
 }
+/* komponen "form-input": canvas + hairline border, radius sm 6px, height 40px */
 .tool-page-body input,
 .tool-page-body textarea,
 .tool-page-body select {
     width: 100%;
-    background: var(--bg-primary);
+    background: var(--canvas);
     border: none;
-    box-shadow: var(--shadow-ring);
-    border-radius: 6px;
-    padding: 12px 16px;
-    color: var(--text-primary);
+    box-shadow: var(--shadow-l1);
+    border-radius: var(--radius-sm);
+    padding: 0 16px;
+    min-height: 40px;
+    color: var(--ink);
     font-family: 'Inter', sans-serif;
-    font-size: 0.95rem;
+    font-size: 0.9375rem;
     outline: none;
     transition: box-shadow var(--transition);
     resize: vertical;
 }
+.tool-page-body textarea { padding: 10px 16px; }
 .tool-page-body input:focus,
 .tool-page-body textarea:focus {
-    box-shadow: 0 0 0 2px var(--focus-ring);
+    box-shadow: 0 0 0 2px var(--link);
 }
 .tool-page-body textarea { min-height: 120px; }
+/* Tombol utama — button-primary-sm: pill 100px */
 .tool-page-body .btn-primary {
-    background: var(--accent);
+    background: var(--primary);
     border: none;
-    padding: 12px 24px;
-    border-radius: 6px;
-    color: var(--bg-primary);
+    padding: 0 24px;
+    height: 44px;
+    border-radius: var(--radius-pill);
+    color: var(--on-primary);
     font-weight: 500;
-    font-size: 0.95rem;
+    font-size: 0.9375rem;
     cursor: pointer;
     transition: var(--transition);
     margin-top: 16px;
@@ -510,23 +583,23 @@ body {
     opacity: 0.85;
 }
 .tool-page-body .result-box {
-    background: var(--bg-primary);
-    box-shadow: var(--shadow-card);
-    border-radius: 8px;
+    background: var(--canvas);
+    box-shadow: var(--shadow-l4);
+    border-radius: var(--radius-md);
     padding: 18px;
     margin-top: 18px;
     word-break: break-all;
-    font-size: 0.88rem;
-    color: var(--text-primary);
+    font-size: 0.875rem;
+    color: var(--ink);
     line-height: 1.6;
     min-height: 50px;
 }
 .tool-page-body .color-preview {
     width: 100%;
     height: 70px;
-    border-radius: 8px;
+    border-radius: var(--radius-md);
     margin-top: 8px;
-    box-shadow: var(--shadow-ring);
+    box-shadow: var(--shadow-l1);
 }
 .tool-page-body .btn-group {
     display: flex;
@@ -535,15 +608,16 @@ body {
 }
 .tool-page-body .btn-group .btn-primary {
     flex: 1;
-    min-width: 120px;
+    min-width: 140px;
 }
+/* komponen "banner-marketing" — pill announcement */
 .tool-page-body .tool-desc {
-    font-size: 0.82rem;
-    color: var(--text-secondary);
+    font-size: 0.8125rem;
+    color: var(--body-text);
     margin-bottom: 20px;
-    padding: 12px 16px;
-    background: var(--badge-bg);
-    border-radius: 6px;
+    padding: 10px 16px;
+    background: var(--canvas-soft);
+    border-radius: 9999px;
 }
 
 body.tool-open .nav-search,
@@ -553,18 +627,20 @@ body.tool-open .categories,
 body.tool-open .tools-grid { display: none !important; }
 body.tool-open .tool-page { display: block !important; }
 
+/* === FOOTER === */
 .footer-credit {
     margin-top: 50px;
     text-align: center;
-    font-size: 0.62rem;
-    color: var(--text-tertiary);
-    letter-spacing: 2px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--mute);
+    letter-spacing: 1px;
     text-transform: uppercase;
-    box-shadow: 0px 1px 0px 0px var(--ring);
+    box-shadow: inset 0 1px 0 0 var(--hairline);
     padding-top: 25px;
 }
 .footer-credit span {
-    color: var(--text-primary);
+    color: var(--ink);
     font-weight: 500;
 }
 
@@ -575,11 +651,12 @@ body.tool-open .tool-page { display: block !important; }
 
 /* ===== RESPONSIVE ===== */
 @media (max-width: 600px) {
-    .dashboard { padding: 0 15px 30px; }
+    .dashboard { padding: 0 16px 30px; }
+    .navbar { margin: 0 -16px; padding-left: 16px; padding-right: 16px; }
     .brand { font-size: 1.1rem; }
     .tools-grid { grid-template-columns: repeat(auto-fill, minmax(145px, 1fr)); gap: 12px; }
-    .stats-bar { font-size: 0.62rem; gap: 8px; }
+    .stats-bar { font-size: 0.65rem; gap: 8px; }
     .tool-page-header h2 { font-size: 1.05rem; }
     .tool-page-body { padding: 0 4px; }
-    .scroll-top { width: 40px; height: 40px; font-size: 1.1rem; bottom: 70px; right: 15px; }
+    .scroll-top { width: 40px; height: 40px; font-size: 1.05rem; bottom: 70px; right: 15px; }
 }
