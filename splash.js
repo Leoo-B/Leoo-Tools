@@ -1,11 +1,11 @@
 (function() {
-    // Tampilkan splash selama 5 detik, lalu sembunyikan dan tampilkan dashboard
+    // Splash minimal, gak ada animasi ring/orb lagi jadi durasinya dipercepat.
     setTimeout(function() {
         var splash = document.getElementById('splash');
         var dashboard = document.getElementById('dashboard');
         if (splash) splash.classList.add('hide');
         if (dashboard) dashboard.classList.add('active');
-    }, 5000);
+    }, 1500);
 
     // Proteksi inspect
     document.addEventListener('contextmenu', function(e) { e.preventDefault(); });
