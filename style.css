@@ -639,7 +639,12 @@ body {
     border-radius: 9999px;
 }
 
-body.tool-open .nav-search,
+/* Tombol sekunder — ghost style, bukan solid */
+.tool-page-body .btn-secondary {
+    background: var(--canvas);
+    color: var(--ink);
+    box-shadow: var(--shadow-l1);
+}
 body.tool-open .theme-toggle { display: none !important; }
 body.tool-open .stats-bar,
 body.tool-open .categories,
