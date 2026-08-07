@@ -23,7 +23,6 @@ html, body {
     --link: #0070f3;
     --link-deep: #0761d1;
 
-    /* Backward-compatible aliases dipakai di komponen lain (weather.js, urlshort.js, dll via var()) */
     --bg-primary: var(--canvas);
     --bg-primary-rgb: 255, 255, 255;
     --bg-card: var(--canvas);
@@ -33,7 +32,6 @@ html, body {
     --accent: var(--primary);
     --accent-light: var(--link);
 
-    /* Elevation — formula resmi dari DESIGN.md (stacked shadow, bukan single drop-shadow) */
     --shadow-l1: inset 0 0 0 1px var(--hairline);
     --shadow-l3: inset 0 0 0 1px var(--hairline), 0px 2px 2px rgba(0,0,0,0.04), 0px 8px 8px -8px rgba(0,0,0,0.04);
     --shadow-l4: inset 0 0 0 1px var(--hairline), 0px 2px 2px rgba(0,0,0,0.04), 0px 8px 16px -4px rgba(0,0,0,0.04);
@@ -45,11 +43,16 @@ html, body {
     --radius-pill: 100px;
 
     --transition: 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+
+    /* Toast colors */
+    --toast-success-bg: #f0fdf4;
+    --toast-success-border: #bbf7d0;
+    --toast-success-text: #15803d;
+    --toast-error-bg: #fef2f2;
+    --toast-error-border: #fecaca;
+    --toast-error-text: #b91c1c;
 }
 [data-theme="dark"] {
-    /* Ekstensi dari brand's own "polarity-flipped dark band" concept (showcase-band-dark)
-       diterapkan site-wide — bukan token resmi terpisah, karena DESIGN.md aslinya cuma
-       dokumentasiin light mode. Ink jadi canvas, canvas jadi ink. */
     --canvas: #171717;
     --canvas-soft: #1f1f1f;
     --canvas-soft-2: #262626;
@@ -73,6 +76,14 @@ html, body {
 
     --shadow-l3: inset 0 0 0 1px var(--hairline), 0px 2px 2px rgba(0,0,0,0.3), 0px 8px 8px -8px rgba(0,0,0,0.3);
     --shadow-l4: inset 0 0 0 1px var(--hairline), 0px 2px 2px rgba(0,0,0,0.3), 0px 8px 16px -4px rgba(0,0,0,0.3);
+
+    /* Toast colors dark */
+    --toast-success-bg: #052e16;
+    --toast-success-border: #166534;
+    --toast-success-text: #4ade80;
+    --toast-error-bg: #450a0a;
+    --toast-error-border: #991b1b;
+    --toast-error-text: #f87171;
 }
 
 body {
@@ -85,7 +96,7 @@ body {
     -webkit-font-smoothing: antialiased;
 }
 
-/* ===== SPLASH SCREEN — hero moment: mesh gradient (satu-satunya tempat gradient dipakai) ===== */
+/* ===== SPLASH SCREEN ===== */
 .splash-screen {
     position: fixed;
     inset: 0;
@@ -103,7 +114,6 @@ body {
     visibility: hidden;
     pointer-events: none;
 }
-/* Mesh gradient — stop warna persis dari DESIGN.md: develop / preview / ship */
 .splash-mesh {
     position: absolute;
     top: -20%;
@@ -297,6 +307,16 @@ body {
     margin-bottom: 10px;
     color: var(--ink);
 }
+
+/* === Simple Icons di tool card === */
+.tool-card .si-icon {
+    width: 28px;
+    height: 28px;
+    display: block;
+    margin-bottom: 10px;
+    fill: var(--ink);
+}
+
 .scroll-top [data-lucide] {
     width: 18px;
     height: 18px;
@@ -307,10 +327,10 @@ body {
     margin-right: 4px;
 }
 
-/* === STATS BAR — dihapus (A) === */
+/* === STATS BAR === */
 .stats-bar { display: none !important; }
 
-/* === TOOL PAGE HEADER — stacked layout (D) === */
+/* === TOOL PAGE HEADER === */
 .tool-page-header {
     display: flex;
     flex-direction: column;
@@ -351,7 +371,7 @@ body {
     line-height: 1.2;
 }
 
-/* === KATEGORI — komponen "tab-ghost" (5-up pill tab row, radius pill-sm 64px) === */
+/* === KATEGORI === */
 .categories {
     display: flex;
     flex-wrap: wrap;
@@ -386,7 +406,7 @@ body {
     box-shadow: none;
 }
 
-/* === TOOLS GRID + CARDS — komponen "card-marketing" (radius 8px, Level 3 shadow) === */
+/* === TOOLS GRID + CARDS === */
 .tools-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
@@ -428,7 +448,6 @@ body {
     color: var(--body-text);
     line-height: 1.5;
 }
-/* komponen "badge-secondary" — netral, bukan biru */
 .tool-card .badge {
     position: absolute;
     top: 16px;
@@ -478,7 +497,7 @@ body {
     50% { opacity: 1; }
 }
 
-/* === TOAST — komponen "ex-toast": card-marketing chrome + Level 4 shadow === */
+/* === TOAST === */
 .toast-container {
     position: fixed;
     bottom: 30px;
@@ -488,6 +507,9 @@ body {
     width: 90%;
     max-width: 380px;
     pointer-events: none;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
 }
 .toast {
     background: var(--canvas);
@@ -496,10 +518,21 @@ body {
     padding: 12px 18px;
     color: var(--ink);
     font-size: 0.8125rem;
-    font-weight: 400;
+    font-weight: 500;
     text-align: center;
     pointer-events: auto;
     animation: slideUp 0.3s ease forwards, fadeOut 0.3s ease 2.6s forwards;
+    border: 1.5px solid var(--hairline);
+}
+.toast.toast-success {
+    background: var(--toast-success-bg);
+    border-color: var(--toast-success-border);
+    color: var(--toast-success-text);
+}
+.toast.toast-error {
+    background: var(--toast-error-bg);
+    border-color: var(--toast-error-border);
+    color: var(--toast-error-text);
 }
 @keyframes slideUp {
     from { opacity: 0; transform: translateY(20px); }
@@ -510,7 +543,7 @@ body {
     to { opacity: 0; transform: translateY(-10px); }
 }
 
-/* === SCROLL TOP — komponen "icon-button-circular": canvas + hairline border, bukan solid fill === */
+/* === SCROLL TOP === */
 .scroll-top {
     position: fixed;
     bottom: 80px;
@@ -559,7 +592,6 @@ body {
     display: block;
     margin: 20px 0 6px;
 }
-/* komponen "form-input": canvas + hairline border, radius sm 6px, height 40px */
 .tool-page-body input,
 .tool-page-body textarea,
 .tool-page-body select {
@@ -583,7 +615,6 @@ body {
     box-shadow: 0 0 0 2px var(--link);
 }
 .tool-page-body textarea { min-height: 120px; }
-/* Tombol utama — button-primary-sm: pill 100px */
 .tool-page-body .btn-primary {
     background: var(--primary);
     border: none;
@@ -629,7 +660,6 @@ body {
     flex: 1;
     min-width: 140px;
 }
-/* komponen "banner-marketing" — pill announcement */
 .tool-page-body .tool-desc {
     font-size: 0.8125rem;
     color: var(--body-text);
@@ -638,8 +668,6 @@ body {
     background: var(--canvas-soft);
     border-radius: 9999px;
 }
-
-/* Tombol sekunder — ghost style, bukan solid */
 .tool-page-body .btn-secondary {
     background: var(--canvas);
     color: var(--ink);
