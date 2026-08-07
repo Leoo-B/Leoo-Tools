@@ -1,49 +1,74 @@
 // ==========================================
-// CORE – Data Tools, Render, Toast, Scroll, Stats
+// CORE – Data Tools, Render, Toast, Scroll, Navbar
 // ==========================================
 
-// ---------- TOAST (max 3, success/error aware) ----------
+// ---------- TOAST ----------
 window.showToast = function(message, type) {
     var container = document.getElementById('toastContainer');
     if (!container) return;
-
     var currentToasts = container.querySelectorAll('.toast');
-    if (currentToasts.length >= 3) {
-        var oldestToast = currentToasts[0];
-        if (oldestToast) oldestToast.remove();
-    }
-
+    if (currentToasts.length >= 3) currentToasts[0].remove();
     var toast = document.createElement('div');
     toast.className = 'toast';
     if (type === 'success') toast.classList.add('toast-success');
     else if (type === 'error') toast.classList.add('toast-error');
     toast.textContent = message;
     container.appendChild(toast);
-
-    setTimeout(function() {
-        if (toast.parentNode) toast.remove();
-    }, 3000);
+    setTimeout(function() { if (toast.parentNode) toast.remove(); }, 3000);
 };
 
-// ---------- SCROLL TOP ----------
+// ---------- NAVBAR SCROLL COLLAPSE ----------
 (function() {
-    var btn = document.getElementById('scrollTopBtn');
-    if (!btn) return;
+    var wrapper = document.getElementById('navbarWrapper');
+    var scrollBtn = document.getElementById('scrollTopBtn');
+    var mainSearch = document.getElementById('searchInput');
+    var collapsedSearch = document.getElementById('searchInputCollapsed');
+
+    var lastScroll = 0;
+    var COLLAPSE_THRESHOLD = 60;
+
+    // Sync search inputs both ways
+    if (mainSearch && collapsedSearch) {
+        mainSearch.addEventListener('input', function() {
+            collapsedSearch.value = this.value;
+            if (typeof renderTools === 'function') renderTools();
+        });
+        collapsedSearch.addEventListener('input', function() {
+            mainSearch.value = this.value;
+            if (typeof renderTools === 'function') renderTools();
+        });
+    }
+
     window.addEventListener('scroll', function() {
-        if (window.scrollY > 300) {
-            btn.classList.add('show');
-        } else {
-            btn.classList.remove('show');
+        var current = window.scrollY;
+
+        // Navbar collapse
+        if (wrapper) {
+            if (current > COLLAPSE_THRESHOLD) {
+                wrapper.classList.add('is-collapsed', 'scrolled');
+            } else {
+                wrapper.classList.remove('is-collapsed');
+                if (current === 0) wrapper.classList.remove('scrolled');
+            }
         }
-    });
-    btn.addEventListener('click', function() {
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-    });
+
+        // Scroll top button
+        if (scrollBtn) {
+            if (current > 300) scrollBtn.classList.add('show');
+            else scrollBtn.classList.remove('show');
+        }
+
+        lastScroll = current;
+    }, { passive: true });
+
+    if (scrollBtn) {
+        scrollBtn.addEventListener('click', function() {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+    }
 })();
 
-// ---------- SIMPLE ICONS HELPER (cdn.simpleicons.org) ----------
-// Render <img> langsung dari CDN — tidak butuh library JS apapun.
-// Dark mode: CSS filter invert otomatis via class .si-icon di style.css
+// ---------- SIMPLE ICONS HELPER ----------
 function getSimpleIcon(slug, size) {
     size = size || 28;
     return '<img class="si-icon" src="https://cdn.simpleicons.org/' + slug + '" ' +
@@ -52,20 +77,20 @@ function getSimpleIcon(slug, size) {
 
 // ---------- DATA TOOLS ----------
 var tools = [
-    { name: "Password Generator",      icon: "key-round",        iconType: "lucide",  cat: "utility", desc: "Bikin password super kuat.",                     id: "password"  },
-    { name: "JSON Formatter",          icon: "braces",           iconType: "lucide",  cat: "dev",     desc: "Rapihin & validasi JSON.",                       id: "json"      },
-    { name: "Unit Converter",          icon: "thermometer",      iconType: "lucide",  cat: "utility", desc: "Celcius, Fahrenheit, Kelvin.",                   id: "unit"      },
-    { name: "Base64 Encoder/Decoder",  icon: "lock-keyhole",     iconType: "lucide",  cat: "text",    desc: "Encode/decode teks base64.",                     id: "base64"    },
-    { name: "Text Analyzer",           icon: "text-cursor-input",iconType: "lucide",  cat: "text",    desc: "Hitung huruf, kata, kalimat.",                   id: "counter"   },
-    { name: "Color Picker Pro",        icon: "pipette",          iconType: "lucide",  cat: "utility", desc: "Pilih warna + salin kode.",                      id: "color"     },
-    { name: "TikTok Downloader",       icon: "tiktok",           iconType: "simple",  cat: "utility", desc: "Download video TikTok tanpa watermark.",         id: "tiktok"    },
-    { name: "YouTube Downloader",      icon: "youtube",          iconType: "simple",  cat: "utility", desc: "Download video YouTube.",                        id: "youtube"   },
-    { name: "Instagram Downloader",    icon: "instagram",        iconType: "simple",  cat: "utility", desc: "Download foto/video Instagram.",                 id: "instagram" },
-    { name: "Facebook Downloader",     icon: "facebook",         iconType: "simple",  cat: "utility", desc: "Download video Facebook.",                       id: "facebook"  },
-    { name: "Pengecekan Cuaca",        icon: "cloud-sun",        iconType: "lucide",  cat: "utility", desc: "Cek cuaca kota mana pun.",                       id: "weather"   },
-    { name: "URL Shortener",           icon: "link",             iconType: "lucide",  cat: "utility", desc: "Pendekin link panjang jadi pendek.",             id: "urlshort"  },
-    { name: "Image Enhancer",          icon: "image-up",         iconType: "lucide",  cat: "utility", desc: "Ubah gambar jadi HD / upscale.",                 id: "image"     },
-    { name: "News Headline",           icon: "newspaper",        iconType: "lucide",  cat: "utility", desc: "Berita terkini dari berbagai kategori.",         id: "news"      },
+    { name: "Password Generator",      icon: "key-round",         iconType: "lucide", cat: "utility", desc: "Bikin password super kuat.",                     id: "password"  },
+    { name: "JSON Formatter",          icon: "braces",            iconType: "lucide", cat: "dev",     desc: "Rapihin & validasi JSON.",                       id: "json"      },
+    { name: "Unit Converter",          icon: "thermometer",       iconType: "lucide", cat: "utility", desc: "Celcius, Fahrenheit, Kelvin.",                   id: "unit"      },
+    { name: "Base64 Encoder/Decoder",  icon: "lock-keyhole",      iconType: "lucide", cat: "text",    desc: "Encode/decode teks base64.",                     id: "base64"    },
+    { name: "Text Analyzer",           icon: "text-cursor-input", iconType: "lucide", cat: "text",    desc: "Hitung huruf, kata, kalimat.",                   id: "counter"   },
+    { name: "Color Picker Pro",        icon: "pipette",           iconType: "lucide", cat: "utility", desc: "Pilih warna + salin kode.",                      id: "color"     },
+    { name: "TikTok Downloader",       icon: "tiktok",            iconType: "simple", cat: "utility", desc: "Download video TikTok tanpa watermark.",         id: "tiktok"    },
+    { name: "YouTube Downloader",      icon: "youtube",           iconType: "simple", cat: "utility", desc: "Download video YouTube.",                        id: "youtube"   },
+    { name: "Instagram Downloader",    icon: "instagram",         iconType: "simple", cat: "utility", desc: "Download foto/video Instagram.",                 id: "instagram" },
+    { name: "Facebook Downloader",     icon: "facebook",          iconType: "simple", cat: "utility", desc: "Download video Facebook.",                       id: "facebook"  },
+    { name: "Pengecekan Cuaca",        icon: "cloud-sun",         iconType: "lucide", cat: "utility", desc: "Cek cuaca kota mana pun.",                       id: "weather"   },
+    { name: "URL Shortener",           icon: "link",              iconType: "lucide", cat: "utility", desc: "Pendekin link panjang jadi pendek.",             id: "urlshort"  },
+    { name: "Image Enhancer",          icon: "image-up",          iconType: "lucide", cat: "utility", desc: "Ubah gambar jadi HD / upscale.",                 id: "image"     },
+    { name: "News Headline",           icon: "newspaper",         iconType: "lucide", cat: "utility", desc: "Berita terkini dari berbagai kategori.",         id: "news"      },
 ];
 
 // ---------- COUNTER ----------
@@ -76,14 +101,11 @@ window.incrementUsage = function() {
     localStorage.setItem('totalUsage', totalUsage);
 };
 
-// ---------- STATISTIK ----------
-var lastOpened = localStorage.getItem('lastOpened') || '-';
-window.updateStats = function() {};
-
 // ---------- RENDER GRID ----------
 window.renderTools = function() {
     var grid = document.getElementById('toolsGrid');
-    var searchVal = document.getElementById('searchInput').value.toLowerCase();
+    var searchVal = (document.getElementById('searchInput') || {}).value || '';
+    searchVal = searchVal.toLowerCase();
     var activeChip = document.querySelector('.chip.active');
     var currentCat = activeChip ? activeChip.dataset.cat : 'all';
 
@@ -125,15 +147,12 @@ window.openTool = function(toolId) {
     var tool = tools.find(function(t) { return t.id === toolId; });
     if (!tool) return;
 
-    lastOpened = tool.name;
-    localStorage.setItem('lastOpened', lastOpened);
-
+    localStorage.setItem('lastOpened', tool.name);
     document.body.classList.add('tool-open');
 
     var toolPage = document.getElementById('toolPage');
     toolPage.style.display = '';
     toolPage.classList.add('active');
-
     document.getElementById('toolPageTitle').textContent = tool.name;
 
     var body = document.getElementById('toolPageBody');
@@ -197,32 +216,28 @@ window.openTool = function(toolId) {
             html += '<label>Link TikTok</label>' +
                     '<input type="text" id="tiktokLink" placeholder="https://www.tiktok.com/@user/video/...">' +
                     '<button class="btn-primary" onclick="downloadTiktok()">Download</button>' +
-                    '<div class="result-box" id="tiktokResult">Hasil download akan muncul di sini</div>' +
-                    '<div id="tiktokPreview" style="margin-top:12px;"></div>' +
+                    '<div id="tiktokResultWrap"></div>' +
                     '<small style="color:var(--mute); display:block; margin-top:8px;">Hanya untuk konten publik & legal.</small>';
             break;
         case 'youtube':
             html += '<label>Link YouTube</label>' +
                     '<input type="text" id="youtubeLink" placeholder="https://youtube.com/watch?v=...">' +
                     '<button class="btn-primary" onclick="downloadYoutube()">Download</button>' +
-                    '<div class="result-box" id="youtubeResult">Hasil download akan muncul di sini</div>' +
-                    '<div id="youtubePreview" style="margin-top:12px;"></div>' +
-                    '<small style="color:var(--mute); display:block; margin-top:8px;">Kualitas terbatas 360p. Hanya untuk konten publik & legal.</small>';
+                    '<div id="youtubeResultWrap"></div>' +
+                    '<small style="color:var(--mute); display:block; margin-top:8px;">Hanya untuk konten publik & legal.</small>';
             break;
         case 'instagram':
             html += '<label>Link Instagram</label>' +
                     '<input type="text" id="instagramLink" placeholder="https://www.instagram.com/p/...">' +
                     '<button class="btn-primary" onclick="downloadInstagram()">Download</button>' +
-                    '<div class="result-box" id="instagramResult">Hasil download akan muncul di sini</div>' +
-                    '<div id="instagramPreview" style="margin-top:12px;"></div>' +
+                    '<div id="instagramResultWrap"></div>' +
                     '<small style="color:var(--mute); display:block; margin-top:8px;">Hanya untuk konten publik & legal.</small>';
             break;
         case 'facebook':
             html += '<label>Link Facebook</label>' +
                     '<input type="text" id="facebookLink" placeholder="https://www.facebook.com/.../videos/...">' +
                     '<button class="btn-primary" onclick="downloadFacebook()">Download</button>' +
-                    '<div class="result-box" id="facebookResult">Hasil download akan muncul di sini</div>' +
-                    '<div id="facebookPreview" style="margin-top:12px;"></div>' +
+                    '<div id="facebookResultWrap"></div>' +
                     '<small style="color:var(--mute); display:block; margin-top:8px;">Hanya untuk konten publik & legal.</small>';
             break;
         case 'weather':
@@ -261,6 +276,7 @@ window.openTool = function(toolId) {
     }
     body.innerHTML = html;
     if (typeof lucide !== 'undefined') lucide.createIcons();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
 };
 
 window.closeToolPage = function() {
@@ -268,6 +284,7 @@ window.closeToolPage = function() {
     var toolPage = document.getElementById('toolPage');
     toolPage.classList.remove('active');
     toolPage.style.display = '';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
 };
 
 // ---------- INIT GLOBAL ----------
@@ -290,10 +307,9 @@ window.initAll = function() {
         document.documentElement.setAttribute('data-theme', next);
         localStorage.setItem('theme', next);
         updateThemeIcon(next);
-        showToast(next === 'dark' ? 'Mode Gelap' : 'Mode Terang', 'info');
+        showToast(next === 'dark' ? 'Mode Gelap' : 'Mode Terang', 'success');
     });
 
-    document.getElementById('searchInput').addEventListener('input', function() { renderTools(); });
     document.querySelectorAll('.chip').forEach(function(chip) {
         chip.addEventListener('click', function() {
             document.querySelectorAll('.chip').forEach(function(c) { c.classList.remove('active'); });
@@ -302,5 +318,6 @@ window.initAll = function() {
         });
     });
 
+    if (typeof lucide !== 'undefined') lucide.createIcons();
     renderTools();
 };
