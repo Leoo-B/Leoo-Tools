@@ -1,5 +1,5 @@
 // ==========================================
-// CORE – Data Tools, Render, Partikel, Toast, Scroll, Counter, Stats
+// CORE – Data Tools, Render, Toast, Scroll, Stats
 // ==========================================
 
 // ---------- TOAST (max 3) ----------
@@ -43,14 +43,14 @@ window.showToast = function(message) {
 var tools = [
     { name: "Password Generator", icon: "key-round", cat: "utility", desc: "Bikin password super kuat.", id: "password" },
     { name: "JSON Formatter", icon: "braces", cat: "dev", desc: "Rapihin & validasi JSON.", id: "json" },
-    { name: "Unit Converter", icon: "thermometer", cat: "utility", desc: "Celcius ↔ Fahrenheit ↔ Kelvin.", id: "unit" },
+    { name: "Unit Converter", icon: "thermometer", cat: "utility", desc: "Celcius, Fahrenheit, Kelvin.", id: "unit" },
     { name: "Base64 Encoder/Decoder", icon: "lock-keyhole", cat: "text", desc: "Encode/decode teks base64.", id: "base64" },
     { name: "Text Analyzer", icon: "text-cursor-input", cat: "text", desc: "Hitung huruf, kata, kalimat.", id: "counter" },
     { name: "Color Picker Pro", icon: "pipette", cat: "utility", desc: "Pilih warna + salin kode.", id: "color" },
     { name: "TikTok Downloader", icon: "music", cat: "utility", desc: "Download video TikTok tanpa watermark.", id: "tiktok" },
     { name: "YouTube Downloader", icon: "youtube", cat: "utility", desc: "Download video YouTube.", id: "youtube" },
-    { name: "Instagram Downloader", icon: "instagram", cat: "utility", desc: "Download foto/video dari Instagram.", id: "instagram" },
-    { name: "Facebook Downloader", icon: "facebook", cat: "utility", desc: "Download video dari Facebook.", id: "facebook" },
+    { name: "Instagram Downloader", icon: "instagram", cat: "utility", desc: "Download foto/video Instagram.", id: "instagram" },
+    { name: "Facebook Downloader", icon: "facebook", cat: "utility", desc: "Download video Facebook.", id: "facebook" },
     { name: "Pengecekan Cuaca", icon: "cloud-sun", cat: "utility", desc: "Cek cuaca kota mana pun.", id: "weather" },
     { name: "URL Shortener", icon: "link", cat: "utility", desc: "Pendekin link panjang jadi pendek.", id: "urlshort" },
     { name: "Image Enhancer", icon: "image-up", cat: "utility", desc: "Ubah gambar jadi HD / upscale.", id: "image" },
@@ -60,41 +60,17 @@ var tools = [
 // ---------- COUNTER ----------
 var totalUsage = parseInt(localStorage.getItem('totalUsage')) || 0;
 
-window.updateUsageCounter = function() {
-    var el = document.getElementById('usageCounter');
-    if (!el) return;
-    var oldVal = parseInt(el.textContent) || 0;
-    var newVal = totalUsage;
-    var duration = 400;
-    var startTime = performance.now();
-
-    function animateCount(now) {
-        var elapsed = now - startTime;
-        var progress = Math.min(elapsed / duration, 1);
-        var current = Math.floor(oldVal + (newVal - oldVal) * progress);
-        el.textContent = current;
-        if (progress < 1) {
-            requestAnimationFrame(animateCount);
-        } else {
-            el.textContent = newVal;
-        }
-    }
-    requestAnimationFrame(animateCount);
-};
+window.updateUsageCounter = function() {};
 
 window.incrementUsage = function() {
     totalUsage += 1;
     localStorage.setItem('totalUsage', totalUsage);
-    updateUsageCounter();
 };
 
 // ---------- STATISTIK ----------
 var lastOpened = localStorage.getItem('lastOpened') || '-';
 
-window.updateStats = function() {
-    // Stats bar dihapus dari UI — fungsi ini tetap ada
-    // biar gak ada error kalau ada kode lain yang manggil updateStats().
-};
+window.updateStats = function() {};
 
 // ---------- RENDER GRID ----------
 window.renderTools = function() {
@@ -130,7 +106,6 @@ window.renderTools = function() {
             grid.innerHTML = html;
         }
         if (typeof lucide !== 'undefined') lucide.createIcons();
-        updateStats();
     }, 300);
 };
 
@@ -141,133 +116,131 @@ window.openTool = function(toolId) {
 
     lastOpened = tool.name;
     localStorage.setItem('lastOpened', lastOpened);
-    updateStats();
 
     document.body.classList.add('tool-open');
     document.getElementById('toolPage').classList.add('active');
-    document.getElementById('toolPageTitle').textContent = tool.icon + ' ' + tool.name;
+    document.getElementById('toolPageTitle').textContent = tool.name;
 
     var body = document.getElementById('toolPageBody');
-    var desc = tool.desc;
-    var html = '<div class="tool-desc">📌 ' + desc + '</div>';
+    var html = '<div class="tool-desc">' + tool.desc + '</div>';
 
     switch(toolId) {
         case 'password':
-            html += '<label>🔐 Panjang Password</label>' +
+            html += '<label>Panjang Password</label>' +
                     '<input type="number" id="passLength" value="16" min="6" max="64">' +
-                    '<button class="btn-primary" onclick="generatePassword()">⚡ Generate!</button>' +
+                    '<button class="btn-primary" onclick="generatePassword()">Generate</button>' +
                     '<div class="result-box" id="passResult">Klik generate untuk hasil</div>' +
-                    '<small style="color:var(--text-secondary); display:block; margin-top:6px;">Huruf besar, kecil, angka, & simbol</small>';
+                    '<small style="color:var(--mute); display:block; margin-top:8px;">Huruf besar, kecil, angka, & simbol</small>';
             break;
         case 'json':
-            html += '<label>📄 Masukkan JSON</label>' +
+            html += '<label>Masukkan JSON</label>' +
                     '<textarea id="jsonInput" placeholder=\'{ "nama": "Leoo" }\'></textarea>' +
-                    '<button class="btn-primary" onclick="formatJson()">✨ Format & Validasi</button>' +
+                    '<button class="btn-primary" onclick="formatJson()">Format & Validasi</button>' +
                     '<div class="result-box" id="jsonResult">Hasil akan muncul di sini</div>';
             break;
         case 'unit':
-            html += '<label>🌡️ Pilih Arah Konversi</label>' +
-                    '<select id="unitDirection" style="width:100%; background:var(--bg-card); border:1px solid var(--border-color); border-radius:16px; padding:14px 18px; color:var(--text-primary);">' +
+            html += '<label>Arah Konversi</label>' +
+                    '<select id="unitDirection">' +
                     '<option value="CF">Celcius → Fahrenheit</option>' +
                     '<option value="FC">Fahrenheit → Celcius</option>' +
                     '<option value="CK">Celcius → Kelvin</option>' +
                     '<option value="KC">Kelvin → Celcius</option>' +
                     '</select>' +
-                    '<label>📟 Masukkan Nilai</label>' +
+                    '<label>Masukkan Nilai</label>' +
                     '<input type="number" id="unitInput" placeholder="0" step="any">' +
-                    '<button class="btn-primary" onclick="convertUnit()">🔄 Konversi</button>' +
+                    '<button class="btn-primary" onclick="convertUnit()">Konversi</button>' +
                     '<div class="result-box" id="unitResult">Hasil konversi</div>';
             break;
         case 'base64':
-            html += '<label>📝 Teks / Base64</label>' +
+            html += '<label>Teks / Base64</label>' +
                     '<textarea id="base64Input" placeholder="Masukkan teks atau kode base64..."></textarea>' +
                     '<div class="btn-group">' +
-                    '<button class="btn-primary" onclick="encodeBase64()">🔒 Encode</button>' +
-                    '<button class="btn-primary" style="background:var(--accent-light); opacity:0.7;" onclick="decodeBase64()">🔓 Decode</button>' +
+                    '<button class="btn-primary" onclick="encodeBase64()">Encode</button>' +
+                    '<button class="btn-primary btn-secondary" onclick="decodeBase64()">Decode</button>' +
                     '</div>' +
                     '<div class="result-box" id="base64Result">Hasil di sini</div>';
             break;
         case 'counter':
-            html += '<label>📝 Masukkan Teks</label>' +
+            html += '<label>Masukkan Teks</label>' +
                     '<textarea id="counterInput" placeholder="Tulis sesuatu..."></textarea>' +
-                    '<button class="btn-primary" onclick="analyzeText()">📊 Analisis</button>' +
+                    '<button class="btn-primary" onclick="analyzeText()">Analisis</button>' +
                     '<div class="result-box" id="counterResult">Klik analisis untuk lihat statistik</div>';
             break;
         case 'color':
-            html += '<label>🎨 Pilih Warna</label>' +
-                    '<input type="color" id="colorPicker" value="#7c3aed" style="height:70px; padding:4px; cursor:pointer; background:var(--bg-card); border:1px solid var(--border-color); border-radius:16px; width:100%;">' +
-                    '<div class="color-preview" id="colorPreview" style="background:#7c3aed;"></div>' +
+            html += '<label>Pilih Warna</label>' +
+                    '<input type="color" id="colorPicker" value="#0070f3" style="height:56px; padding:4px; cursor:pointer; background:var(--canvas); border-radius:var(--radius-sm); width:100%; box-shadow:var(--shadow-l1);">' +
+                    '<div class="color-preview" id="colorPreview" style="background:#0070f3;"></div>' +
                     '<div class="btn-group">' +
-                    '<button class="btn-primary" onclick="copyColor(\'hex\')">📋 Copy HEX</button>' +
-                    '<button class="btn-primary" style="background:var(--accent-light); opacity:0.7;" onclick="copyColor(\'rgb\')">📋 Copy RGB</button>' +
+                    '<button class="btn-primary" onclick="copyColor(\'hex\')">Copy HEX</button>' +
+                    '<button class="btn-primary btn-secondary" onclick="copyColor(\'rgb\')">Copy RGB</button>' +
                     '</div>' +
-                    '<div class="result-box" id="colorResult">HEX: #7c3aed | RGB: rgb(124,58,237)</div>';
+                    '<div class="result-box" id="colorResult">HEX: #0070f3 | RGB: rgb(0,112,243)</div>';
             break;
         case 'tiktok':
-            html += '<label>🔗 Masukkan Link TikTok</label>' +
-                    '<input type="text" id="tiktokLink" placeholder="https://www.tiktok.com/@user/video/..." style="width:100%; background:var(--bg-card); border:1px solid var(--border-color); border-radius:16px; padding:14px 18px; color:var(--text-primary);">' +
-                    '<button class="btn-primary" onclick="downloadTiktok()">📥 Download</button>' +
+            html += '<label>Link TikTok</label>' +
+                    '<input type="text" id="tiktokLink" placeholder="https://www.tiktok.com/@user/video/...">' +
+                    '<button class="btn-primary" onclick="downloadTiktok()">Download</button>' +
                     '<div class="result-box" id="tiktokResult">Hasil download akan muncul di sini</div>' +
                     '<div id="tiktokPreview" style="margin-top:12px;"></div>' +
-                    '<small style="color:var(--text-secondary); display:block; margin-top:6px;">⚠️ Hanya untuk konten publik & legal.</small>';
+                    '<small style="color:var(--mute); display:block; margin-top:8px;">Hanya untuk konten publik & legal.</small>';
             break;
         case 'youtube':
-            html += '<label>🔗 Masukkan Link YouTube</label>' +
-                    '<input type="text" id="youtubeLink" placeholder="https://youtube.com/watch?v=..." style="width:100%; background:var(--bg-card); border:1px solid var(--border-color); border-radius:16px; padding:14px 18px; color:var(--text-primary);">' +
-                    '<button class="btn-primary" onclick="downloadYoutube()">📥 Download</button>' +
+            html += '<label>Link YouTube</label>' +
+                    '<input type="text" id="youtubeLink" placeholder="https://youtube.com/watch?v=...">' +
+                    '<button class="btn-primary" onclick="downloadYoutube()">Download</button>' +
                     '<div class="result-box" id="youtubeResult">Hasil download akan muncul di sini</div>' +
                     '<div id="youtubePreview" style="margin-top:12px;"></div>' +
-                    '<small style="color:var(--text-secondary); display:block; margin-top:6px;">⚠️ Kualitas terbatas 360p (video+audio nyatu). Hanya untuk konten publik & legal.</small>';
+                    '<small style="color:var(--mute); display:block; margin-top:8px;">Kualitas terbatas 360p. Hanya untuk konten publik & legal.</small>';
             break;
         case 'instagram':
-            html += '<label>🔗 Masukkan Link Instagram</label>' +
-                    '<input type="text" id="instagramLink" placeholder="https://www.instagram.com/p/..." style="width:100%; background:var(--bg-card); border:1px solid var(--border-color); border-radius:16px; padding:14px 18px; color:var(--text-primary);">' +
-                    '<button class="btn-primary" onclick="downloadInstagram()">📥 Download</button>' +
+            html += '<label>Link Instagram</label>' +
+                    '<input type="text" id="instagramLink" placeholder="https://www.instagram.com/p/...">' +
+                    '<button class="btn-primary" onclick="downloadInstagram()">Download</button>' +
                     '<div class="result-box" id="instagramResult">Hasil download akan muncul di sini</div>' +
                     '<div id="instagramPreview" style="margin-top:12px;"></div>' +
-                    '<small style="color:var(--text-secondary); display:block; margin-top:6px;">⚠️ Hanya untuk konten publik & legal.</small>';
+                    '<small style="color:var(--mute); display:block; margin-top:8px;">Hanya untuk konten publik & legal.</small>';
             break;
         case 'facebook':
-            html += '<label>🔗 Masukkan Link Facebook</label>' +
-                    '<input type="text" id="facebookLink" placeholder="https://www.facebook.com/.../videos/..." style="width:100%; background:var(--bg-card); border:1px solid var(--border-color); border-radius:16px; padding:14px 18px; color:var(--text-primary);">' +
-                    '<button class="btn-primary" onclick="downloadFacebook()">📥 Download</button>' +
+            html += '<label>Link Facebook</label>' +
+                    '<input type="text" id="facebookLink" placeholder="https://www.facebook.com/.../videos/...">' +
+                    '<button class="btn-primary" onclick="downloadFacebook()">Download</button>' +
                     '<div class="result-box" id="facebookResult">Hasil download akan muncul di sini</div>' +
                     '<div id="facebookPreview" style="margin-top:12px;"></div>' +
-                    '<small style="color:var(--text-secondary); display:block; margin-top:6px;">⚠️ Hanya untuk konten publik & legal.</small>';
+                    '<small style="color:var(--mute); display:block; margin-top:8px;">Hanya untuk konten publik & legal.</small>';
             break;
         case 'weather':
-            html += '<label>🌍 Nama Kota</label>' +
-                    '<input type="text" id="weatherCity" placeholder="Jakarta" style="width:100%; background:var(--bg-card); border:1px solid var(--border-color); border-radius:16px; padding:14px 18px; color:var(--text-primary);">' +
-                    '<button class="btn-primary" onclick="checkWeather()">🌤️ Cek Cuaca</button>' +
+            html += '<label>Nama Kota</label>' +
+                    '<input type="text" id="weatherCity" placeholder="Jakarta">' +
+                    '<button class="btn-primary" onclick="checkWeather()">Cek Cuaca</button>' +
                     '<div class="result-box" id="weatherResult">Masukkan nama kota, lalu klik cek.</div>';
             break;
         case 'urlshort':
-            html += '<label>🔗 Masukkan Link Panjang</label>' +
-                    '<input type="text" id="urlInput" placeholder="https://..." style="width:100%; background:var(--bg-card); border:1px solid var(--border-color); border-radius:16px; padding:14px 18px; color:var(--text-primary);">' +
-                    '<button class="btn-primary" onclick="shortenUrl()">✂️ Pendekin</button>' +
+            html += '<label>Link Panjang</label>' +
+                    '<input type="text" id="urlInput" placeholder="https://...">' +
+                    '<button class="btn-primary" onclick="shortenUrl()">Persingkat</button>' +
                     '<div class="result-box" id="urlResult">Hasil link pendek akan muncul di sini</div>';
             break;
         case 'image':
-    html += '<label>🖼️ Upload Gambar</label>' +
-            '<input type="file" id="imageInput" accept="image/*" style="width:100%; background:var(--bg-card); border:1px solid var(--border-color); border-radius:16px; padding:12px; color:var(--text-primary);">' +
-            '<button class="btn-primary" onclick="enhanceImage()">✨ HD-kan</button>' +
-            '<div class="result-box" id="imageResult">Upload gambar, lalu klik HD-kan.</div>' +
-            '<div id="imagePreview" style="margin-top:12px;"></div>';
-    break;
+            html += '<label>Upload Gambar</label>' +
+                    '<input type="file" id="imageInput" accept="image/*">' +
+                    '<button class="btn-primary" onclick="enhanceImage()">Enhance</button>' +
+                    '<div class="result-box" id="imageResult">Upload gambar, lalu klik Enhance.</div>' +
+                    '<div id="imagePreview" style="margin-top:12px;"></div>';
+            break;
         case 'news':
-            html += '<label>📰 Pilih Kategori</label>' +
-                    '<select id="newsCategory" style="width:100%; background:var(--bg-card); border:1px solid var(--border-color); border-radius:16px; padding:14px 18px; color:var(--text-primary);">' +
+            html += '<label>Kategori Berita</label>' +
+                    '<select id="newsCategory">' +
                     '<option value="general">Umum</option>' +
                     '<option value="technology">Teknologi</option>' +
                     '<option value="sports">Olahraga</option>' +
                     '<option value="health">Kesehatan</option>' +
                     '<option value="science">Sains</option>' +
                     '</select>' +
-                    '<button class="btn-primary" onclick="getNews()">📰 Lihat Berita</button>' +
+                    '<button class="btn-primary" onclick="getNews()">Lihat Berita</button>' +
                     '<div class="result-box" id="newsResult">Pilih kategori, klik lihat berita.</div>';
             break;
         default:
-            html += '<p>Tool ini belum siap, tapi lo bisa bayangin aja kerennya! 😎</p>';
+            html += '<p>Tool ini belum siap.</p>';
     }
     body.innerHTML = html;
     if (typeof lucide !== 'undefined') lucide.createIcons();
@@ -310,8 +283,5 @@ window.initAll = function() {
         });
     });
 
-    document.getElementById('usageCounter').textContent = totalUsage;
-
     renderTools();
-    updateStats();
 };
