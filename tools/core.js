@@ -118,7 +118,12 @@ window.openTool = function(toolId) {
     localStorage.setItem('lastOpened', lastOpened);
 
     document.body.classList.add('tool-open');
-    document.getElementById('toolPage').classList.add('active');
+
+    // FIX: hapus inline style display:none agar class CSS bisa bekerja
+    var toolPage = document.getElementById('toolPage');
+    toolPage.style.display = '';
+    toolPage.classList.add('active');
+
     document.getElementById('toolPageTitle').textContent = tool.name;
 
     var body = document.getElementById('toolPageBody');
@@ -168,13 +173,15 @@ window.openTool = function(toolId) {
             break;
         case 'color':
             html += '<label>Pilih Warna</label>' +
-                    '<input type="color" id="colorPicker" value="#0070f3" style="height:56px; padding:4px; cursor:pointer; background:var(--canvas); border-radius:var(--radius-sm); width:100%; box-shadow:var(--shadow-l1);">' +
+                    '<input type="color" id="colorPicker" value="#0070f3" ' +
+                    'style="height:56px; padding:4px; cursor:pointer; background:var(--canvas); border-radius:var(--radius-sm); width:100%; box-shadow:var(--shadow-l1);" ' +
+                    'oninput="updateColorPreview(this.value)">' +
                     '<div class="color-preview" id="colorPreview" style="background:#0070f3;"></div>' +
                     '<div class="btn-group">' +
                     '<button class="btn-primary" onclick="copyColor(\'hex\')">Copy HEX</button>' +
                     '<button class="btn-primary btn-secondary" onclick="copyColor(\'rgb\')">Copy RGB</button>' +
                     '</div>' +
-                    '<div class="result-box" id="colorResult">HEX: #0070f3 | RGB: rgb(0,112,243)</div>';
+                    '<div class="result-box" id="colorResult">HEX: #0070f3 | RGB: rgb(0, 112, 243)</div>';
             break;
         case 'tiktok':
             html += '<label>Link TikTok</label>' +
@@ -248,7 +255,10 @@ window.openTool = function(toolId) {
 
 window.closeToolPage = function() {
     document.body.classList.remove('tool-open');
-    document.getElementById('toolPage').classList.remove('active');
+    var toolPage = document.getElementById('toolPage');
+    toolPage.classList.remove('active');
+    // FIX: pastikan inline style tidak menghalangi display berikutnya
+    toolPage.style.display = '';
 };
 
 // ---------- INIT GLOBAL ----------
