@@ -1,6 +1,5 @@
 // ==========================================
 // MEDIA DOWNLOADER — TikTok, YouTube, Instagram, Facebook
-// Pakai API publik gratis dari api.siputzx.my.id (no API key)
 // ==========================================
 
 var SIPUTZX_BASE = 'https://api.siputzx.my.id';
@@ -22,19 +21,23 @@ function showMediaResult(resultId, previewId, downloadUrl, title, thumbnail) {
         '✅ <b>' + (title || 'Media') + '</b>' +
         '<br><br><a href="' + downloadUrl + '" target="_blank" style="color:var(--accent-light); font-weight:600;">⬇️ Download File</a>';
 
-    showToast('📥 Media siap di-download!');
+    showToast('Media siap di-download!', 'success');
     incrementUsage();
 }
 
 function showMediaError(resultId, message) {
-    document.getElementById(resultId).textContent = '❌ Error: ' + message;
-    showToast('❌ Gagal proses link');
+    document.getElementById(resultId).textContent = 'Error: ' + message;
+    showToast('Gagal proses link', 'error');
 }
 
 // ---------- TIKTOK ----------
 window.downloadTiktok = function() {
     var link = document.getElementById('tiktokLink').value.trim();
-    if (!link) { document.getElementById('tiktokResult').textContent = '⚠️ Masukkan link dulu!'; return; }
+    if (!link) {
+        document.getElementById('tiktokResult').textContent = 'Masukkan link dulu!';
+        showToast('Masukkan link dulu!', 'error');
+        return;
+    }
 
     showMediaLoading('tiktokResult');
 
@@ -48,7 +51,6 @@ window.downloadTiktok = function() {
         var data = json.data;
         var downloadUrl = data.no_watermark_link_hd || data.no_watermark_link;
         if (!downloadUrl) throw new Error('Link download tidak tersedia untuk konten ini (mungkin post foto/slideshow, bukan video).');
-
         showMediaResult('tiktokResult', 'tiktokPreview', downloadUrl, data.text || data.author_nickname, data.cover_link);
     })
     .catch(function(err) {
@@ -59,7 +61,11 @@ window.downloadTiktok = function() {
 // ---------- YOUTUBE ----------
 window.downloadYoutube = function() {
     var link = document.getElementById('youtubeLink').value.trim();
-    if (!link) { document.getElementById('youtubeResult').textContent = '⚠️ Masukkan link dulu!'; return; }
+    if (!link) {
+        document.getElementById('youtubeResult').textContent = 'Masukkan link dulu!';
+        showToast('Masukkan link dulu!', 'error');
+        return;
+    }
 
     showMediaLoading('youtubeResult');
 
@@ -71,17 +77,11 @@ window.downloadYoutube = function() {
     .then(function(json) {
         if (!json.status || !json.data) throw new Error('Data tidak ditemukan / link tidak valid.');
         var data = json.data;
-
-        // Cuma format yang "downloadable: true" yang video+audio-nya udah nyatu
-        // (biasanya cuma tersedia di kualitas 360p, kualitas lain butuh proses gabung terpisah).
         var candidates = (data.url || []).filter(function(f) { return f.downloadable === true; });
         candidates.sort(function(a, b) { return (b.qualityNumber || 0) - (a.qualityNumber || 0); });
-
         if (candidates.length === 0) throw new Error('Tidak ada format video+audio yang siap didownload langsung.');
-
         var best = candidates[0];
         var title = (data.meta && data.meta.title) || 'Video YouTube';
-
         showMediaResult('youtubeResult', 'youtubePreview', best.url, title + ' (' + best.quality + 'p)', data.thumb);
     })
     .catch(function(err) {
@@ -89,12 +89,14 @@ window.downloadYoutube = function() {
     });
 };
 
-// ---------- INSTAGRAM (menyusul — endpoint belum dikonfirmasi) ----------
+// ---------- INSTAGRAM ----------
 window.downloadInstagram = function() {
-    document.getElementById('instagramResult').textContent = '🚧 Fitur ini belum tersedia, masih dalam pengembangan.';
+    document.getElementById('instagramResult').textContent = 'Fitur ini belum tersedia, masih dalam pengembangan.';
+    showToast('Fitur Instagram belum tersedia', 'error');
 };
 
-// ---------- FACEBOOK (menyusul — endpoint belum dikonfirmasi) ----------
+// ---------- FACEBOOK ----------
 window.downloadFacebook = function() {
-    document.getElementById('facebookResult').textContent = '🚧 Fitur ini belum tersedia, masih dalam pengembangan.';
+    document.getElementById('facebookResult').textContent = 'Fitur ini belum tersedia, masih dalam pengembangan.';
+    showToast('Fitur Facebook belum tersedia', 'error');
 };

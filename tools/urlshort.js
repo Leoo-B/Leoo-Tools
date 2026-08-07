@@ -4,10 +4,13 @@
 window.shortenUrl = function() {
     var url = document.getElementById('urlInput').value.trim();
     var result = document.getElementById('urlResult');
-    if (!url) { result.textContent = '⚠️ Masukkan link dulu!'; return; }
-    result.textContent = '⏳ Sedang memendekkan...';
+    if (!url) {
+        result.textContent = 'Masukkan link dulu!';
+        showToast('Masukkan link dulu!', 'error');
+        return;
+    }
+    result.textContent = 'Sedang memendekkan...';
 
-    // TinyURL API – gratis, no key, stabil
     fetch('https://tinyurl.com/api-create.php?url=' + encodeURIComponent(url))
     .then(function(response) {
         if (!response.ok) throw new Error('Gagal memendekkan');
@@ -15,15 +18,16 @@ window.shortenUrl = function() {
     })
     .then(function(data) {
         if (data && data.startsWith('https://tinyurl.com/')) {
-            result.innerHTML = '✅ Link pendek: <a href="' + data + '" target="_blank" style="color:var(--accent-light);">' + data + '</a>';
-            showToast('✂️ Link berhasil dipendekkan!');
+            result.innerHTML = 'Link pendek: <a href="' + data + '" target="_blank" style="color:var(--accent-light);">' + data + '</a>';
+            showToast('Link berhasil dipendekkan!', 'success');
             incrementUsage();
         } else {
-            result.textContent = '❌ Gagal memendekkan link.';
+            result.textContent = 'Gagal memendekkan link.';
+            showToast('Gagal pendekin link', 'error');
         }
     })
     .catch(function(err) {
-        result.textContent = '❌ Error: ' + err.message;
-        showToast('❌ Gagal pendekin link');
+        result.textContent = 'Error: ' + err.message;
+        showToast('Gagal pendekin link', 'error');
     });
 };

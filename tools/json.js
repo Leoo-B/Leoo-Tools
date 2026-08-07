@@ -7,12 +7,11 @@ window.formatJson = function() {
     try {
         var parsed = JSON.parse(input);
         result.textContent = JSON.stringify(parsed, null, 2);
-        result.style.borderLeftColor = '#4ade80';
-        showToast('✅ JSON berhasil diformat!');
+        result.style.borderLeftColor = '';
+        showToast('JSON berhasil diformat!', 'success');
         incrementUsage();
     } catch(e) {
-        result.textContent = '❌ Error: ' + e.message;
-        result.style.borderLeftColor = '#f87171';
-        showToast('❌ Error JSON: ' + e.message);
+        result.textContent = 'Error: ' + e.message;
+        showToast('Error JSON: ' + e.message, 'error');
     }
 };

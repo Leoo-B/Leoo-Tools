@@ -2,8 +2,9 @@
 // CORE – Data Tools, Render, Toast, Scroll, Stats
 // ==========================================
 
-// ---------- TOAST (max 3) ----------
-window.showToast = function(message) {
+// ---------- TOAST (max 3, success/error aware) ----------
+// type: 'success' | 'error' | 'info' (default)
+window.showToast = function(message, type) {
     var container = document.getElementById('toastContainer');
     if (!container) return;
 
@@ -15,6 +16,8 @@ window.showToast = function(message) {
 
     var toast = document.createElement('div');
     toast.className = 'toast';
+    if (type === 'success') toast.classList.add('toast-success');
+    else if (type === 'error') toast.classList.add('toast-error');
     toast.textContent = message;
     container.appendChild(toast);
 
@@ -39,29 +42,41 @@ window.showToast = function(message) {
     });
 })();
 
+// ---------- SIMPLE ICONS HELPER ----------
+// Render SVG dari simple-icons sebagai inline HTML
+function getSimpleIcon(slug, size) {
+    size = size || 28;
+    // simple-icons global object: window.simpleIcons['tiktok'] dst
+    var si = window.simpleIcons && window.simpleIcons[slug];
+    if (si) {
+        return '<svg class="si-icon" role="img" viewBox="0 0 24 24" width="' + size + '" height="' + size + '" xmlns="http://www.w3.org/2000/svg"><path d="' + si.path + '"/></svg>';
+    }
+    // Fallback ke lucide jika simple-icons belum load
+    return '<i data-lucide="circle" style="width:' + size + 'px;height:' + size + 'px;"></i>';
+}
+
 // ---------- DATA TOOLS ----------
+// iconType: 'lucide' (default) | 'simple' (pakai simple-icons slug)
 var tools = [
-    { name: "Password Generator", icon: "key-round", cat: "utility", desc: "Bikin password super kuat.", id: "password" },
-    { name: "JSON Formatter", icon: "braces", cat: "dev", desc: "Rapihin & validasi JSON.", id: "json" },
-    { name: "Unit Converter", icon: "thermometer", cat: "utility", desc: "Celcius, Fahrenheit, Kelvin.", id: "unit" },
-    { name: "Base64 Encoder/Decoder", icon: "lock-keyhole", cat: "text", desc: "Encode/decode teks base64.", id: "base64" },
-    { name: "Text Analyzer", icon: "text-cursor-input", cat: "text", desc: "Hitung huruf, kata, kalimat.", id: "counter" },
-    { name: "Color Picker Pro", icon: "pipette", cat: "utility", desc: "Pilih warna + salin kode.", id: "color" },
-    { name: "TikTok Downloader", icon: "music", cat: "utility", desc: "Download video TikTok tanpa watermark.", id: "tiktok" },
-    { name: "YouTube Downloader", icon: "youtube", cat: "utility", desc: "Download video YouTube.", id: "youtube" },
-    { name: "Instagram Downloader", icon: "instagram", cat: "utility", desc: "Download foto/video Instagram.", id: "instagram" },
-    { name: "Facebook Downloader", icon: "facebook", cat: "utility", desc: "Download video Facebook.", id: "facebook" },
-    { name: "Pengecekan Cuaca", icon: "cloud-sun", cat: "utility", desc: "Cek cuaca kota mana pun.", id: "weather" },
-    { name: "URL Shortener", icon: "link", cat: "utility", desc: "Pendekin link panjang jadi pendek.", id: "urlshort" },
-    { name: "Image Enhancer", icon: "image-up", cat: "utility", desc: "Ubah gambar jadi HD / upscale.", id: "image" },
-    { name: "News Headline", icon: "newspaper", cat: "utility", desc: "Berita terkini dari berbagai kategori.", id: "news" },
+    { name: "Password Generator",      icon: "key-round",        iconType: "lucide",  cat: "utility", desc: "Bikin password super kuat.",                     id: "password"  },
+    { name: "JSON Formatter",          icon: "braces",           iconType: "lucide",  cat: "dev",     desc: "Rapihin & validasi JSON.",                       id: "json"      },
+    { name: "Unit Converter",          icon: "thermometer",      iconType: "lucide",  cat: "utility", desc: "Celcius, Fahrenheit, Kelvin.",                   id: "unit"      },
+    { name: "Base64 Encoder/Decoder",  icon: "lock-keyhole",     iconType: "lucide",  cat: "text",    desc: "Encode/decode teks base64.",                     id: "base64"    },
+    { name: "Text Analyzer",           icon: "text-cursor-input",iconType: "lucide",  cat: "text",    desc: "Hitung huruf, kata, kalimat.",                   id: "counter"   },
+    { name: "Color Picker Pro",        icon: "pipette",          iconType: "lucide",  cat: "utility", desc: "Pilih warna + salin kode.",                      id: "color"     },
+    { name: "TikTok Downloader",       icon: "tiktok",           iconType: "simple",  cat: "utility", desc: "Download video TikTok tanpa watermark.",         id: "tiktok"    },
+    { name: "YouTube Downloader",      icon: "youtube",          iconType: "simple",  cat: "utility", desc: "Download video YouTube.",                        id: "youtube"   },
+    { name: "Instagram Downloader",    icon: "instagram",        iconType: "simple",  cat: "utility", desc: "Download foto/video Instagram.",                 id: "instagram" },
+    { name: "Facebook Downloader",     icon: "facebook",         iconType: "simple",  cat: "utility", desc: "Download video Facebook.",                       id: "facebook"  },
+    { name: "Pengecekan Cuaca",        icon: "cloud-sun",        iconType: "lucide",  cat: "utility", desc: "Cek cuaca kota mana pun.",                       id: "weather"   },
+    { name: "URL Shortener",           icon: "link",             iconType: "lucide",  cat: "utility", desc: "Pendekin link panjang jadi pendek.",             id: "urlshort"  },
+    { name: "Image Enhancer",          icon: "image-up",         iconType: "lucide",  cat: "utility", desc: "Ubah gambar jadi HD / upscale.",                 id: "image"     },
+    { name: "News Headline",           icon: "newspaper",        iconType: "lucide",  cat: "utility", desc: "Berita terkini dari berbagai kategori.",         id: "news"      },
 ];
 
 // ---------- COUNTER ----------
 var totalUsage = parseInt(localStorage.getItem('totalUsage')) || 0;
-
 window.updateUsageCounter = function() {};
-
 window.incrementUsage = function() {
     totalUsage += 1;
     localStorage.setItem('totalUsage', totalUsage);
@@ -69,7 +84,6 @@ window.incrementUsage = function() {
 
 // ---------- STATISTIK ----------
 var lastOpened = localStorage.getItem('lastOpened') || '-';
-
 window.updateStats = function() {};
 
 // ---------- RENDER GRID ----------
@@ -96,9 +110,12 @@ window.renderTools = function() {
         } else {
             var html = '';
             filtered.forEach(function(t) {
+                var iconHtml = t.iconType === 'simple'
+                    ? getSimpleIcon(t.icon, 28)
+                    : '<i data-lucide="' + t.icon + '"></i>';
                 html += '<div class="tool-card" onclick="openTool(\'' + t.id + '\')">' +
                         '<span class="badge">' + t.cat + '</span>' +
-                        '<i data-lucide="' + t.icon + '"></i>' +
+                        iconHtml +
                         '<h4>' + t.name + '</h4>' +
                         '<p>' + t.desc + '</p>' +
                         '</div>';
@@ -119,7 +136,6 @@ window.openTool = function(toolId) {
 
     document.body.classList.add('tool-open');
 
-    // FIX: hapus inline style display:none agar class CSS bisa bekerja
     var toolPage = document.getElementById('toolPage');
     toolPage.style.display = '';
     toolPage.classList.add('active');
@@ -257,7 +273,6 @@ window.closeToolPage = function() {
     document.body.classList.remove('tool-open');
     var toolPage = document.getElementById('toolPage');
     toolPage.classList.remove('active');
-    // FIX: pastikan inline style tidak menghalangi display berikutnya
     toolPage.style.display = '';
 };
 
@@ -281,7 +296,7 @@ window.initAll = function() {
         document.documentElement.setAttribute('data-theme', next);
         localStorage.setItem('theme', next);
         updateThemeIcon(next);
-        showToast(next === 'dark' ? 'Mode Gelap' : 'Mode Terang');
+        showToast(next === 'dark' ? 'Mode Gelap' : 'Mode Terang', 'info');
     });
 
     document.getElementById('searchInput').addEventListener('input', function() { renderTools(); });
