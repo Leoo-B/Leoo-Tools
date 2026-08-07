@@ -1,11 +1,9 @@
 // ==========================================
-// IMAGE ENHANCER (ImgBB + ExsalAPI)
-// Alur: Upload → ImgBB (dapat link) → ExsalAPI enhance → tampil hasil
+// IMAGE ENHANCER (ImgBB + Vercel Proxy → ExsalAPI)
+// Alur: Upload → ImgBB (dapat display_url) → /api/enhance (proxy) → tampil hasil
 // ==========================================
 
 var IMGBB_KEY = 'cf58549c110b49f424dd4076a144b452';
-var EXSAL_ENHANCE = 'https://exsalapi.my.id/api/ai/image/enhance';
-var EXSAL_KEY = 'exs_leoob_1a593ef4';
 
 window.enhanceImage = function() {
     var fileInput = document.getElementById('imageInput');
@@ -37,6 +35,7 @@ window.enhanceImage = function() {
 
     var formData = new FormData();
     formData.append('image', file);
+    formData.append('expiration', '259200'); // otomatis hapus setelah 3 hari
 
     fetch('https://api.imgbb.com/1/upload?key=' + IMGBB_KEY, {
         method: 'POST',
@@ -51,20 +50,16 @@ window.enhanceImage = function() {
             throw new Error('Upload gagal: ' + (json.error && json.error.message ? json.error.message : 'Response tidak valid'));
         }
 
-        // display_url = tautan langsung (direct link) ke file gambar
-        // contoh: https://i.ibb.co.com/XXXX/filename.jpg
+        // display_url = tautan langsung ke file gambar
         var imageUrl = json.data.display_url;
 
-        // ── STEP 2: Enhance via ExsalAPI ─────────────────────
+        // ── STEP 2: Enhance via Vercel proxy ─────────────────
         result.innerHTML =
             '⏳ <b>Step 2/2:</b> AI sedang meningkatkan kualitas gambar...' +
             '<br><small style="color:var(--mute);">Proses AI bisa makan waktu 10–30 detik.</small>';
 
-        var enhanceUrl = EXSAL_ENHANCE +
-            '?image_url=' + encodeURIComponent(imageUrl) +
-            '&apikey=' + EXSAL_KEY;
-
-        return fetch(enhanceUrl, { method: 'GET' });
+        // Hit /api/enhance (Vercel Function) — bukan langsung ke exsalapi (hindari CORS)
+        return fetch('/api/enhance?image_url=' + encodeURIComponent(imageUrl), { method: 'GET' });
     })
     .then(function(res) {
         if (!res.ok) throw new Error('Gagal menghubungi API enhance (HTTP ' + res.status + ')');
@@ -76,7 +71,6 @@ window.enhanceImage = function() {
         }
 
         var downloadUrl = json.data.download_url;
-        var originalUrl = json.data.original_url || downloadUrl;
 
         // Tampilkan hasil
         preview.innerHTML =
