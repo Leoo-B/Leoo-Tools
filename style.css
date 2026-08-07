@@ -314,13 +314,11 @@ body {
     height: 28px;
     display: block;
     margin-bottom: 10px;
-    /* Light mode: icon sudah hitam by default dari CDN */
-    filter: none;
+    filter: brightness(0);
     transition: filter var(--transition);
 }
-/* Dark mode: invert icon jadi putih */
 [data-theme="dark"] .tool-card .si-icon {
-    filter: invert(1);
+    filter: brightness(0) invert(1);
 }
 
 .scroll-top [data-lucide] {
