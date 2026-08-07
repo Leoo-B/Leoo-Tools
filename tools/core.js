@@ -3,7 +3,6 @@
 // ==========================================
 
 // ---------- TOAST (max 3, success/error aware) ----------
-// type: 'success' | 'error' | 'info' (default)
 window.showToast = function(message, type) {
     var container = document.getElementById('toastContainer');
     if (!container) return;
@@ -42,21 +41,16 @@ window.showToast = function(message, type) {
     });
 })();
 
-// ---------- SIMPLE ICONS HELPER ----------
-// Render SVG dari simple-icons sebagai inline HTML
+// ---------- SIMPLE ICONS HELPER (cdn.simpleicons.org) ----------
+// Render <img> langsung dari CDN — tidak butuh library JS apapun.
+// Dark mode: CSS filter invert otomatis via class .si-icon di style.css
 function getSimpleIcon(slug, size) {
     size = size || 28;
-    // simple-icons global object: window.simpleIcons['tiktok'] dst
-    var si = window.simpleIcons && window.simpleIcons[slug];
-    if (si) {
-        return '<svg class="si-icon" role="img" viewBox="0 0 24 24" width="' + size + '" height="' + size + '" xmlns="http://www.w3.org/2000/svg"><path d="' + si.path + '"/></svg>';
-    }
-    // Fallback ke lucide jika simple-icons belum load
-    return '<i data-lucide="circle" style="width:' + size + 'px;height:' + size + 'px;"></i>';
+    return '<img class="si-icon" src="https://cdn.simpleicons.org/' + slug + '" ' +
+           'width="' + size + '" height="' + size + '" alt="' + slug + '" loading="lazy">';
 }
 
 // ---------- DATA TOOLS ----------
-// iconType: 'lucide' (default) | 'simple' (pakai simple-icons slug)
 var tools = [
     { name: "Password Generator",      icon: "key-round",        iconType: "lucide",  cat: "utility", desc: "Bikin password super kuat.",                     id: "password"  },
     { name: "JSON Formatter",          icon: "braces",           iconType: "lucide",  cat: "dev",     desc: "Rapihin & validasi JSON.",                       id: "json"      },
