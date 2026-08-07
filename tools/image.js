@@ -1,11 +1,21 @@
 // ==========================================
-// IMAGE ENHANCER (Vercel API + Miragic SDK)
+// IMAGE ENHANCER (ImgBB + ExsalAPI)
+// Alur: Upload → ImgBB (dapat link) → ExsalAPI enhance → tampil hasil
 // ==========================================
+
+var IMGBB_KEY = 'cf58549c110b49f424dd4076a144b452';
+var EXSAL_ENHANCE = 'https://exsalapi.my.id/api/ai/image/enhance';
+var EXSAL_KEY = 'exs_leoob_1a593ef4';
+
 window.enhanceImage = function() {
     var fileInput = document.getElementById('imageInput');
-    var result = document.getElementById('imageResult');
-    var preview = document.getElementById('imagePreview');
+    var result    = document.getElementById('imageResult');
+    var preview   = document.getElementById('imagePreview');
 
+    // Reset preview
+    preview.innerHTML = '';
+
+    // Validasi file
     if (!fileInput.files || fileInput.files.length === 0) {
         result.textContent = 'Upload gambar dulu!';
         showToast('Upload gambar dulu!', 'error');
@@ -13,45 +23,74 @@ window.enhanceImage = function() {
     }
 
     var file = fileInput.files[0];
+
     if (file.size > 10 * 1024 * 1024) {
         result.textContent = 'Ukuran gambar terlalu besar! Maksimal 10MB.';
         showToast('File terlalu besar! Maks 10MB', 'error');
         return;
     }
 
+    // ── STEP 1: Upload ke ImgBB ──────────────────────────────
+    result.innerHTML =
+        '⏳ <b>Step 1/2:</b> Mengupload gambar ke server...' +
+        '<br><small style="color:var(--mute);">Mohon tunggu sebentar.</small>';
+
     var formData = new FormData();
-    formData.append('file', file);
+    formData.append('image', file);
 
-    result.innerHTML = '⏳ Sedang memproses... <br> <small style="color:var(--text-secondary);">Upscale 2x pake AI, bisa makan waktu 10-30 detik (cold start)</small>';
-
-    fetch('/api/upscale', {
+    fetch('https://api.imgbb.com/1/upload?key=' + IMGBB_KEY, {
         method: 'POST',
         body: formData
     })
-    .then(function(response) {
-        if (!response.ok) {
-            return response.text().then(function(text) {
-                throw new Error('HTTP ' + response.status + ': ' + text);
-            });
-        }
-        var contentType = response.headers.get('content-type');
-        if (!contentType || !contentType.startsWith('image/')) {
-            return response.text().then(function(text) {
-                throw new Error('Response bukan gambar: ' + text);
-            });
-        }
-        return response.blob();
+    .then(function(res) {
+        if (!res.ok) throw new Error('Gagal upload ke server (HTTP ' + res.status + ')');
+        return res.json();
     })
-    .then(function(blob) {
-        if (blob.size === 0) throw new Error('File hasil kosong (0 bytes)');
-        var resultUrl = URL.createObjectURL(blob);
-        preview.innerHTML = '<img src="' + resultUrl + '" alt="Upscaled" style="max-width:100%; border-radius:16px; margin-top:12px; box-shadow: 0 0 20px rgba(168,85,247,0.2);">';
-        result.innerHTML = '✅ Gambar berhasil di-upscale 2x! <br> <a href="' + resultUrl + '" download="upscaled.png" style="color:var(--accent-light);">Download hasil</a>';
-        showToast('Gambar berhasil di-upscale!', 'success');
+    .then(function(json) {
+        if (!json.success || !json.data || !json.data.url) {
+            throw new Error('Upload gagal: ' + (json.error && json.error.message ? json.error.message : 'Response tidak valid'));
+        }
+
+        var imageUrl = json.data.url;
+
+        // ── STEP 2: Enhance via ExsalAPI ─────────────────────
+        result.innerHTML =
+            '⏳ <b>Step 2/2:</b> AI sedang meningkatkan kualitas gambar...' +
+            '<br><small style="color:var(--mute);">Proses AI bisa makan waktu 10–30 detik.</small>';
+
+        var enhanceUrl = EXSAL_ENHANCE +
+            '?image_url=' + encodeURIComponent(imageUrl) +
+            '&apikey=' + EXSAL_KEY;
+
+        return fetch(enhanceUrl, { method: 'GET' });
+    })
+    .then(function(res) {
+        if (!res.ok) throw new Error('Gagal menghubungi API enhance (HTTP ' + res.status + ')');
+        return res.json();
+    })
+    .then(function(json) {
+        if (!json.status || !json.data || !json.data.download_url) {
+            throw new Error(json.message || 'Enhance gagal: response tidak valid');
+        }
+
+        var downloadUrl = json.data.download_url;
+        var originalUrl = json.data.original_url || downloadUrl;
+
+        // Tampilkan hasil
+        preview.innerHTML =
+            '<img src="' + downloadUrl + '" alt="Enhanced" ' +
+            'style="max-width:100%; border-radius:var(--radius-md); margin-top:12px; box-shadow:var(--shadow-l4);">';
+
+        result.innerHTML =
+            '✅ <b>Gambar berhasil ditingkatkan!</b><br><br>' +
+            '<a href="' + downloadUrl + '" target="_blank" download ' +
+            'style="color:var(--accent-light); font-weight:500;">⬇ Download Hasil HD</a>';
+
+        showToast('Gambar berhasil di-enhance!', 'success');
         incrementUsage();
     })
     .catch(function(err) {
-        result.textContent = 'Error: ' + err.message;
-        showToast('Gagal upscale gambar', 'error');
+        result.textContent = '❌ Error: ' + err.message;
+        showToast('Gagal enhance gambar', 'error');
     });
 };
