@@ -6,7 +6,6 @@
     <meta name="theme-color" content="#ffffff">
     <title>Leoo Tools Pro</title>
     <script>
-        // Set tema SEBELUM render pertama, biar gak ada flash light->dark saat refresh.
         (function() {
             var theme = localStorage.getItem('theme') || 'light';
             document.documentElement.setAttribute('data-theme', theme);
@@ -35,12 +34,12 @@
     <div class="nx-status" id="nexusShellStatus">menyiapkan tools</div>
 </div>
 
-<!-- DASHBOARD -->
-<div class="dashboard" id="dashboard">
-    <!-- Navbar -->
-    <div class="navbar">
+<!-- FIXED HEADER -->
+<div class="navbar-wrapper" id="navbarWrapper">
+    <!-- Full navbar (brand + search + theme) -->
+    <div class="navbar" id="navbarFull">
         <div class="brand">Leoo Tools <small>V 1.0</small></div>
-        <div class="nav-search" id="navSearch">
+        <div class="nav-search">
             <i data-lucide="search"></i>
             <input type="text" id="searchInput" placeholder="Cari tools...">
         </div>
@@ -50,7 +49,17 @@
             </button>
         </div>
     </div>
+    <!-- Collapsed navbar (searchbar only, expanded) -->
+    <div class="navbar-collapsed" id="navbarCollapsed">
+        <div class="nav-search">
+            <i data-lucide="search"></i>
+            <input type="text" id="searchInputCollapsed" placeholder="Cari tools...">
+        </div>
+    </div>
+</div>
 
+<!-- DASHBOARD -->
+<div class="dashboard" id="dashboard">
     <!-- Kategori -->
     <div class="categories" id="categoryFilter">
         <span class="chip active" data-cat="all">Semua</span>
@@ -73,13 +82,11 @@
         </div>
         <div class="tool-page-body" id="toolPageBody"></div>
     </div>
-
-    <div class="footer-credit">Leoo Tools Pro · Dihidupkan oleh <span>GeminiXD</span></div>
 </div>
 
-<!-- ========================================================= -->
-<!-- SCRIPT LOADER UNTUK SEMUA TOOLS                           -->
-<!-- ========================================================= -->
+<!-- FIXED FOOTER -->
+<div class="footer-credit">Leoo Tools Pro · Dihidupkan oleh <span>GeminiXD</span></div>
+
 <script src="splash.js"></script>
 <script src="loader.js"></script>
 </body>
