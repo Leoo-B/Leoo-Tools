@@ -47,11 +47,13 @@ window.enhanceImage = function() {
         return res.json();
     })
     .then(function(json) {
-        if (!json.success || !json.data || !json.data.url) {
+        if (!json.success || !json.data || !json.data.display_url) {
             throw new Error('Upload gagal: ' + (json.error && json.error.message ? json.error.message : 'Response tidak valid'));
         }
 
-        var imageUrl = json.data.url;
+        // display_url = tautan langsung (direct link) ke file gambar
+        // contoh: https://i.ibb.co.com/XXXX/filename.jpg
+        var imageUrl = json.data.display_url;
 
         // ── STEP 2: Enhance via ExsalAPI ─────────────────────
         result.innerHTML =
