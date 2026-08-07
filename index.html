@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#ffffff">
-    <title>⚡ Leoo Tools Pro</title>
+    <title>Leoo Tools Pro</title>
     <script>
         // Set tema SEBELUM render pertama, biar gak ada flash light->dark saat refresh.
         (function() {
@@ -14,6 +14,7 @@
     </script>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
 </head>
 <body>
 
@@ -21,7 +22,9 @@
 <div class="toast-container" id="toastContainer"></div>
 
 <!-- SCROLL TOP -->
-<button class="scroll-top" id="scrollTopBtn" title="Ke Atas">↑</button>
+<button class="scroll-top" id="scrollTopBtn" title="Ke Atas">
+    <i data-lucide="arrow-up"></i>
+</button>
 
 <!-- SPLASH SCREEN -->
 <div class="splash-screen" id="splash">
@@ -36,30 +39,24 @@
 <div class="dashboard" id="dashboard">
     <!-- Navbar -->
     <div class="navbar">
-        <div class="brand">⚡ Leoo V 1.0 <small>V 1.0</small></div>
+        <div class="brand">Leoo Tools <small>V 1.0</small></div>
         <div class="nav-search" id="navSearch">
-            <span>🔍</span>
+            <i data-lucide="search"></i>
             <input type="text" id="searchInput" placeholder="Cari tools...">
         </div>
         <div style="display:flex; gap:12px; align-items:center;">
-            <button class="theme-toggle" id="themeToggle" title="Toggle tema (Dark/Light)">🌙</button>
+            <button class="theme-toggle" id="themeToggle" title="Toggle tema">
+                <i data-lucide="moon" id="themeIcon"></i>
+            </button>
         </div>
-    </div>
-
-    <!-- Stats -->
-    <div class="stats-bar" id="statsBar">
-        <span>📦 Total Tools: <strong id="totalTools">0</strong></span>
-        <span>🏷️ Kategori: <strong id="activeCategory">Semua</strong></span>
-        <span>🕒 Terakhir: <strong id="lastOpened">-</strong></span>
-        <span>🚀 <strong id="usageCounter">0</strong> tools telah digunakan hari ini</span>
     </div>
 
     <!-- Kategori -->
     <div class="categories" id="categoryFilter">
-        <span class="chip active" data-cat="all">⚡ Semua</span>
-        <span class="chip" data-cat="utility">🛠 Utility</span>
-        <span class="chip" data-cat="dev">💻 Dev</span>
-        <span class="chip" data-cat="text">📝 Text</span>
+        <span class="chip active" data-cat="all">Semua</span>
+        <span class="chip" data-cat="utility">Utility</span>
+        <span class="chip" data-cat="dev">Dev</span>
+        <span class="chip" data-cat="text">Text</span>
     </div>
 
     <!-- Grid Tools -->
@@ -68,13 +65,16 @@
     <!-- Halaman Tool (Full Page) -->
     <div class="tool-page" id="toolPage" style="display:none;">
         <div class="tool-page-header">
-            <button class="btn-back" onclick="closeToolPage()">← Back Lobby</button>
+            <button class="btn-back" onclick="closeToolPage()">
+                <i data-lucide="arrow-left"></i>
+                Kembali
+            </button>
             <h2 id="toolPageTitle">Tool</h2>
         </div>
         <div class="tool-page-body" id="toolPageBody"></div>
     </div>
 
-    <div class="footer-credit">⚡ Leoo Tools Pro · Dihidupkan oleh <span>GeminiXD</span></div>
+    <div class="footer-credit">Leoo Tools Pro · Dihidupkan oleh <span>GeminiXD</span></div>
 </div>
 
 <!-- ========================================================= -->
