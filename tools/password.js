@@ -7,6 +7,6 @@ window.generatePassword = function() {
     var pass = '';
     for (var i = 0; i < len; i++) pass += chars.charAt(Math.floor(Math.random() * chars.length));
     document.getElementById('passResult').textContent = pass;
-    showToast('🔑 Password berhasil digenerate!');
+    showToast('Password berhasil digenerate!', 'success');
     incrementUsage();
 };
