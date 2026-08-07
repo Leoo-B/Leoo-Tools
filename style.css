@@ -308,13 +308,19 @@ body {
     color: var(--ink);
 }
 
-/* === Simple Icons di tool card === */
+/* === Simple Icons di tool card (cdn.simpleicons.org) === */
 .tool-card .si-icon {
     width: 28px;
     height: 28px;
     display: block;
     margin-bottom: 10px;
-    fill: var(--ink);
+    /* Light mode: icon sudah hitam by default dari CDN */
+    filter: none;
+    transition: filter var(--transition);
+}
+/* Dark mode: invert icon jadi putih */
+[data-theme="dark"] .tool-card .si-icon {
+    filter: invert(1);
 }
 
 .scroll-top [data-lucide] {
@@ -673,6 +679,51 @@ body {
     color: var(--ink);
     box-shadow: var(--shadow-l1);
 }
+
+/* === Media Preview === */
+.media-thumb {
+    width: 100%;
+    border-radius: var(--radius-md);
+    margin-top: 12px;
+    box-shadow: var(--shadow-l3);
+    display: block;
+}
+.quality-list {
+    list-style: none;
+    padding: 0;
+    margin: 12px 0 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.quality-list li a {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 16px;
+    background: var(--canvas-soft);
+    border-radius: var(--radius-sm);
+    box-shadow: var(--shadow-l1);
+    color: var(--ink);
+    text-decoration: none;
+    font-size: 0.875rem;
+    font-weight: 500;
+    transition: var(--transition);
+}
+.quality-list li a:hover {
+    background: var(--canvas-soft-2);
+    box-shadow: var(--shadow-l3);
+}
+.quality-badge {
+    font-size: 0.7rem;
+    font-family: 'JetBrains Mono', monospace;
+    background: var(--primary);
+    color: var(--on-primary);
+    padding: 2px 8px;
+    border-radius: 999px;
+    letter-spacing: 0.5px;
+}
+
 body.tool-open .theme-toggle { display: none !important; }
 body.tool-open .stats-bar,
 body.tool-open .categories,
