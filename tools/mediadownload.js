@@ -16,20 +16,28 @@ var ICON_TIME  = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" str
 var ICON_MUSIC = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" style="width:13px;height:13px;flex-shrink:0;"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>';
 
 // ── HELPERS ────────────────────────────────────────────────────
-function fmtNum(n) {
-    if (!n && n !== 0) return null;
-    n = parseInt(n);
-    if (isNaN(n)) return null;
-    if (n >= 1000000) return (n / 1000000).toFixed(1).replace(/\.0$/, '') + 'jt';
-    if (n >= 1000)    return (n / 1000).toFixed(1).replace(/\.0$/, '') + 'rb';
-    return n.toString();
+
+// Durasi milidetik → "m:ss"
+function fmtDuration(ms) {
+    var totalSec = Math.floor(parseInt(ms) / 1000);
+    if (isNaN(totalSec) || totalSec <= 0) return null;
+    var min = Math.floor(totalSec / 60);
+    var sec = totalSec % 60;
+    return min + ':' + (sec < 10 ? '0' : '') + sec;
+}
+
+// Stat value sudah diformat API (mis. "1.5M", "2.4K") — tampilkan langsung
+function safeStatVal(v) {
+    if (v === null || v === undefined || v === '' || v === '0') return null;
+    return String(v);
 }
 
 function buildStats(stats) {
     var html = '';
     stats.forEach(function (s) {
         if (!s.value) return;
-        html += '<div class="media-stat-item">' + s.icon + ' <span>' + s.value + (s.label ? ' ' + s.label : '') + '</span></div>';
+        html += '<div class="media-stat-item">' + s.icon +
+                ' <span>' + s.value + (s.label ? ' ' + s.label : '') + '</span></div>';
     });
     return html ? '<div class="media-stats">' + html + '</div>' : '';
 }
@@ -37,7 +45,8 @@ function buildStats(stats) {
 function showMediaError(wrapId, message) {
     var wrap = document.getElementById(wrapId);
     if (!wrap) return;
-    wrap.innerHTML = '<div class="result-box" style="color:var(--toast-error-text); border-color:var(--toast-error-border);">❌ ' + message + '</div>';
+    wrap.innerHTML = '<div class="result-box" style="color:var(--toast-error-text);' +
+                     'border-color:var(--toast-error-border);">❌ ' + message + '</div>';
     showToast('Gagal proses link', 'error');
 }
 
@@ -46,15 +55,13 @@ function triggerProxyDownload(btn, url, filename) {
     if (btn._downloading) return;
     btn._downloading = true;
 
-    // Simpan konten asli tombol
     var originalHTML = btn.innerHTML;
-    btn.innerHTML =
-        '<span class="dl-spinner"></span>' +
-        '<span>Mengunduh...</span>';
+    btn.innerHTML = '<span class="dl-spinner"></span><span>Mengunduh...</span>';
     btn.disabled = true;
     btn.style.opacity = '0.75';
 
-    var proxyUrl = '/api/download?url=' + encodeURIComponent(url) + '&filename=' + encodeURIComponent(filename || 'video.mp4');
+    var proxyUrl = '/api/download?url=' + encodeURIComponent(url) +
+                   '&filename=' + encodeURIComponent(filename || 'video.mp4');
 
     fetch(proxyUrl)
     .then(function (res) {
@@ -85,11 +92,9 @@ function triggerProxyDownload(btn, url, filename) {
 }
 
 // ── BUILD DOWNLOAD LIST ────────────────────────────────────────
-// downloads: [{ label, url, quality, ext, isBest, isAudio }]
 function buildDownloadList(downloads) {
     if (!downloads || downloads.length === 0) return '';
 
-    // Pisahkan video dan audio
     var videoItems = downloads.filter(function (d) { return !d.isAudio; });
     var audioItems = downloads.filter(function (d) { return d.isAudio; });
 
@@ -97,9 +102,8 @@ function buildDownloadList(downloads) {
 
     if (videoItems.length > 0) {
         html += '<div class="media-dl-label">Video</div><ul class="media-dl-list">';
-        videoItems.forEach(function (d, i) {
-            html += '<li>' +
-                '<button class="media-dl-btn" ' +
+        videoItems.forEach(function (d) {
+            html += '<li><button class="media-dl-btn" ' +
                 'data-url="' + escAttr(d.url) + '" ' +
                 'data-filename="' + escAttr(d.filename || 'video.mp4') + '" ' +
                 'onclick="handleDlBtn(this)">' +
@@ -107,9 +111,7 @@ function buildDownloadList(downloads) {
                 '<div class="media-dl-right">' +
                 (d.isBest ? '<span class="best-badge">✦ Terbaik</span>' : '') +
                 '<span class="quality-badge">' + (d.quality || '') + '</span>' +
-                '</div>' +
-                '</button>' +
-                '</li>';
+                '</div></button></li>';
         });
         html += '</ul>';
     }
@@ -117,17 +119,14 @@ function buildDownloadList(downloads) {
     if (audioItems.length > 0) {
         html += '<div class="media-dl-label" style="margin-top:14px;">Audio</div><ul class="media-dl-list">';
         audioItems.forEach(function (d) {
-            html += '<li>' +
-                '<button class="media-dl-btn media-dl-btn--audio" ' +
+            html += '<li><button class="media-dl-btn media-dl-btn--audio" ' +
                 'data-url="' + escAttr(d.url) + '" ' +
                 'data-filename="' + escAttr(d.filename || 'audio.mp3') + '" ' +
                 'onclick="handleDlBtn(this)">' +
                 '<span style="display:flex;align-items:center;gap:8px;">' + ICON_MUSIC + ' ' + d.label + '</span>' +
                 '<div class="media-dl-right">' +
                 '<span class="quality-badge">' + (d.quality || 'MP3') + '</span>' +
-                '</div>' +
-                '</button>' +
-                '</li>';
+                '</div></button></li>';
         });
         html += '</ul>';
     }
@@ -141,9 +140,7 @@ function escAttr(str) {
 }
 
 window.handleDlBtn = function (btn) {
-    var url      = btn.getAttribute('data-url');
-    var filename = btn.getAttribute('data-filename');
-    triggerProxyDownload(btn, url, filename);
+    triggerProxyDownload(btn, btn.getAttribute('data-url'), btn.getAttribute('data-filename'));
 };
 
 // ── MEDIA CARD ─────────────────────────────────────────────────
@@ -154,9 +151,13 @@ function buildMediaCard(wrapId, options) {
     var thumbSection = '';
     if (options.thumb) {
         thumbSection =
-            '<div class="media-thumb-wrap" id="thumbWrap_' + wrapId + '" onclick="playMediaInline(\'' + wrapId + '\',\'' + (options.videoUrl || '') + '\')">' +
-                '<img class="media-thumb-img" src="' + options.thumb + '" alt="thumbnail" onerror="this.parentNode.style.display=\'none\'">' +
-                (options.videoUrl ? '<div class="media-play-btn"><div class="media-play-circle">' + ICON_PLAY + '</div></div>' : '') +
+            '<div class="media-thumb-wrap" id="thumbWrap_' + wrapId + '" ' +
+            'onclick="playMediaInline(\'' + wrapId + '\',\'' + (options.videoUrl || '') + '\')">' +
+                '<img class="media-thumb-img" src="' + options.thumb + '" alt="thumbnail" ' +
+                'onerror="this.parentNode.style.display=\'none\'">' +
+                (options.videoUrl
+                    ? '<div class="media-play-btn"><div class="media-play-circle">' + ICON_PLAY + '</div></div>'
+                    : '') +
             '</div>';
     }
 
@@ -170,8 +171,7 @@ function buildMediaCard(wrapId, options) {
 
     wrap.innerHTML =
         '<div class="media-result-card" id="card_' + wrapId + '">' +
-            thumbSection +
-            infoSection +
+            thumbSection + infoSection +
             (options.stats || '') +
             buildDownloadList(options.downloads) +
         '</div>';
@@ -192,77 +192,99 @@ window.playMediaInline = function (wrapId, videoUrl) {
     video.play().catch(function () {});
 };
 
-// ── TIKTOK ─────────────────────────────────────────────────────
+// ── TIKTOK — stats dari tiktok/v2, download dari ummy ──────────
 window.downloadTiktok = function () {
     var link = document.getElementById('tiktokLink').value.trim();
     if (!link) { showToast('Masukkan link dulu!', 'error'); return; }
 
     document.getElementById('tiktokResultWrap').innerHTML = '';
     var pg = createProgress('tiktokProgressWrap', 'Mengambil video TikTok');
-    pg.crawl(8, 80, 5000, 'Menghubungi server...');
+    pg.crawl(8, 80, 6000, 'Menghubungi server...');
 
-    fetch(SIPUTZX_BASE + '/api/d/tiktok/v2?url=' + encodeURIComponent(link))
-    .then(function (res) { if (!res.ok) throw new Error('HTTP ' + res.status); return res.json(); })
-    .then(function (json) {
+    Promise.all([
+        fetch(SIPUTZX_BASE + '/api/d/tiktok/v2?url=' + encodeURIComponent(link))
+            .then(function (r) { return r.ok ? r.json() : Promise.resolve(null); })
+            .catch(function () { return null; }),
+        fetch(SIPUTZX_BASE + '/api/d/ummy?url=' + encodeURIComponent(link))
+            .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+    ])
+    .then(function (results) {
         pg.set(90, 'Memproses data...');
-        if (!json.status || !json.data) throw new Error('Data tidak ditemukan / link tidak valid.');
-        var d = json.data;
 
-        var downloads = [];
+        var statRes = results[0];
+        var ummyRes = results[1];
 
-        // Video tanpa watermark — HD sebagai yang terbaik
-        if (d.no_watermark_link_hd) downloads.push({
-            label:    'Tanpa Watermark',
-            url:      d.no_watermark_link_hd,
-            quality:  'HD',
-            filename: 'tiktok_hd.mp4',
-            isBest:   true,
-            isAudio:  false,
-        });
-        if (d.no_watermark_link) downloads.push({
-            label:    'Tanpa Watermark',
-            url:      d.no_watermark_link,
-            quality:  'SD',
-            filename: 'tiktok_sd.mp4',
-            isBest:   false,
-            isAudio:  false,
-        });
-        if (d.wmlink) downloads.push({
-            label:    'Dengan Watermark',
-            url:      d.wmlink,
-            quality:  'WM',
-            filename: 'tiktok_wm.mp4',
-            isBest:   false,
-            isAudio:  false,
-        });
-        if (d.audio) downloads.push({
-            label:    'Audio (MP3)',
-            url:      d.audio,
-            quality:  'MP3',
-            filename: 'tiktok_audio.mp3',
-            isBest:   false,
-            isAudio:  true,
+        if (!ummyRes || !ummyRes.status || !ummyRes.data) {
+            throw new Error('Data tidak ditemukan / link tidak valid.');
+        }
+
+        var u    = ummyRes.data;
+        var meta = u.meta || {};
+        var stat = (statRes && statRes.status && statRes.data) ? statRes.data : null;
+
+        // ── Statistik dari tiktok/v2 ────────────────────────────
+        var stats = '';
+        if (stat) {
+            stats = buildStats([
+                { icon: ICON_EYE,   value: safeStatVal(stat.play_count)    },
+                { icon: ICON_LIKE,  value: safeStatVal(stat.like_count)    },
+                { icon: ICON_CMT,   value: safeStatVal(stat.comment_count) },
+                { icon: ICON_SHARE, value: safeStatVal(stat.share_count)   },
+                { icon: ICON_TIME,  value: fmtDuration(stat.duration)      },
+            ]);
+        }
+
+        // ── Download links dari ummy ────────────────────────────
+        var rawUrls   = (u.url || []).filter(function (f) { return f.url; });
+        if (rawUrls.length === 0) throw new Error('Tidak ada format yang tersedia.');
+
+        var videoUrls = rawUrls.filter(function (f) { return f.type !== 'mp3' && f.ext !== 'mp3'; });
+        var mp3Urls   = rawUrls.filter(function (f) { return f.type === 'mp3'  || f.ext === 'mp3'; });
+
+        // Sort video dari resolusi tertinggi
+        videoUrls.sort(function (a, b) {
+            return (parseInt(b.subname) || 0) - (parseInt(a.subname) || 0);
         });
 
-        if (downloads.length === 0) throw new Error('Tidak ada format yang tersedia.');
+        var downloads  = [];
+        var audioItems = [];
 
-        var videoUrl = (d.no_watermark_link_hd || d.no_watermark_link || d.wmlink || '');
+        videoUrls.forEach(function (f, i) {
+            var qLabel = f.subname ? f.subname + 'p' : (f.name || 'MP4');
+            downloads.push({
+                label:    'Video TikTok',
+                url:      f.url,
+                quality:  qLabel,
+                filename: 'tiktok_' + (f.subname || i) + '.mp4',
+                isBest:   i === 0,
+                isAudio:  false,
+            });
+        });
 
-        var stats = buildStats([
-            { icon: ICON_EYE,   value: fmtNum(d.play_count)    },
-            { icon: ICON_LIKE,  value: fmtNum(d.digg_count)    },
-            { icon: ICON_CMT,   value: fmtNum(d.comment_count) },
-            { icon: ICON_SHARE, value: fmtNum(d.share_count)   },
-            { icon: ICON_TIME,  value: d.duration ? d.duration + 's' : null },
-        ]);
+        mp3Urls.forEach(function (f) {
+            audioItems.push({
+                label:    'Audio (MP3)',
+                url:      f.url,
+                quality:  'MP3',
+                filename: 'tiktok_audio.mp3',
+                isBest:   false,
+                isAudio:  true,
+            });
+        });
+
+        var allDownloads = downloads.concat(audioItems);
+        var videoUrl     = videoUrls.length > 0 ? videoUrls[0].url : '';
+        var author       = (meta.author && meta.author.unique_id)
+                           ? '@' + meta.author.unique_id
+                           : (stat ? '@' + stat.author_nickname : '');
 
         pg.done('Berhasil!');
         buildMediaCard('tiktokResultWrap', {
-            thumb:     d.cover_link || d.origin_cover || '',
-            title:     d.text || d.title || 'TikTok Video',
-            author:    d.author_nickname ? '@' + d.author_nickname : '',
+            thumb:     u.thumb || '',
+            title:     meta.title || (stat && stat.text) || 'TikTok Video',
+            author:    author,
             stats:     stats,
-            downloads: downloads,
+            downloads: allDownloads,
             videoUrl:  videoUrl,
         });
         showToast('Video TikTok siap!', 'success');
@@ -291,10 +313,8 @@ window.downloadYoutube = function () {
         var d    = json.data;
         var meta = d.meta || {};
 
-        // Ambil semua format yang downloadable
         var all = (d.url || []).filter(function (f) { return f.downloadable === true && f.url; });
 
-        // Pisahkan video dan audio
         var videoFormats = all.filter(function (f) {
             return f.type !== 'audio' && !String(f.quality || '').toLowerCase().includes('audio');
         });
@@ -302,7 +322,6 @@ window.downloadYoutube = function () {
             return f.type === 'audio' || String(f.quality || '').toLowerCase().includes('audio');
         });
 
-        // Sort video dari resolusi tertinggi
         videoFormats.sort(function (a, b) { return (b.qualityNumber || 0) - (a.qualityNumber || 0); });
 
         if (videoFormats.length === 0 && audioFormats.length === 0) {
@@ -336,7 +355,6 @@ window.downloadYoutube = function () {
             });
         });
 
-        // Jika tidak ada audio dari API, sediakan opsi konversi dari video terbaik
         if (audioFormats.length === 0 && videoFormats.length > 0) {
             var best = videoFormats[0];
             var ext  = best.extension || best.ext || 'mp4';
@@ -350,15 +368,15 @@ window.downloadYoutube = function () {
             });
         }
 
-        var bestVideo    = videoFormats[0] || audioFormats[0];
-        var videoUrl     = bestVideo ? bestVideo.url : '';
-        var thumbUrl     = d.thumb || (meta.thumbnail && meta.thumbnail[0] && meta.thumbnail[0].url) || '';
+        var bestVideo = videoFormats[0] || audioFormats[0];
+        var videoUrl  = bestVideo ? bestVideo.url : '';
+        var thumbUrl  = d.thumb || (meta.thumbnail && meta.thumbnail[0] && meta.thumbnail[0].url) || '';
 
         var stats = buildStats([
-            { icon: ICON_EYE,  value: fmtNum(meta.viewCount)    },
-            { icon: ICON_LIKE, value: fmtNum(meta.likeCount)    },
-            { icon: ICON_CMT,  value: fmtNum(meta.commentCount) },
-            { icon: ICON_TIME, value: meta.duration || null      },
+            { icon: ICON_EYE,  value: safeStatVal(meta.viewCount)    },
+            { icon: ICON_LIKE, value: safeStatVal(meta.likeCount)    },
+            { icon: ICON_CMT,  value: safeStatVal(meta.commentCount) },
+            { icon: ICON_TIME, value: safeStatVal(meta.duration)     },
         ]);
 
         pg.done('Berhasil!');
@@ -399,17 +417,18 @@ window.downloadInstagram = function () {
         var urls = (d.url || []).filter(function (u) { return u.url; });
         if (urls.length === 0) throw new Error('Tidak ada media yang bisa didownload.');
 
-        // Sort dari kualitas tertinggi
         urls.sort(function (a, b) { return (parseInt(b.quality) || 0) - (parseInt(a.quality) || 0); });
 
-        var downloads = [];
+        var downloads  = [];
         var audioItems = [];
 
         urls.forEach(function (u, i) {
             var isAudio = u.type === 'audio' || (u.url && u.url.includes('.mp3'));
             var isVideo = u.type === 'video' || (u.url && u.url.includes('.mp4'));
             var ext     = isAudio ? 'mp3' : (isVideo ? 'mp4' : (u.subname || 'file'));
-            var qLabel  = u.quality ? (parseInt(u.quality) ? u.quality + 'p' : u.quality) : (u.subname || (isAudio ? 'MP3' : 'HD'));
+            var qLabel  = u.quality
+                ? (parseInt(u.quality) ? u.quality + 'p' : u.quality)
+                : (u.subname || (isAudio ? 'MP3' : 'HD'));
 
             var item = {
                 label:    isAudio ? 'Audio (MP3)' : ('Media ' + (i + 1)),
@@ -424,19 +443,19 @@ window.downloadInstagram = function () {
             else downloads.push(item);
         });
 
-        // Gabung: video dulu, audio belakang
         var allDownloads = downloads.concat(audioItems);
-
-        var firstVideo = urls.find(function (u) { return u.type === 'video' || (u.url && u.url.includes('.mp4')); });
-        var videoUrl   = firstVideo ? firstVideo.url : '';
+        var firstVideo   = urls.find(function (u) {
+            return u.type === 'video' || (u.url && u.url.includes('.mp4'));
+        });
+        var videoUrl = firstVideo ? firstVideo.url : '';
 
         var title = meta.title || meta.caption || 'Instagram Media';
         if (title.length > 80) title = title.substring(0, 80) + '...';
 
         var stats = buildStats([
-            { icon: ICON_LIKE, value: fmtNum(meta.likeCount)    },
-            { icon: ICON_CMT,  value: fmtNum(meta.commentCount) },
-            { icon: ICON_EYE,  value: fmtNum(meta.viewCount)    },
+            { icon: ICON_LIKE, value: safeStatVal(meta.likeCount)    },
+            { icon: ICON_CMT,  value: safeStatVal(meta.commentCount) },
+            { icon: ICON_EYE,  value: safeStatVal(meta.viewCount)    },
         ]);
 
         pg.done('Berhasil!');
@@ -476,7 +495,6 @@ window.downloadFacebook = function () {
         var rawItems = (d.downloads || []).filter(function (x) { return x.url; });
         if (rawItems.length === 0) throw new Error('Tidak ada video yang bisa didownload.');
 
-        // Sort: HD dulu
         rawItems.sort(function (a, b) {
             var order = { hd: 0, sd: 1 };
             return (order[a.quality] !== undefined ? order[a.quality] : 9) -
@@ -496,7 +514,6 @@ window.downloadFacebook = function () {
             });
         });
 
-        // Tambah opsi MP3 dari sumber video terbaik
         if (rawItems[0]) {
             downloads.push({
                 label:    'Audio (MP3)',
@@ -508,10 +525,7 @@ window.downloadFacebook = function () {
             });
         }
 
-        var bestVideo = rawItems[0];
-        var videoUrl  = bestVideo ? bestVideo.url : '';
-
-        var stats = buildStats([{ icon: ICON_TIME, value: d.duration || null }]);
+        var stats = buildStats([{ icon: ICON_TIME, value: safeStatVal(d.duration) }]);
 
         pg.done('Berhasil!');
         buildMediaCard('facebookResultWrap', {
@@ -520,7 +534,7 @@ window.downloadFacebook = function () {
             author:    '',
             stats:     stats,
             downloads: downloads,
-            videoUrl:  videoUrl,
+            videoUrl:  rawItems[0] ? rawItems[0].url : '',
         });
         showToast('Video Facebook siap!', 'success');
         incrementUsage();
