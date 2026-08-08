@@ -159,17 +159,36 @@ window.createProgress = function (wrapId, label) {
         }, 120);
     }
 
+    // ── #8: done() dengan glitch flash + animasi out ──────────
     function done(statusText) {
         clearCrawl();
         if (cancelBtn) cancelBtn.style.display = 'none';
         setVal(100, statusText || 'Selesai!');
-        if (fillEl) fillEl.style.background = 'linear-gradient(90deg, #22c55e, #4ade80)';
-        if (fillEl) fillEl.style.boxShadow  = '0 0 12px rgba(74,222,128,0.4)';
-        setTimeout(function () {
-            var pw = wrap.querySelector('.progress-wrap');
-            if (pw) { pw.style.transition = 'opacity 0.5s ease'; pw.style.opacity = '0'; }
-            setTimeout(function () { if (pw) pw.style.display = 'none'; }, 520);
-        }, 900);
+
+        // Hijau
+        if (fillEl) {
+            fillEl.style.background = 'linear-gradient(90deg, #22c55e, #4ade80)';
+            fillEl.style.boxShadow  = '0 0 12px rgba(74,222,128,0.4)';
+        }
+
+        var pw = wrap.querySelector('.progress-wrap');
+
+        // Flash putih + blink 2x, lalu fade out + scale down
+        if (pw) {
+            pw.classList.add('progress-done-flash');
+            setTimeout(function () {
+                pw.classList.remove('progress-done-flash');
+                pw.classList.add('progress-done-blink');
+                setTimeout(function () {
+                    pw.classList.remove('progress-done-blink');
+                    pw.classList.add('progress-done-out');
+                    setTimeout(function () {
+                        pw.style.display = 'none';
+                        pw.classList.remove('progress-done-out');
+                    }, 500);
+                }, 320);
+            }, 180);
+        }
     }
 
     function error(statusText) {
@@ -338,6 +357,19 @@ window.renderTools = function () {
             grid.innerHTML = html;
         }
         if (typeof lucide !== 'undefined') lucide.createIcons();
+
+        // ── #7: Cursor glow trail per card ──────────────────────
+        var cards = grid.querySelectorAll('.tool-card');
+        cards.forEach(function (card) {
+            card.addEventListener('mousemove', function (e) {
+                var rect = card.getBoundingClientRect();
+                var x = e.clientX - rect.left;
+                var y = e.clientY - rect.top;
+                card.style.setProperty('--mx', x + 'px');
+                card.style.setProperty('--my', y + 'px');
+            });
+        });
+
     }, 280);
 };
 
@@ -495,14 +527,22 @@ window.openTool = function (toolId) {
     window.scrollTo({ top: 0, behavior: 'smooth' });
 };
 
+// ── #1: Close tool page dengan animasi keluar ──────────────────
 window.closeToolPage = function () {
-    document.body.classList.remove('tool-open');
     var toolPage = document.getElementById('toolPage');
-    toolPage.classList.remove('active');
-    toolPage.removeAttribute('style');
-    var body = document.getElementById('toolPageBody');
-    if (body) body.innerHTML = '';
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+
+    // Tambah class closing untuk animasi slide kanan + blur out
+    toolPage.classList.add('closing');
+
+    // Tunggu animasi selesai (280ms sesuai keyframe toolPageOut)
+    setTimeout(function () {
+        document.body.classList.remove('tool-open');
+        toolPage.classList.remove('active', 'closing');
+        toolPage.removeAttribute('style');
+        var body = document.getElementById('toolPageBody');
+        if (body) body.innerHTML = '';
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }, 280);
 };
 
 // ── INIT ───────────────────────────────────────────────────────
@@ -519,12 +559,22 @@ window.initAll = function () {
     }
     updateThemeIcon(theme);
 
+    // ── #9: Theme toggle dengan crossfade transition ───────────
     toggle.addEventListener('click', function () {
         var next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+
+        // Tambah class transitioning ke body
+        document.body.classList.add('theme-transitioning');
+
         document.documentElement.setAttribute('data-theme', next);
         localStorage.setItem('theme', next);
         updateThemeIcon(next);
         showToast(next === 'dark' ? '🌙 Mode Gelap' : '☀️ Mode Terang', 'success');
+
+        // Hapus class setelah transisi selesai
+        setTimeout(function () {
+            document.body.classList.remove('theme-transitioning');
+        }, 400);
     });
 
     document.querySelectorAll('.chip').forEach(function (chip) {

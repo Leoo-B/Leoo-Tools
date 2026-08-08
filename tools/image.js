@@ -1,9 +1,8 @@
 // ==========================================
-// IMAGE ENHANCER (ImgBB + Vercel Proxy → ExsalAPI)
-// Alur: Upload → ImgBB → /api/enhance → before-after slider
+// IMAGE ENHANCER (Proxy ImgBB → /api/imgbb → Vercel Proxy → ExsalAPI)
+// Alur: Upload → /api/imgbb → /api/enhance → before-after slider
+// API key ImgBB disimpan di server (api/imgbb.js), tidak di client
 // ==========================================
-
-var IMGBB_KEY = 'cf58549c110b49f424dd4076a144b452';
 
 // ── Before-After Slider ───────────────────────────────────────
 function initSlider(beforeUrl, afterUrl) {
@@ -84,7 +83,7 @@ window.enhanceImage = function () {
 
     var pg = createProgress('imageProgressWrap', 'Meningkatkan kualitas gambar');
 
-    // ── Step 1: Upload ke ImgBB (0→40%) ─────────────────────
+    // ── Step 1: Upload via /api/imgbb proxy (0→40%) ──────────
     pg.crawl(5, 38, 4000, 'Step 1/2 · Mengupload ke server...');
 
     var formData = new FormData();
@@ -93,7 +92,8 @@ window.enhanceImage = function () {
 
     var originalUrl = '';
 
-    fetch('https://api.imgbb.com/1/upload?key=' + IMGBB_KEY, { method: 'POST', body: formData })
+    // Fetch ke proxy serverless — bukan langsung ke ImgBB
+    fetch('/api/imgbb', { method: 'POST', body: formData })
     .then(function (res) {
         if (!res.ok) throw new Error('Gagal upload ke server (HTTP ' + res.status + ')');
         return res.json();
