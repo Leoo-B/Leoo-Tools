@@ -18,7 +18,24 @@
     setTimeout(function () {
         var splash    = document.getElementById('splash');
         var dashboard = document.getElementById('dashboard');
-        if (splash)    splash.classList.add('hide');
+
+        if (splash) {
+            splash.classList.add('hide');
+
+            // Hentikan semua animasi setelah transisi hide selesai (600ms)
+            setTimeout(function () {
+                // Matikan semua elemen animasi di dalam splash
+                var animated = splash.querySelectorAll('.splash-mesh, .splash-title, .splash-sub, .nx-bar-wrap, .nx-bar-fill, .nx-bar-track, .nx-status');
+                animated.forEach(function (el) {
+                    el.style.animationPlayState = 'paused';
+                });
+                // Juga hentikan pseudo-element ::after (orbit ring) via class
+                splash.classList.add('anim-stopped');
+                // Sembunyikan sepenuhnya agar tidak memakan resource rendering
+                splash.style.display = 'none';
+            }, 650);
+        }
+
         if (dashboard) dashboard.classList.add('active');
     }, 3000);
 })();

@@ -94,7 +94,7 @@ html, body { height: 100%; }
     --transition:      var(--dur-mid) var(--ease-out);
 }
 
-/* Light theme override (minimal, keep dark as default) */
+/* Light theme override */
 [data-theme="light"] {
     --space-void:       #f0f4ff;
     --space-deep:       #e8edf8;
@@ -148,7 +148,7 @@ body {
     min-height: 100vh;
 }
 
-/* ===== STAR PARTICLES (pure CSS ambient) ===== */
+/* ===== STAR PARTICLES ===== */
 body::before {
     content: '';
     position: fixed;
@@ -189,7 +189,12 @@ body::before {
     pointer-events: none;
 }
 
-/* Nebula mesh background on splash */
+/* Hentikan semua animasi splash saat hide */
+.splash-screen.hide .splash-mesh,
+.splash-screen.hide::after {
+    animation-play-state: paused;
+}
+
 .splash-mesh {
     position: absolute;
     inset: 0;
@@ -206,7 +211,6 @@ body::before {
     100% { transform: scale(1.08) rotate(1.5deg); }
 }
 
-/* Orbit ring */
 .splash-screen::after {
     content: '';
     position: absolute;
@@ -447,6 +451,36 @@ body::before {
     box-shadow: 0 0 12px rgba(59,130,246,0.2);
 }
 
+/* ===== FOCUS STYLE — SPACE GLOW ===== */
+:focus-visible {
+    outline: none;
+    box-shadow:
+        0 0 0 2px var(--space-deep),
+        0 0 0 4px var(--accent-primary),
+        0 0 12px 4px rgba(59,130,246,0.35),
+        0 0 28px 6px rgba(129,140,248,0.18);
+    border-radius: var(--radius-sm);
+    transition: box-shadow 0.18s var(--ease-out);
+}
+
+/* Pill-shaped elements butuh radius lebih besar */
+.chip:focus-visible,
+.btn-back:focus-visible,
+.tool-page-body .btn-primary:focus-visible {
+    border-radius: var(--radius-pill);
+}
+
+/* Tool card focus — pakai border-radius card */
+.tool-card:focus-visible {
+    border-radius: var(--radius-lg);
+    box-shadow:
+        0 0 0 2px var(--space-deep),
+        0 0 0 4px var(--accent-primary),
+        0 0 16px 4px rgba(59,130,246,0.4),
+        0 0 40px 8px rgba(129,140,248,0.15),
+        var(--shadow-glow);
+}
+
 /* ===== FOOTER ===== */
 .footer-credit {
     position: fixed;
@@ -569,7 +603,7 @@ body::before {
     to   { opacity: 1; transform: translateY(0); }
 }
 
-/* ===== TOOL CARD ===== */
+/* ===== TOOL CARD — now a button ===== */
 .tool-card {
     position: relative;
     background: var(--glass-bg);
@@ -584,8 +618,10 @@ body::before {
                 border-color var(--dur-mid) var(--ease-out),
                 background var(--dur-mid) var(--ease-out);
     overflow: hidden;
+    text-align: left;
+    width: 100%;
+    font-family: 'Inter', sans-serif;
 }
-/* Subtle inner glow on hover */
 .tool-card::before {
     content: '';
     position: absolute;
@@ -666,6 +702,57 @@ body::before {
 @keyframes skeletonPulse {
     0%, 100% { opacity: 0.4; }
     50%       { opacity: 0.9; }
+}
+
+/* ===== EMPTY STATE ===== */
+.empty-state {
+    grid-column: 1 / -1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 48px 16px;
+}
+.empty-state-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+    padding: 48px 52px;
+    background: var(--glass-bg);
+    border: 1.5px dashed rgba(96,165,250,0.22);
+    border-radius: var(--radius-xl);
+    backdrop-filter: blur(12px);
+    text-align: center;
+    min-width: 260px;
+    position: relative;
+    overflow: hidden;
+}
+/* Subtle inner glow */
+.empty-state-box::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: radial-gradient(ellipse 70% 60% at 50% 0%, rgba(59,130,246,0.06) 0%, transparent 70%);
+    pointer-events: none;
+}
+.empty-state-icon {
+    width: 56px;
+    height: 56px;
+    color: rgba(96,165,250,0.35);
+    flex-shrink: 0;
+}
+.empty-state-title {
+    font-size: 0.9375rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    letter-spacing: -0.2px;
+}
+.empty-state-desc {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    line-height: 1.55;
+    max-width: 220px;
 }
 
 /* ===== TOAST ===== */
@@ -837,8 +924,9 @@ body::before {
 .tool-page-body textarea:focus,
 .tool-page-body select:focus {
     border-color: var(--accent-primary);
-    box-shadow: 0 0 0 3px rgba(59,130,246,0.15);
+    box-shadow: 0 0 0 3px rgba(59,130,246,0.15), 0 0 12px rgba(59,130,246,0.2);
     background: rgba(16,24,48,0.7);
+    outline: none;
 }
 [data-theme="light"] .tool-page-body input,
 [data-theme="light"] .tool-page-body textarea,
@@ -1009,6 +1097,29 @@ body.tool-open .tool-page { display: block !important; }
 .progress-status {
     font-size: 0.78rem;
     color: var(--text-secondary);
+}
+
+/* ===== CANCEL BUTTON ===== */
+.progress-cancel-btn {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    background: transparent;
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: var(--radius-pill);
+    padding: 2px 10px;
+    height: 22px;
+    cursor: pointer;
+    transition: all var(--dur-fast) var(--ease-out);
+    white-space: nowrap;
+}
+.progress-cancel-btn:hover {
+    color: #f87171;
+    border-color: rgba(248,113,113,0.35);
+    background: rgba(248,113,113,0.08);
+    box-shadow: 0 0 8px rgba(248,113,113,0.15);
 }
 
 /* ===== MEDIA CARD ===== */
@@ -1236,6 +1347,7 @@ body.tool-open .tool-page { display: block !important; }
     .tool-page-body { padding: 0 2px; }
     .scroll-top { width: 38px; height: 38px; right: 14px; bottom: calc(var(--footer-height) + 12px); }
     .media-play-circle { width: 50px; height: 50px; }
+    .empty-state-box { padding: 36px 28px; min-width: 0; width: 100%; }
 }
 
 @media (prefers-reduced-motion: reduce) {
