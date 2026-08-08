@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Digital Clock — Leoo Tools</title>
+  <style>
+    body { font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial; background:#0f1720; color:#e6eef8; display:flex; align-items:center; justify-content:center; min-height:100vh; margin:0; }
+    .app { width:960px; max-width:95%; }
+    header { display:flex; justify-content:space-between; align-items:center; margin-bottom:18px; }
+    h1 { font-size:20px; margin:0; }
+    .controls { display:flex; gap:8px; align-items:center; }
+    select,input{ padding:8px 10px; border-radius:8px; border:1px solid rgba(255,255,255,0.06); background:rgba(255,255,255,0.02); color:inherit }
+    button { padding:8px 12px; border-radius:8px; border:0; background:#2563eb; color:white; cursor:pointer }
+    .clocks { display:grid; grid-template-columns: repeat(auto-fill,minmax(220px,1fr)); gap:12px; }
+    .clock { background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)); padding:14px; border-radius:10px; box-shadow: 0 6px 18px rgba(2,6,23,0.6); }
+    .tz { font-weight:600; font-size:14px }
+    .time { font-family: 'Courier New', monospace; font-size:28px; margin-top:6px }
+    .date { font-size:12px; color: #9fb0d6; margin-top:4px }
+    .remove { margin-top:8px; background:#ef4444 }
+    footer { margin-top:14px; font-size:12px; color:#9fb0d6 }
+    .example-list { font-size:13px; color:#9fb0d6 }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header>
+      <h1>Digital Clock — Multiple Time Zones</h1>
+      <div class="controls">
+        <input id="label" placeholder="Label (optional)" />
+        <select id="tz">
+        </select>
+        <button id="add">Add</button>
+      </div>
+    </header>
+
+    <div class="clocks" id="clocks"></div>
+    <footer>
+      <div class="example-list">Common zones: UTC, Europe/London, America/New_York, America/Los_Angeles, Asia/Jakarta, Asia/Tokyo, Australia/Sydney</div>
+    </footer>
+  </div>
+
+  <script>
+    // Common IANA time zones to populate the dropdown
+    const COMMON_ZONES = [
+      'UTC', 'Europe/London', 'Europe/Paris', 'Europe/Berlin',
+      'America/New_York', 'America/Chicago', 'America/Denver', 'America/Los_Angeles',
+      'America/Sao_Paulo', 'America/Mexico_City',
+      'Asia/Jakarta', 'Asia/Singapore', 'Asia/Hong_Kong', 'Asia/Shanghai', 'Asia/Tokyo', 'Asia/Seoul',
+      'Australia/Sydney', 'Pacific/Auckland'
+    ];
+
+    const tzSelect = document.getElementById('tz');
+    const labelInput = document.getElementById('label');
+    const addBtn = document.getElementById('add');
+    const clocksEl = document.getElementById('clocks');
+
+    function populateZones(){
+      // add common zones as options
+      for(const z of COMMON_ZONES){
+        const opt = document.createElement('option'); opt.value = z; opt.textContent = z; tzSelect.appendChild(opt);
+      }
+      // Also allow user to type the timezone (set select to editable by adding an input alternative?)
+      // We keep select for simplicity; users can paste IANA names if not present.
+    }
+
+    function loadClocks(){
+      try{
+        return JSON.parse(localStorage.getItem('leoo_clocks')||'[]');
+      }catch(e){ return []; }
+    }
+    function saveClocks(list){ localStorage.setItem('leoo_clocks', JSON.stringify(list)); }
+
+    function removeClock(idx){
+      const list = loadClocks(); list.splice(idx,1); saveClocks(list); renderClocks();
+    }
+
+    function addClock(tz, label){
+      const list = loadClocks(); list.push({tz,label}); saveClocks(list); renderClocks();
+    }
+
+    function formatTimeForTimezone(date, tz){
+      try{
+        const opts = { hour:'2-digit', minute:'2-digit', second:'2-digit', hour12:false, timeZone:tz };
+        const time = new Intl.DateTimeFormat(undefined, opts).format(date);
+        const dateOpts = { weekday:'short', year:'numeric', month:'short', day:'2-digit', timeZone:tz };
+        const d = new Intl.DateTimeFormat(undefined, dateOpts).format(date);
+        return {time,d};
+      }catch(e){ return {time:'Invalid TZ', d:''}; }
+    }
+
+    function renderClocks(){
+      const list = loadClocks();
+      clocksEl.innerHTML = '';
+      list.forEach((c, i) => {
+        const box = document.createElement('div'); box.className='clock';
+        const tz = document.createElement('div'); tz.className='tz'; tz.textContent = c.label ? `${c.label} — ${c.tz}` : c.tz;
+        const time = document.createElement('div'); time.className='time'; time.id = `time-${i}`;
+        const date = document.createElement('div'); date.className='date'; date.id = `date-${i}`;
+        const rem = document.createElement('button'); rem.className='remove'; rem.textContent='Remove'; rem.onclick = ()=> removeClock(i);
+        box.appendChild(tz); box.appendChild(time); box.appendChild(date); box.appendChild(rem);
+        clocksEl.appendChild(box);
+      });
+      // update immediately once
+      updateTimes();
+    }
+
+    function updateTimes(){
+      const list = loadClocks();
+      const now = new Date();
+      list.forEach((c,i)=>{
+        const {time,d} = formatTimeForTimezone(now, c.tz);
+        const timeEl = document.getElementById(`time-${i}`);
+        const dateEl = document.getElementById(`date-${i}`);
+        if(timeEl) timeEl.textContent = time;
+        if(dateEl) dateEl.textContent = d;
+      });
+    }
+
+    addBtn.addEventListener('click', ()=>{
+      const tz = tzSelect.value.trim();
+      const label = labelInput.value.trim();
+      if(!tz){ alert('Pilih timezone atau masukkan IANA timezone yang valid.'); return; }
+      addClock(tz, label);
+      labelInput.value='';
+    });
+
+    // allow Enter key on label to add
+    labelInput.addEventListener('keydown', (e)=>{ if(e.key==='Enter'){ addBtn.click(); } });
+
+    // init
+    populateZones();
+    // if no clocks saved, add a few defaults
+    if(loadClocks().length===0){
+      addClock('UTC','UTC');
+      addClock('Asia/Jakarta','Jakarta');
+      addClock('America/New_York','New York');
+    }
+    renderClocks();
+
+    // update every 1s
+    setInterval(updateTimes, 1000);
+
+  </script>
+</body>
+</html>
