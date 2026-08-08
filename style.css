@@ -136,6 +136,30 @@ body {
     min-height: 100vh;
 }
 
+/* ===== #9: THEME TRANSITION ===== */
+body.theme-transitioning,
+body.theme-transitioning .navbar-wrapper,
+body.theme-transitioning .tool-card,
+body.theme-transitioning .result-box,
+body.theme-transitioning .chip,
+body.theme-transitioning .tool-page-body input,
+body.theme-transitioning .tool-page-body textarea,
+body.theme-transitioning .tool-page-body select,
+body.theme-transitioning .footer-credit,
+body.theme-transitioning .media-result-card,
+body.theme-transitioning .wx-card,
+body.theme-transitioning .news-item,
+body.theme-transitioning .empty-state-box,
+body.theme-transitioning .toast,
+body.theme-transitioning .progress-wrap {
+    transition:
+        background-color 400ms ease,
+        background 400ms ease,
+        color 400ms ease,
+        border-color 400ms ease,
+        box-shadow 400ms ease !important;
+}
+
 /* ===== STAR PARTICLES ===== */
 body::before {
     content: '';
@@ -193,20 +217,90 @@ body::before {
     animation-play-state: paused;
 }
 
+/* ===== #6: ANIMATED GRADIENT MESH ===== */
 .splash-mesh {
     position: absolute;
     inset: 0;
-    background:
-        radial-gradient(ellipse 60% 50% at 15% 20%, rgba(59,130,246,0.18) 0%, transparent 60%),
-        radial-gradient(ellipse 50% 40% at 85% 15%, rgba(129,140,248,0.14) 0%, transparent 55%),
-        radial-gradient(ellipse 40% 60% at 50% 80%, rgba(34,211,238,0.1) 0%, transparent 55%),
-        radial-gradient(ellipse 45% 35% at 70% 55%, rgba(244,114,182,0.08) 0%, transparent 50%);
-    filter: blur(40px);
-    animation: nebulaDrift 12s ease-in-out infinite alternate;
+    overflow: hidden;
 }
-@keyframes nebulaDrift {
-    0%   { transform: scale(1) rotate(0deg); }
-    100% { transform: scale(1.08) rotate(1.5deg); }
+
+/* Tiap layer adalah pseudo atau div terpisah — kita pakai multiple backgrounds
+   dengan @keyframes berbeda per layer via animation-delay & direction */
+.splash-mesh::before,
+.splash-mesh::after {
+    content: '';
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(80px);
+    mix-blend-mode: screen;
+    opacity: 0.7;
+}
+
+/* Layer 1 — biru ke cyan, bergerak atas-kiri */
+.splash-mesh::before {
+    width: 55vw; height: 55vw;
+    background: radial-gradient(circle at center,
+        #007cf0 0%, #00dfd8 45%, transparent 70%);
+    top: -10%; left: -5%;
+    animation: meshDrift1 9s ease-in-out infinite alternate;
+}
+
+/* Layer 2 — ungu ke pink, bergerak bawah-kanan */
+.splash-mesh::after {
+    width: 50vw; height: 50vw;
+    background: radial-gradient(circle at center,
+        #7928ca 0%, #ff0080 50%, transparent 70%);
+    bottom: -10%; right: -5%;
+    animation: meshDrift2 11s ease-in-out infinite alternate;
+}
+
+/* Layer 3 & 4 via animasi background di elemen .splash-mesh sendiri */
+.splash-mesh {
+    background:
+        radial-gradient(circle at 70% 20%, #ff4d4d 0%, transparent 35%),
+        radial-gradient(circle at 30% 80%, #f9cb28 0%, transparent 35%),
+        radial-gradient(circle at 50% 50%, #7928ca 0%, transparent 50%);
+    background-size: 100% 100%;
+    filter: blur(50px);
+    opacity: 0.55;
+    animation: meshBase 14s ease-in-out infinite alternate;
+}
+
+@keyframes meshDrift1 {
+    0%   { transform: translate(0, 0) scale(1); }
+    33%  { transform: translate(8vw, 6vh) scale(1.12); }
+    66%  { transform: translate(-4vw, 12vh) scale(0.95); }
+    100% { transform: translate(12vw, -4vh) scale(1.08); }
+}
+
+@keyframes meshDrift2 {
+    0%   { transform: translate(0, 0) scale(1); }
+    33%  { transform: translate(-10vw, -8vh) scale(1.1); }
+    66%  { transform: translate(6vw, -14vh) scale(0.92); }
+    100% { transform: translate(-8vw, 6vh) scale(1.15); }
+}
+
+@keyframes meshBase {
+    0%   {
+        background-position: 70% 20%, 30% 80%, 50% 50%;
+        opacity: 0.45;
+    }
+    25%  {
+        background-position: 80% 10%, 20% 70%, 40% 60%;
+        opacity: 0.6;
+    }
+    50%  {
+        background-position: 60% 35%, 40% 90%, 60% 40%;
+        opacity: 0.5;
+    }
+    75%  {
+        background-position: 55% 15%, 50% 75%, 45% 55%;
+        opacity: 0.65;
+    }
+    100% {
+        background-position: 75% 25%, 25% 85%, 55% 45%;
+        opacity: 0.5;
+    }
 }
 
 .splash-screen::after {
@@ -600,9 +694,13 @@ body::before {
     filter: blur(8px);
     transform: translateY(10px) scale(0.97);
     animation: cardReveal 0.55s var(--ease-out) forwards;
+
+    /* #7: CSS custom properties untuk cursor position */
+    --mx: 50%;
+    --my: 50%;
 }
 
-/* Stagger delay per card index — up to 12 cards */
+/* Stagger delay per card index — up to 14 cards */
 .tool-card:nth-child(1)  { animation-delay: 0.00s; }
 .tool-card:nth-child(2)  { animation-delay: 0.05s; }
 .tool-card:nth-child(3)  { animation-delay: 0.10s; }
@@ -624,6 +722,7 @@ body::before {
     100% { opacity: 1; filter: blur(0px);  transform: translateY(0) scale(1); }
 }
 
+/* ── #7: ::before = hover radial (existing), ::after = cursor glow trail ── */
 .tool-card::before {
     content: '';
     position: absolute;
@@ -633,7 +732,27 @@ body::before {
     opacity: 0;
     transition: opacity var(--dur-mid) var(--ease-out);
     pointer-events: none;
+    z-index: 0;
 }
+
+/* #7: Cursor glow trail via ::after */
+.tool-card::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: radial-gradient(
+        circle 80px at var(--mx) var(--my),
+        rgba(96, 165, 250, 0.18) 0%,
+        rgba(129, 140, 248, 0.08) 40%,
+        transparent 70%
+    );
+    opacity: 0;
+    transition: opacity 0.2s var(--ease-out);
+    pointer-events: none;
+    z-index: 0;
+}
+
 .tool-card:hover {
     transform: translateY(-3px) scale(1.01);
     border-color: var(--border-accent);
@@ -641,7 +760,18 @@ body::before {
     box-shadow: var(--shadow-glow), var(--shadow-md);
 }
 .tool-card:hover::before { opacity: 1; }
+.tool-card:hover::after  { opacity: 1; }
 .tool-card:active { transform: translateY(-1px) scale(0.99); }
+
+/* Ensure card content sits above pseudo-elements */
+.tool-card h4,
+.tool-card p,
+.tool-card [data-lucide],
+.tool-card .si-icon,
+.tool-card .badge {
+    position: relative;
+    z-index: 1;
+}
 
 .tool-card h4 {
     font-size: 0.9375rem;
@@ -673,6 +803,7 @@ body::before {
     border-radius: var(--radius-pill);
     letter-spacing: 0.5px;
     text-transform: uppercase;
+    z-index: 1;
 }
 
 /* ===== RIPPLE EFFECT ===== */
@@ -818,14 +949,15 @@ body::before {
     to   { opacity: 1; transform: translateX(0);    filter: blur(0);   }
 }
 
-/* Close animation — triggered via JS class */
+/* ── #1: Animasi keluar tool page ── */
 .tool-page.closing {
+    display: block;
     animation: toolPageOut 0.28s var(--ease-in) both;
     pointer-events: none;
 }
 @keyframes toolPageOut {
-    from { opacity: 1; transform: translateX(0);    filter: blur(0);   }
-    to   { opacity: 0; transform: translateX(-20px); filter: blur(3px); }
+    from { opacity: 1; transform: translateX(0);     filter: blur(0);   }
+    to   { opacity: 0; transform: translateX(28px);  filter: blur(4px); }
 }
 
 .tool-page-body {
@@ -1131,6 +1263,43 @@ body.tool-open .tool-page   { display: block !important; }
     border-color: rgba(248,113,113,0.35);
     background: rgba(248,113,113,0.08);
     box-shadow: 0 0 8px rgba(248,113,113,0.15);
+}
+
+/* ===== #8: PROGRESS BAR DONE ANIMATIONS ===== */
+@keyframes glitchFlash {
+    0%   { opacity: 1; }
+    20%  { opacity: 1; background: rgba(255,255,255,0.12); }
+    40%  { opacity: 1; background: transparent; }
+    60%  { opacity: 1; background: rgba(255,255,255,0.08); }
+    80%  { opacity: 1; background: transparent; }
+    100% { opacity: 1; }
+}
+
+@keyframes progressBlink {
+    0%   { opacity: 1; }
+    25%  { opacity: 0.3; }
+    50%  { opacity: 1; }
+    75%  { opacity: 0.3; }
+    100% { opacity: 1; }
+}
+
+@keyframes progressOut {
+    0%   { opacity: 1; transform: scaleY(1) translateY(0); }
+    100% { opacity: 0; transform: scaleY(0.6) translateY(-4px); }
+}
+
+.progress-wrap.progress-done-flash {
+    animation: glitchFlash 180ms ease forwards;
+}
+
+.progress-wrap.progress-done-blink {
+    animation: progressBlink 320ms ease forwards;
+}
+
+.progress-wrap.progress-done-out {
+    animation: progressOut 500ms var(--ease-in) forwards;
+    transform-origin: top center;
+    pointer-events: none;
 }
 
 /* ===== MEDIA CARD ===== */
