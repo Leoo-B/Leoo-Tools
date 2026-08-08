@@ -1,133 +1,206 @@
 // ==========================================
-// CORE – Data Tools, Render, Toast, Scroll, Navbar
+// CORE – Toast, Navbar, Progress, Render, Init
 // ==========================================
 
-// ---------- TOAST ----------
-window.showToast = function(message, type) {
+// ── TOAST ──────────────────────────────────────────────────────
+window.showToast = function (message, type) {
     var container = document.getElementById('toastContainer');
     if (!container) return;
-    var currentToasts = container.querySelectorAll('.toast');
-    if (currentToasts.length >= 3) currentToasts[0].remove();
+    var current = container.querySelectorAll('.toast');
+    if (current.length >= 3) current[0].remove();
     var toast = document.createElement('div');
-    toast.className = 'toast';
-    if (type === 'success') toast.classList.add('toast-success');
-    else if (type === 'error') toast.classList.add('toast-error');
+    toast.className = 'toast' + (type === 'success' ? ' toast-success' : type === 'error' ? ' toast-error' : '');
     toast.textContent = message;
     container.appendChild(toast);
-    setTimeout(function() { if (toast.parentNode) toast.remove(); }, 3000);
+    setTimeout(function () { if (toast.parentNode) toast.remove(); }, 3000);
 };
 
-// ---------- NAVBAR SCROLL COLLAPSE ----------
-(function() {
-    var wrapper = document.getElementById('navbarWrapper');
-    var scrollBtn = document.getElementById('scrollTopBtn');
-    var mainSearch = document.getElementById('searchInput');
+// ── HONEST PROGRESS BAR ────────────────────────────────────────
+// Usage:
+//   var pg = createProgress('progressWrapId', 'Menghubungi API...');
+//   pg.set(30);          // jump to 30%
+//   pg.crawl(30, 85, 8000); // crawl from 30→85% over 8s
+//   pg.done('Selesai!'); // snap to 100%, fade out
+//   pg.error('Gagal.');
+
+window.createProgress = function (wrapId, label) {
+    var wrap    = document.getElementById(wrapId);
+    if (!wrap) return { set: function(){}, crawl: function(){}, done: function(){}, error: function(){} };
+
+    // Build DOM
+    wrap.innerHTML =
+        '<div class="progress-wrap visible">' +
+            '<div class="progress-header">' +
+                '<span class="progress-label">' + (label || 'Memproses...') + '</span>' +
+                '<span class="progress-pct" id="pg_pct_' + wrapId + '">0%</span>' +
+            '</div>' +
+            '<div class="progress-track">' +
+                '<div class="progress-fill" id="pg_fill_' + wrapId + '" style="width:0%"></div>' +
+            '</div>' +
+            '<div class="progress-status" id="pg_status_' + wrapId + '">&nbsp;</div>' +
+        '</div>';
+
+    var fillEl   = document.getElementById('pg_fill_' + wrapId);
+    var pctEl    = document.getElementById('pg_pct_' + wrapId);
+    var statusEl = document.getElementById('pg_status_' + wrapId);
+    var crawlTimer = null;
+    var current = 0;
+
+    function setVal(pct, statusText) {
+        pct = Math.max(0, Math.min(100, Math.round(pct)));
+        current = pct;
+        if (fillEl)   fillEl.style.width  = pct + '%';
+        if (pctEl)    pctEl.textContent   = pct + '%';
+        if (statusEl && statusText) statusEl.textContent = statusText;
+    }
+
+    function clearCrawl() {
+        if (crawlTimer) { clearInterval(crawlTimer); crawlTimer = null; }
+    }
+
+    // Crawl: smoothly move from `from` to `to` over `durationMs`
+    function crawl(from, to, durationMs, statusText) {
+        clearCrawl();
+        setVal(from, statusText || null);
+        var steps    = Math.max(1, Math.floor(durationMs / 120));
+        var stepSize = (to - from) / steps;
+        var val      = from;
+        crawlTimer = setInterval(function () {
+            val += stepSize;
+            if (val >= to) { val = to; clearCrawl(); }
+            setVal(val, null);
+        }, 120);
+    }
+
+    function done(statusText) {
+        clearCrawl();
+        setVal(100, statusText || 'Selesai!');
+        // Add success tint
+        if (fillEl) fillEl.style.background = 'linear-gradient(90deg, #22c55e, #4ade80)';
+        if (fillEl) fillEl.style.boxShadow  = '0 0 12px rgba(74,222,128,0.4)';
+        setTimeout(function () {
+            var pw = wrap.querySelector('.progress-wrap');
+            if (pw) { pw.style.transition = 'opacity 0.5s ease'; pw.style.opacity = '0'; }
+            setTimeout(function () { if (pw) pw.style.display = 'none'; }, 520);
+        }, 900);
+    }
+
+    function error(statusText) {
+        clearCrawl();
+        if (fillEl) fillEl.style.background = 'linear-gradient(90deg, #ef4444, #f87171)';
+        if (fillEl) fillEl.style.boxShadow  = '0 0 12px rgba(239,68,68,0.4)';
+        setVal(current, statusText || 'Terjadi kesalahan.');
+    }
+
+    // Immediately jump to 8% so it doesn't look stuck
+    setVal(8, 'Menghubungi server...');
+
+    return { set: setVal, crawl: crawl, done: done, error: error };
+};
+
+// ── NAVBAR SCROLL COLLAPSE ──────────────────────────────────────
+(function () {
+    var wrapper         = document.getElementById('navbarWrapper');
+    var scrollBtn       = document.getElementById('scrollTopBtn');
+    var mainSearch      = document.getElementById('searchInput');
     var collapsedSearch = document.getElementById('searchInputCollapsed');
 
-    var lastScroll = 0;
     var COLLAPSE_THRESHOLD = 60;
 
-    // Sync search inputs both ways
     if (mainSearch && collapsedSearch) {
-        mainSearch.addEventListener('input', function() {
+        mainSearch.addEventListener('input', function () {
             collapsedSearch.value = this.value;
             if (typeof renderTools === 'function') renderTools();
         });
-        collapsedSearch.addEventListener('input', function() {
+        collapsedSearch.addEventListener('input', function () {
             mainSearch.value = this.value;
             if (typeof renderTools === 'function') renderTools();
         });
     }
 
-    window.addEventListener('scroll', function() {
-        var current = window.scrollY;
-
-        // Navbar collapse
+    window.addEventListener('scroll', function () {
+        var y = window.scrollY;
         if (wrapper) {
-            if (current > COLLAPSE_THRESHOLD) {
-                wrapper.classList.add('is-collapsed', 'scrolled');
-            } else {
+            if (y > COLLAPSE_THRESHOLD) wrapper.classList.add('is-collapsed', 'scrolled');
+            else {
                 wrapper.classList.remove('is-collapsed');
-                if (current === 0) wrapper.classList.remove('scrolled');
+                if (y === 0) wrapper.classList.remove('scrolled');
             }
         }
-
-        // Scroll top button
         if (scrollBtn) {
-            if (current > 300) scrollBtn.classList.add('show');
+            if (y > 300) scrollBtn.classList.add('show');
             else scrollBtn.classList.remove('show');
         }
-
-        lastScroll = current;
     }, { passive: true });
 
     if (scrollBtn) {
-        scrollBtn.addEventListener('click', function() {
+        scrollBtn.addEventListener('click', function () {
             window.scrollTo({ top: 0, behavior: 'smooth' });
         });
     }
 })();
 
-// ---------- SIMPLE ICONS HELPER ----------
+// ── ICON HELPER ────────────────────────────────────────────────
 function getSimpleIcon(slug, size) {
-    size = size || 28;
+    size = size || 26;
     return '<img class="si-icon" src="https://cdn.simpleicons.org/' + slug + '" ' +
            'width="' + size + '" height="' + size + '" alt="' + slug + '" loading="lazy">';
 }
 
-// ---------- DATA TOOLS ----------
+// ── DATA TOOLS ─────────────────────────────────────────────────
 var tools = [
-    { name: "Password Generator",      icon: "key-round",         iconType: "lucide", cat: "utility", desc: "Bikin password super kuat.",                     id: "password"  },
-    { name: "JSON Formatter",          icon: "braces",            iconType: "lucide", cat: "dev",     desc: "Rapihin & validasi JSON.",                       id: "json"      },
-    { name: "Unit Converter",          icon: "thermometer",       iconType: "lucide", cat: "utility", desc: "Celcius, Fahrenheit, Kelvin.",                   id: "unit"      },
-    { name: "Base64 Encoder/Decoder",  icon: "lock-keyhole",      iconType: "lucide", cat: "text",    desc: "Encode/decode teks base64.",                     id: "base64"    },
-    { name: "Text Analyzer",           icon: "text-cursor-input", iconType: "lucide", cat: "text",    desc: "Hitung huruf, kata, kalimat.",                   id: "counter"   },
-    { name: "Color Picker Pro",        icon: "pipette",           iconType: "lucide", cat: "utility", desc: "Pilih warna + salin kode.",                      id: "color"     },
-    { name: "TikTok Downloader",       icon: "tiktok",            iconType: "simple", cat: "utility", desc: "Download video TikTok tanpa watermark.",         id: "tiktok"    },
-    { name: "YouTube Downloader",      icon: "youtube",           iconType: "simple", cat: "utility", desc: "Download video YouTube.",                        id: "youtube"   },
-    { name: "Instagram Downloader",    icon: "instagram",         iconType: "simple", cat: "utility", desc: "Download foto/video Instagram.",                 id: "instagram" },
-    { name: "Facebook Downloader",     icon: "facebook",          iconType: "simple", cat: "utility", desc: "Download video Facebook.",                       id: "facebook"  },
-    { name: "Pengecekan Cuaca",        icon: "cloud-sun",         iconType: "lucide", cat: "utility", desc: "Cek cuaca kota mana pun.",                       id: "weather"   },
-    { name: "URL Shortener",           icon: "link",              iconType: "lucide", cat: "utility", desc: "Pendekin link panjang jadi pendek.",             id: "urlshort"  },
-    { name: "Image Enhancer",          icon: "image-up",          iconType: "lucide", cat: "utility", desc: "Ubah gambar jadi HD / upscale.",                 id: "image"     },
-    { name: "News Headline",           icon: "newspaper",         iconType: "lucide", cat: "utility", desc: "Berita terkini dari berbagai kategori.",         id: "news"      },
+    { name: 'Password Generator',      icon: 'key-round',         iconType: 'lucide', cat: 'utility', desc: 'Bikin password super kuat.',                   id: 'password'  },
+    { name: 'JSON Formatter',          icon: 'braces',            iconType: 'lucide', cat: 'dev',     desc: 'Rapihin & validasi JSON.',                     id: 'json'      },
+    { name: 'Unit Converter',          icon: 'thermometer',       iconType: 'lucide', cat: 'utility', desc: 'Celcius, Fahrenheit, Kelvin.',                 id: 'unit'      },
+    { name: 'Base64 Encoder/Decoder',  icon: 'lock-keyhole',      iconType: 'lucide', cat: 'text',    desc: 'Encode/decode teks base64.',                   id: 'base64'    },
+    { name: 'Text Analyzer',           icon: 'text-cursor-input', iconType: 'lucide', cat: 'text',    desc: 'Hitung huruf, kata, kalimat.',                 id: 'counter'   },
+    { name: 'Color Picker Pro',        icon: 'pipette',           iconType: 'lucide', cat: 'utility', desc: 'Pilih warna + salin kode.',                    id: 'color'     },
+    { name: 'TikTok Downloader',       icon: 'tiktok',            iconType: 'simple', cat: 'utility', desc: 'Download video TikTok tanpa watermark.',       id: 'tiktok'    },
+    { name: 'YouTube Downloader',      icon: 'youtube',           iconType: 'simple', cat: 'utility', desc: 'Download video YouTube.',                      id: 'youtube'   },
+    { name: 'Instagram Downloader',    icon: 'instagram',         iconType: 'simple', cat: 'utility', desc: 'Download foto/video Instagram.',               id: 'instagram' },
+    { name: 'Facebook Downloader',     icon: 'facebook',          iconType: 'simple', cat: 'utility', desc: 'Download video Facebook.',                     id: 'facebook'  },
+    { name: 'Pengecekan Cuaca',        icon: 'cloud-sun',         iconType: 'lucide', cat: 'utility', desc: 'Cek cuaca kota mana pun.',                     id: 'weather'   },
+    { name: 'URL Shortener',           icon: 'link',              iconType: 'lucide', cat: 'utility', desc: 'Pendekin link panjang jadi pendek.',           id: 'urlshort'  },
+    { name: 'Image Enhancer',          icon: 'image-up',          iconType: 'lucide', cat: 'utility', desc: 'Ubah gambar jadi HD / upscale.',               id: 'image'     },
+    { name: 'News Headline',           icon: 'newspaper',         iconType: 'lucide', cat: 'utility', desc: 'Berita terkini dari berbagai kategori.',       id: 'news'      },
 ];
 
-// ---------- COUNTER ----------
+// ── USAGE COUNTER ──────────────────────────────────────────────
 var totalUsage = parseInt(localStorage.getItem('totalUsage')) || 0;
-window.updateUsageCounter = function() {};
-window.incrementUsage = function() {
+window.updateUsageCounter = function () {};
+window.incrementUsage = function () {
     totalUsage += 1;
     localStorage.setItem('totalUsage', totalUsage);
 };
 
-// ---------- RENDER GRID ----------
-window.renderTools = function() {
+// ── RENDER GRID ────────────────────────────────────────────────
+window.renderTools = function () {
     var grid = document.getElementById('toolsGrid');
-    var searchVal = (document.getElementById('searchInput') || {}).value || '';
-    searchVal = searchVal.toLowerCase();
+    var searchVal = ((document.getElementById('searchInput') || {}).value || '').toLowerCase();
     var activeChip = document.querySelector('.chip.active');
     var currentCat = activeChip ? activeChip.dataset.cat : 'all';
 
-    grid.innerHTML = '';
+    // Show skeletons
+    var skelHtml = '';
     for (var i = 0; i < 6; i++) {
-        grid.innerHTML += '<div class="skeleton"><div class="skeleton-icon"></div><div class="skeleton-title"></div><div class="skeleton-desc"></div></div>';
+        skelHtml += '<div class="skeleton"><div class="skeleton-icon"></div><div class="skeleton-title"></div><div class="skeleton-desc"></div></div>';
     }
+    grid.innerHTML = skelHtml;
 
-    var filtered = tools.filter(function(t) {
-        var matchCat = currentCat === 'all' || t.cat === currentCat;
+    var filtered = tools.filter(function (t) {
+        var matchCat    = currentCat === 'all' || t.cat === currentCat;
         var matchSearch = t.name.toLowerCase().includes(searchVal) || t.desc.toLowerCase().includes(searchVal);
         return matchCat && matchSearch;
     });
 
-    setTimeout(function() {
+    setTimeout(function () {
         if (filtered.length === 0) {
-            grid.innerHTML = '<div style="grid-column:1/-1; text-align:center; padding:60px 0; color:var(--mute);">Gak ada tool yang cocok...</div>';
+            grid.innerHTML = '<div style="grid-column:1/-1; text-align:center; padding:64px 0; color:var(--text-muted); font-size:0.875rem;">Gak ada tool yang cocok...</div>';
         } else {
             var html = '';
-            filtered.forEach(function(t) {
+            filtered.forEach(function (t) {
                 var iconHtml = t.iconType === 'simple'
-                    ? getSimpleIcon(t.icon, 28)
+                    ? getSimpleIcon(t.icon, 26)
                     : '<i data-lucide="' + t.icon + '"></i>';
                 html += '<div class="tool-card" onclick="openTool(\'' + t.id + '\')">' +
                         '<span class="badge">' + t.cat + '</span>' +
@@ -139,12 +212,12 @@ window.renderTools = function() {
             grid.innerHTML = html;
         }
         if (typeof lucide !== 'undefined') lucide.createIcons();
-    }, 300);
+    }, 280);
 };
 
-// ---------- BUKA / TUTUP TOOL ----------
-window.openTool = function(toolId) {
-    var tool = tools.find(function(t) { return t.id === toolId; });
+// ── OPEN / CLOSE TOOL ──────────────────────────────────────────
+window.openTool = function (toolId) {
+    var tool = tools.find(function (t) { return t.id === toolId; });
     if (!tool) return;
 
     localStorage.setItem('lastOpened', tool.name);
@@ -158,13 +231,13 @@ window.openTool = function(toolId) {
     var body = document.getElementById('toolPageBody');
     var html = '<div class="tool-desc">' + tool.desc + '</div>';
 
-    switch(toolId) {
+    switch (toolId) {
         case 'password':
             html += '<label>Panjang Password</label>' +
                     '<input type="number" id="passLength" value="16" min="6" max="64">' +
-                    '<button class="btn-primary" onclick="generatePassword()">Generate</button>' +
+                    '<button class="btn-primary" onclick="generatePassword()">Generate Password</button>' +
                     '<div class="result-box" id="passResult">Klik generate untuk hasil</div>' +
-                    '<small style="color:var(--mute); display:block; margin-top:8px;">Huruf besar, kecil, angka, & simbol</small>';
+                    '<small style="color:var(--text-muted); display:block; margin-top:8px; font-size:0.75rem;">Kombinasi huruf besar, kecil, angka & simbol</small>';
             break;
         case 'json':
             html += '<label>Masukkan JSON</label>' +
@@ -197,65 +270,72 @@ window.openTool = function(toolId) {
         case 'counter':
             html += '<label>Masukkan Teks</label>' +
                     '<textarea id="counterInput" placeholder="Tulis sesuatu..."></textarea>' +
-                    '<button class="btn-primary" onclick="analyzeText()">Analisis</button>' +
+                    '<button class="btn-primary" onclick="analyzeText()">Analisis Teks</button>' +
                     '<div class="result-box" id="counterResult">Klik analisis untuk lihat statistik</div>';
             break;
         case 'color':
             html += '<label>Pilih Warna</label>' +
-                    '<input type="color" id="colorPicker" value="#0070f3" ' +
-                    'style="height:56px; padding:4px; cursor:pointer; background:var(--canvas); border-radius:var(--radius-sm); width:100%; box-shadow:var(--shadow-l1);" ' +
+                    '<input type="color" id="colorPicker" value="#3b82f6" ' +
+                    'style="height:56px; padding:4px; cursor:pointer; border-radius:var(--radius-sm); width:100%;" ' +
                     'oninput="updateColorPreview(this.value)">' +
-                    '<div class="color-preview" id="colorPreview" style="background:#0070f3;"></div>' +
+                    '<div class="color-preview" id="colorPreview" style="background:#3b82f6;"></div>' +
                     '<div class="btn-group">' +
                     '<button class="btn-primary" onclick="copyColor(\'hex\')">Copy HEX</button>' +
                     '<button class="btn-primary btn-secondary" onclick="copyColor(\'rgb\')">Copy RGB</button>' +
                     '</div>' +
-                    '<div class="result-box" id="colorResult">HEX: #0070f3 | RGB: rgb(0, 112, 243)</div>';
+                    '<div class="result-box" id="colorResult">HEX: #3b82f6 | RGB: rgb(59, 130, 246)</div>';
             break;
         case 'tiktok':
             html += '<label>Link TikTok</label>' +
                     '<input type="text" id="tiktokLink" placeholder="https://www.tiktok.com/@user/video/...">' +
                     '<button class="btn-primary" onclick="downloadTiktok()">Download</button>' +
+                    '<div id="tiktokProgressWrap"></div>' +
                     '<div id="tiktokResultWrap"></div>' +
-                    '<small style="color:var(--mute); display:block; margin-top:8px;">Hanya untuk konten publik & legal.</small>';
+                    '<small style="color:var(--text-muted); display:block; margin-top:8px; font-size:0.75rem;">Hanya untuk konten publik & legal.</small>';
             break;
         case 'youtube':
             html += '<label>Link YouTube</label>' +
                     '<input type="text" id="youtubeLink" placeholder="https://youtube.com/watch?v=...">' +
                     '<button class="btn-primary" onclick="downloadYoutube()">Download</button>' +
+                    '<div id="youtubeProgressWrap"></div>' +
                     '<div id="youtubeResultWrap"></div>' +
-                    '<small style="color:var(--mute); display:block; margin-top:8px;">Hanya untuk konten publik & legal.</small>';
+                    '<small style="color:var(--text-muted); display:block; margin-top:8px; font-size:0.75rem;">Hanya untuk konten publik & legal.</small>';
             break;
         case 'instagram':
             html += '<label>Link Instagram</label>' +
                     '<input type="text" id="instagramLink" placeholder="https://www.instagram.com/p/...">' +
                     '<button class="btn-primary" onclick="downloadInstagram()">Download</button>' +
+                    '<div id="instagramProgressWrap"></div>' +
                     '<div id="instagramResultWrap"></div>' +
-                    '<small style="color:var(--mute); display:block; margin-top:8px;">Hanya untuk konten publik & legal.</small>';
+                    '<small style="color:var(--text-muted); display:block; margin-top:8px; font-size:0.75rem;">Hanya untuk konten publik & legal.</small>';
             break;
         case 'facebook':
             html += '<label>Link Facebook</label>' +
                     '<input type="text" id="facebookLink" placeholder="https://www.facebook.com/.../videos/...">' +
                     '<button class="btn-primary" onclick="downloadFacebook()">Download</button>' +
+                    '<div id="facebookProgressWrap"></div>' +
                     '<div id="facebookResultWrap"></div>' +
-                    '<small style="color:var(--mute); display:block; margin-top:8px;">Hanya untuk konten publik & legal.</small>';
+                    '<small style="color:var(--text-muted); display:block; margin-top:8px; font-size:0.75rem;">Hanya untuk konten publik & legal.</small>';
             break;
         case 'weather':
             html += '<label>Nama Kota</label>' +
                     '<input type="text" id="weatherCity" placeholder="Jakarta">' +
                     '<button class="btn-primary" onclick="checkWeather()">Cek Cuaca</button>' +
+                    '<div id="weatherProgressWrap"></div>' +
                     '<div class="result-box" id="weatherResult">Masukkan nama kota, lalu klik cek.</div>';
             break;
         case 'urlshort':
             html += '<label>Link Panjang</label>' +
                     '<input type="text" id="urlInput" placeholder="https://...">' +
                     '<button class="btn-primary" onclick="shortenUrl()">Persingkat</button>' +
+                    '<div id="urlProgressWrap"></div>' +
                     '<div class="result-box" id="urlResult">Hasil link pendek akan muncul di sini</div>';
             break;
         case 'image':
             html += '<label>Upload Gambar</label>' +
                     '<input type="file" id="imageInput" accept="image/*">' +
-                    '<button class="btn-primary" onclick="enhanceImage()">Enhance</button>' +
+                    '<button class="btn-primary" onclick="enhanceImage()">Enhance Gambar</button>' +
+                    '<div id="imageProgressWrap"></div>' +
                     '<div class="result-box" id="imageResult">Upload gambar, lalu klik Enhance.</div>' +
                     '<div id="imagePreview" style="margin-top:12px;"></div>';
             break;
@@ -269,17 +349,19 @@ window.openTool = function(toolId) {
                     '<option value="science">Sains</option>' +
                     '</select>' +
                     '<button class="btn-primary" onclick="getNews()">Lihat Berita</button>' +
+                    '<div id="newsProgressWrap"></div>' +
                     '<div class="result-box" id="newsResult">Pilih kategori, klik lihat berita.</div>';
             break;
         default:
-            html += '<p>Tool ini belum siap.</p>';
+            html += '<p style="color:var(--text-muted);">Tool ini belum siap.</p>';
     }
+
     body.innerHTML = html;
     if (typeof lucide !== 'undefined') lucide.createIcons();
     window.scrollTo({ top: 0, behavior: 'smooth' });
 };
 
-window.closeToolPage = function() {
+window.closeToolPage = function () {
     document.body.classList.remove('tool-open');
     var toolPage = document.getElementById('toolPage');
     toolPage.classList.remove('active');
@@ -287,9 +369,9 @@ window.closeToolPage = function() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
 };
 
-// ---------- INIT GLOBAL ----------
-window.initAll = function() {
-    var theme = localStorage.getItem('theme') || 'light';
+// ── INIT ───────────────────────────────────────────────────────
+window.initAll = function () {
+    var theme  = localStorage.getItem('theme') || 'dark';
     document.documentElement.setAttribute('data-theme', theme);
     var toggle = document.getElementById('themeToggle');
 
@@ -301,18 +383,17 @@ window.initAll = function() {
     }
     updateThemeIcon(theme);
 
-    toggle.addEventListener('click', function() {
-        var current = document.documentElement.getAttribute('data-theme');
-        var next = current === 'dark' ? 'light' : 'dark';
+    toggle.addEventListener('click', function () {
+        var next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
         document.documentElement.setAttribute('data-theme', next);
         localStorage.setItem('theme', next);
         updateThemeIcon(next);
-        showToast(next === 'dark' ? 'Mode Gelap' : 'Mode Terang', 'success');
+        showToast(next === 'dark' ? '🌙 Mode Gelap' : '☀️ Mode Terang', 'success');
     });
 
-    document.querySelectorAll('.chip').forEach(function(chip) {
-        chip.addEventListener('click', function() {
-            document.querySelectorAll('.chip').forEach(function(c) { c.classList.remove('active'); });
+    document.querySelectorAll('.chip').forEach(function (chip) {
+        chip.addEventListener('click', function () {
+            document.querySelectorAll('.chip').forEach(function (c) { c.classList.remove('active'); });
             this.classList.add('active');
             renderTools();
         });
