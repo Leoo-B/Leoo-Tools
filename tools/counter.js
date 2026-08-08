@@ -9,7 +9,9 @@ window.analyzeText = function() {
     var spaces = (txt.match(/ /g) || []).length;
     var sentences = (txt.match(/[.!?]+/g) || []).length;
     document.getElementById('counterResult').innerHTML =
-        '📊 <b>' + chars + '</b> huruf | <b>' + words + '</b> kata | <b>' + lines + '</b> baris | <b>' + spaces + '</b> spasi | <b>' + sentences + '</b> kalimat';
+    '<i data-lucide="bar-chart-2" style="width:14px;height:14px;vertical-align:middle;margin-right:6px;color:var(--accent-glow);"></i>' +
+    '<b>' + chars + '</b> huruf | <b>' + words + '</b> kata | <b>' + lines + '</b> baris | <b>' + spaces + '</b> spasi | <b>' + sentences + '</b> kalimat';
+    if (typeof lucide !== 'undefined') lucide.createIcons();
     showToast('Analisis teks selesai!', 'success');
     incrementUsage();
 };
