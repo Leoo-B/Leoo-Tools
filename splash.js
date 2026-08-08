@@ -1,20 +1,24 @@
-(function() {
-    // Splash minimal, gak ada animasi ring/orb lagi jadi durasinya dipercepat.
-    setTimeout(function() {
-        var splash = document.getElementById('splash');
+(function () {
+    // ── Animate splash status text ──────────────────────────────
+    var statusEl = document.getElementById('nexusShellStatus');
+    var steps = [
+        { text: 'menginisialisasi sistem', delay: 0 },
+        { text: 'memuat tools & modul',    delay: 700 },
+        { text: 'menyiapkan antarmuka',    delay: 1400 },
+        { text: 'siap digunakan',          delay: 2000 },
+    ];
+
+    steps.forEach(function (s) {
+        setTimeout(function () {
+            if (statusEl) statusEl.textContent = s.text;
+        }, s.delay);
+    });
+
+    // ── Hide splash after 3s ────────────────────────────────────
+    setTimeout(function () {
+        var splash    = document.getElementById('splash');
         var dashboard = document.getElementById('dashboard');
-        if (splash) splash.classList.add('hide');
+        if (splash)    splash.classList.add('hide');
         if (dashboard) dashboard.classList.add('active');
     }, 3000);
-
-    // Proteksi inspect
-    document.addEventListener('contextmenu', function(e) { e.preventDefault(); });
-    document.addEventListener('keydown', function(e) {
-        var key = String(e.key || '').toLowerCase();
-        var blocked = key === 'f12' || (e.ctrlKey && e.shiftKey && (key === 'i' || key === 'j' || key === 'c')) || (e.ctrlKey && key === 'u');
-        if (blocked) {
-            e.preventDefault();
-            e.stopPropagation();
-        }
-    });
 })();

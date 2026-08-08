@@ -3,16 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="theme-color" content="#ffffff">
+    <meta name="theme-color" content="#070b18">
     <title>Leoo Tools Pro</title>
     <script>
-        (function() {
-            var theme = localStorage.getItem('theme') || 'light';
+        (function () {
+            var theme = localStorage.getItem('theme') || 'dark';
             document.documentElement.setAttribute('data-theme', theme);
         })();
     </script>
     <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
     <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
 </head>
 <body>
@@ -30,26 +29,28 @@
     <div class="splash-mesh"></div>
     <div class="splash-title">Leoo Tools</div>
     <div class="splash-sub">By Galang</div>
-    <div class="nx-bar-wrap"><div class="nx-bar-track"><div class="nx-bar-fill"></div></div></div>
-    <div class="nx-status" id="nexusShellStatus">menyiapkan tools</div>
+    <div class="nx-bar-wrap">
+        <div class="nx-bar-track">
+            <div class="nx-bar-fill"></div>
+        </div>
+    </div>
+    <div class="nx-status" id="nexusShellStatus">menginisialisasi sistem</div>
 </div>
 
 <!-- FIXED HEADER -->
 <div class="navbar-wrapper" id="navbarWrapper">
-    <!-- Full navbar (brand + search + theme) -->
     <div class="navbar" id="navbarFull">
         <div class="brand">Leoo Tools <small>V 1.0</small></div>
         <div class="nav-search">
             <i data-lucide="search"></i>
             <input type="text" id="searchInput" placeholder="Cari tools...">
         </div>
-        <div style="display:flex; gap:12px; align-items:center;">
+        <div style="display:flex; gap:10px; align-items:center;">
             <button class="theme-toggle" id="themeToggle" title="Toggle tema">
-                <i data-lucide="moon" id="themeIcon"></i>
+                <i data-lucide="sun" id="themeIcon"></i>
             </button>
         </div>
     </div>
-    <!-- Collapsed navbar (searchbar only, expanded) -->
     <div class="navbar-collapsed" id="navbarCollapsed">
         <div class="nav-search">
             <i data-lucide="search"></i>
@@ -60,7 +61,6 @@
 
 <!-- DASHBOARD -->
 <div class="dashboard" id="dashboard">
-    <!-- Kategori -->
     <div class="categories" id="categoryFilter">
         <span class="chip active" data-cat="all">Semua</span>
         <span class="chip" data-cat="utility">Utility</span>
@@ -68,10 +68,8 @@
         <span class="chip" data-cat="text">Text</span>
     </div>
 
-    <!-- Grid Tools -->
     <div class="tools-grid" id="toolsGrid"></div>
 
-    <!-- Halaman Tool (Full Page) -->
     <div class="tool-page" id="toolPage" style="display:none;">
         <div class="tool-page-header">
             <button class="btn-back" onclick="closeToolPage()">
@@ -85,7 +83,7 @@
 </div>
 
 <!-- FIXED FOOTER -->
-<div class="footer-credit">Leoo Tools Pro · Dihidupkan oleh <span>GeminiXD</span></div>
+<div class="footer-credit">Leoo Tools Pro · Dihidupkan oleh <span>Galang</span></div>
 
 <script src="splash.js"></script>
 <script src="loader.js"></script>
