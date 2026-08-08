@@ -1353,3 +1353,41 @@ body.tool-open .tool-page { display: block !important; }
 @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
 }
+
+/* ===== DOWNLOAD ENHANCEMENTS ===== */
+
+/* Best badge */
+.best-badge {
+    font-size: 0.6rem;
+    font-family: 'JetBrains Mono', monospace;
+    background: linear-gradient(135deg, #f59e0b, #fbbf24);
+    color: #111;
+    font-weight: 700;
+    padding: 2px 9px;
+    border-radius: var(--radius-pill);
+    letter-spacing: 0.4px;
+    white-space: nowrap;
+}
+
+/* Audio button variant */
+.media-dl-btn--audio {
+    border-color: rgba(129,140,248,0.2) !important;
+    background: rgba(129,140,248,0.04) !important;
+}
+.media-dl-btn--audio:hover {
+    border-color: rgba(129,140,248,0.4) !important;
+    background: rgba(129,140,248,0.1) !important;
+    box-shadow: 0 0 12px rgba(129,140,248,0.15) !important;
+}
+
+/* Download spinner */
+.dl-spinner {
+    display: inline-block;
+    width: 13px;
+    height: 13px;
+    border: 2px solid rgba(255,255,255,0.2);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: spin 0.65s linear infinite;
+    flex-shrink: 0;
+}
