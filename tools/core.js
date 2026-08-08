@@ -7,13 +7,28 @@ window.showToast = function (message, type) {
     var container = document.getElementById('toastContainer');
     if (!container) return;
     var current = container.querySelectorAll('.toast');
-    if (current.length >= 3) current[0].remove();
+    if (current.length >= 3) {
+        dismissToast(current[0]);
+    }
     var toast = document.createElement('div');
     toast.className = 'toast' + (type === 'success' ? ' toast-success' : type === 'error' ? ' toast-error' : '');
     toast.textContent = message;
     container.appendChild(toast);
-    setTimeout(function () { if (toast.parentNode) toast.remove(); }, 3000);
+
+    // Auto dismiss after 2.8s (keluar geser kiri)
+    var timer = setTimeout(function () { dismissToast(toast); }, 2800);
+    toast._dismissTimer = timer;
 };
+
+function dismissToast(toast) {
+    if (!toast || toast._dismissed) return;
+    toast._dismissed = true;
+    if (toast._dismissTimer) clearTimeout(toast._dismissTimer);
+    toast.classList.add('toast-exit');
+    setTimeout(function () {
+        if (toast.parentNode) toast.remove();
+    }, 380);
+}
 
 // ── HONEST PROGRESS BAR ────────────────────────────────────────
 window.createProgress = function (wrapId, label) {
@@ -377,17 +392,9 @@ window.openTool = function (toolId) {
                     '<div id="imagePreview" style="margin-top:12px;"></div>';
             break;
         case 'news':
-            html += '<label>Kategori Berita</label>' +
-                    '<select id="newsCategory">' +
-                    '<option value="general">Umum</option>' +
-                    '<option value="technology">Teknologi</option>' +
-                    '<option value="sports">Olahraga</option>' +
-                    '<option value="health">Kesehatan</option>' +
-                    '<option value="science">Sains</option>' +
-                    '</select>' +
-                    '<button class="btn-primary" onclick="getNews()">Lihat Berita</button>' +
+            html += '<button class="btn-primary" onclick="getNews()">Lihat Berita</button>' +
                     '<div id="newsProgressWrap"></div>' +
-                    '<div class="result-box" id="newsResult">Pilih kategori, klik lihat berita.</div>';
+                    '<div class="result-box" id="newsResult">Klik untuk memuat berita terkini.</div>';
             break;
         default:
             html += '<p style="color:var(--text-muted);">Tool ini belum siap.</p>';
@@ -418,9 +425,7 @@ window.closeToolPage = function () {
     document.body.classList.remove('tool-open');
     var toolPage = document.getElementById('toolPage');
     toolPage.classList.remove('active');
-    // Bersihkan inline style agar tool bisa dibuka kembali
     toolPage.removeAttribute('style');
-    // Reset konten agar tidak ada sisa hasil dari sesi sebelumnya
     var body = document.getElementById('toolPageBody');
     if (body) body.innerHTML = '';
     window.scrollTo({ top: 0, behavior: 'smooth' });
