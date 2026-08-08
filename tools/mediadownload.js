@@ -1,6 +1,7 @@
 // ==========================================
 // MEDIA DOWNLOADER — TikTok, YouTube, Instagram, Facebook
 // Proxy download + semua resolusi + best badge + MP3 option
+// Pilih resolusi dulu → klik Download
 // ==========================================
 
 var SIPUTZX_BASE = 'https://api.siputzx.my.id';
@@ -16,8 +17,6 @@ var ICON_TIME  = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" str
 var ICON_MUSIC = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" style="width:13px;height:13px;flex-shrink:0;"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>';
 
 // ── HELPERS ────────────────────────────────────────────────────
-
-// Durasi milidetik → "m:ss"
 function fmtDuration(ms) {
     var totalSec = Math.floor(parseInt(ms) / 1000);
     if (isNaN(totalSec) || totalSec <= 0) return null;
@@ -26,7 +25,6 @@ function fmtDuration(ms) {
     return min + ':' + (sec < 10 ? '0' : '') + sec;
 }
 
-// Stat value sudah diformat API (mis. "1.5M", "2.4K") — tampilkan langsung
 function safeStatVal(v) {
     if (v === null || v === undefined || v === '' || v === '0') return null;
     return String(v);
@@ -48,6 +46,32 @@ function showMediaError(wrapId, message) {
     wrap.innerHTML = '<div class="result-box" style="color:var(--toast-error-text);' +
                      'border-color:var(--toast-error-border);">❌ ' + message + '</div>';
     showToast('Gagal proses link', 'error');
+}
+
+// ── TOAST WARNING ──────────────────────────────────────────────
+function showWarningToast(message) {
+    var container = document.getElementById('toastContainer');
+    if (!container) return;
+    var current = container.querySelectorAll('.toast');
+    if (current.length >= 3) {
+        var first = current[0];
+        first.classList.add('toast-exit');
+        setTimeout(function () { if (first.parentNode) first.remove(); }, 380);
+    }
+    var toast = document.createElement('div');
+    toast.className = 'toast toast-warning';
+    toast.textContent = message;
+    container.appendChild(toast);
+    var timer = setTimeout(function () { dismissToastEl(toast); }, 2800);
+    toast._dismissTimer = timer;
+}
+
+function dismissToastEl(toast) {
+    if (!toast || toast._dismissed) return;
+    toast._dismissed = true;
+    if (toast._dismissTimer) clearTimeout(toast._dismissTimer);
+    toast.classList.add('toast-exit');
+    setTimeout(function () { if (toast.parentNode) toast.remove(); }, 380);
 }
 
 // ── PROXY DOWNLOAD ─────────────────────────────────────────────
@@ -92,7 +116,10 @@ function triggerProxyDownload(btn, url, filename) {
 }
 
 // ── BUILD DOWNLOAD LIST ────────────────────────────────────────
-function buildDownloadList(downloads) {
+// State terpilih per wrapId
+var _selectedDownload = {};
+
+function buildDownloadList(downloads, wrapId) {
     if (!downloads || downloads.length === 0) return '';
 
     var videoItems = downloads.filter(function (d) { return !d.isAudio; });
@@ -102,11 +129,13 @@ function buildDownloadList(downloads) {
 
     if (videoItems.length > 0) {
         html += '<div class="media-dl-label">Video</div><ul class="media-dl-list">';
-        videoItems.forEach(function (d) {
-            html += '<li><button class="media-dl-btn" ' +
-                'data-url="' + escAttr(d.url) + '" ' +
-                'data-filename="' + escAttr(d.filename || 'video.mp4') + '" ' +
-                'onclick="handleDlBtn(this)">' +
+        videoItems.forEach(function (d, i) {
+            var idx = downloads.indexOf(d);
+            html += '<li>' +
+                '<button class="media-dl-btn" ' +
+                'data-wrap="' + escAttr(wrapId) + '" ' +
+                'data-idx="' + idx + '" ' +
+                'onclick="selectDownloadItem(this)">' +
                 '<span style="display:flex;align-items:center;gap:8px;">' + ICON_DL + ' ' + d.label + '</span>' +
                 '<div class="media-dl-right">' +
                 (d.isBest ? '<span class="best-badge">✦ Terbaik</span>' : '') +
@@ -119,10 +148,12 @@ function buildDownloadList(downloads) {
     if (audioItems.length > 0) {
         html += '<div class="media-dl-label" style="margin-top:14px;">Audio</div><ul class="media-dl-list">';
         audioItems.forEach(function (d) {
-            html += '<li><button class="media-dl-btn media-dl-btn--audio" ' +
-                'data-url="' + escAttr(d.url) + '" ' +
-                'data-filename="' + escAttr(d.filename || 'audio.mp3') + '" ' +
-                'onclick="handleDlBtn(this)">' +
+            var idx = downloads.indexOf(d);
+            html += '<li>' +
+                '<button class="media-dl-btn media-dl-btn--audio" ' +
+                'data-wrap="' + escAttr(wrapId) + '" ' +
+                'data-idx="' + idx + '" ' +
+                'onclick="selectDownloadItem(this)">' +
                 '<span style="display:flex;align-items:center;gap:8px;">' + ICON_MUSIC + ' ' + d.label + '</span>' +
                 '<div class="media-dl-right">' +
                 '<span class="quality-badge">' + (d.quality || 'MP3') + '</span>' +
@@ -130,6 +161,12 @@ function buildDownloadList(downloads) {
         });
         html += '</ul>';
     }
+
+    // Tombol Download selalu tampil di bawah
+    html += '<button class="media-dl-confirm-btn" id="dlConfirmBtn_' + wrapId + '" ' +
+            'onclick="confirmDownload(\'' + wrapId + '\')">' +
+            ICON_DL + ' <span>Download</span>' +
+            '</button>';
 
     html += '</div>';
     return html;
@@ -139,14 +176,56 @@ function escAttr(str) {
     return (str || '').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 }
 
-window.handleDlBtn = function (btn) {
-    triggerProxyDownload(btn, btn.getAttribute('data-url'), btn.getAttribute('data-filename'));
+// ── SELECT ITEM ────────────────────────────────────────────────
+window.selectDownloadItem = function (btn) {
+    var wrapId = btn.getAttribute('data-wrap');
+    var idx    = parseInt(btn.getAttribute('data-idx'));
+
+    // Hapus selected dari semua item di wrapId ini
+    var card = document.getElementById('card_' + wrapId);
+    if (card) {
+        card.querySelectorAll('.media-dl-btn').forEach(function (b) {
+            b.classList.remove('media-dl-btn--selected');
+        });
+    }
+
+    btn.classList.add('media-dl-btn--selected');
+    _selectedDownload[wrapId] = idx;
 };
+
+// ── CONFIRM DOWNLOAD ───────────────────────────────────────────
+window.confirmDownload = function (wrapId) {
+    var idx = _selectedDownload[wrapId];
+    if (idx === undefined || idx === null) {
+        showWarningToast('⚠️ Pilih resolusi dulu sebelum download!');
+        return;
+    }
+
+    var downloads = _downloadsStore[wrapId];
+    if (!downloads || !downloads[idx]) {
+        showWarningToast('⚠️ Pilih resolusi dulu sebelum download!');
+        return;
+    }
+
+    var d   = downloads[idx];
+    var btn = document.getElementById('dlConfirmBtn_' + wrapId);
+    if (!btn) return;
+
+    triggerProxyDownload(btn, d.url, d.filename);
+};
+
+// ── DOWNLOADS STORE (per wrapId) ───────────────────────────────
+var _downloadsStore = {};
 
 // ── MEDIA CARD ─────────────────────────────────────────────────
 function buildMediaCard(wrapId, options) {
     var wrap = document.getElementById(wrapId);
     if (!wrap) return;
+
+    // Simpan downloads ke store
+    _downloadsStore[wrapId] = options.downloads || [];
+    // Reset pilihan
+    delete _selectedDownload[wrapId];
 
     var thumbSection = '';
     if (options.thumb) {
@@ -173,7 +252,7 @@ function buildMediaCard(wrapId, options) {
         '<div class="media-result-card" id="card_' + wrapId + '">' +
             thumbSection + infoSection +
             (options.stats || '') +
-            buildDownloadList(options.downloads) +
+            buildDownloadList(options.downloads, wrapId) +
         '</div>';
 }
 
@@ -192,7 +271,7 @@ window.playMediaInline = function (wrapId, videoUrl) {
     video.play().catch(function () {});
 };
 
-// ── TIKTOK — stats dari tiktok/v2, download dari ummy ──────────
+// ── TIKTOK ─────────────────────────────────────────────────────
 window.downloadTiktok = function () {
     var link = document.getElementById('tiktokLink').value.trim();
     if (!link) { showToast('Masukkan link dulu!', 'error'); return; }
@@ -222,7 +301,6 @@ window.downloadTiktok = function () {
         var meta = u.meta || {};
         var stat = (statRes && statRes.status && statRes.data) ? statRes.data : null;
 
-        // ── Statistik dari tiktok/v2 ────────────────────────────
         var stats = '';
         if (stat) {
             stats = buildStats([
@@ -234,14 +312,12 @@ window.downloadTiktok = function () {
             ]);
         }
 
-        // ── Download links dari ummy ────────────────────────────
         var rawUrls   = (u.url || []).filter(function (f) { return f.url; });
         if (rawUrls.length === 0) throw new Error('Tidak ada format yang tersedia.');
 
         var videoUrls = rawUrls.filter(function (f) { return f.type !== 'mp3' && f.ext !== 'mp3'; });
         var mp3Urls   = rawUrls.filter(function (f) { return f.type === 'mp3'  || f.ext === 'mp3'; });
 
-        // Sort video dari resolusi tertinggi
         videoUrls.sort(function (a, b) {
             return (parseInt(b.subname) || 0) - (parseInt(a.subname) || 0);
         });
