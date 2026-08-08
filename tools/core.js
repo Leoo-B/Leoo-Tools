@@ -15,7 +15,6 @@ window.showToast = function (message, type) {
     toast.textContent = message;
     container.appendChild(toast);
 
-    // Auto dismiss after 2.8s (keluar geser kiri)
     var timer = setTimeout(function () { dismissToast(toast); }, 2800);
     toast._dismissTimer = timer;
 };
@@ -29,6 +28,81 @@ function dismissToast(toast) {
         if (toast.parentNode) toast.remove();
     }, 380);
 }
+
+// ── COPY TO CLIPBOARD HELPER ───────────────────────────────────
+window.copyResultBox = function (btnEl, resultId) {
+    var el = document.getElementById(resultId);
+    if (!el) return;
+    var text = el.innerText || el.textContent || '';
+    text = text.trim();
+    if (!text) { showToast('Tidak ada teks untuk disalin', 'error'); return; }
+    navigator.clipboard.writeText(text).then(function () {
+        showToast('Berhasil disalin!', 'success');
+        btnEl.innerHTML = '<i data-lucide="check"></i>';
+        btnEl.style.color = 'var(--toast-success-text)';
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+        setTimeout(function () {
+            btnEl.innerHTML = '<i data-lucide="copy"></i>';
+            btnEl.style.color = '';
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+        }, 1800);
+    }).catch(function () {
+        showToast('Gagal menyalin', 'error');
+    });
+};
+
+// ── RESULT BOX WITH COPY BUTTON ────────────────────────────────
+function resultBoxWithCopy(id, placeholder) {
+    return '<div style="position:relative;">' +
+        '<div class="result-box" id="' + id + '">' + (placeholder || '') + '</div>' +
+        '<button onclick="copyResultBox(this,\'' + id + '\')" title="Salin" ' +
+        'style="position:absolute;top:9px;right:10px;background:transparent;border:none;' +
+        'cursor:pointer;color:var(--text-muted);padding:2px;display:flex;align-items:center;' +
+        'transition:color var(--dur-fast) var(--ease-out);" ' +
+        'onmouseenter="this.style.color=\'var(--accent-glow)\'" ' +
+        'onmouseleave="this.style.color=\'var(--text-muted)\'">' +
+        '<i data-lucide="copy" style="width:14px;height:14px;"></i>' +
+        '</button>' +
+        '</div>';
+}
+
+// ── INPUT WITH CLEAR BUTTON ────────────────────────────────────
+function inputWithClear(id, type, placeholder, extraAttrs) {
+    type = type || 'text';
+    extraAttrs = extraAttrs || '';
+    return '<div style="position:relative;">' +
+        '<input type="' + type + '" id="' + id + '" placeholder="' + (placeholder || '') + '" ' + extraAttrs +
+        ' style="padding-right:38px;">' +
+        '<button onclick="clearInput(\'' + id + '\')" title="Hapus" ' +
+        'style="position:absolute;top:50%;right:10px;transform:translateY(-50%);background:transparent;' +
+        'border:none;cursor:pointer;color:var(--text-muted);padding:2px;display:flex;align-items:center;' +
+        'transition:color var(--dur-fast) var(--ease-out);" ' +
+        'onmouseenter="this.style.color=\'var(--accent-rose)\'" ' +
+        'onmouseleave="this.style.color=\'var(--text-muted)\'">' +
+        '<i data-lucide="x" style="width:14px;height:14px;"></i>' +
+        '</button>' +
+        '</div>';
+}
+
+function textareaWithClear(id, placeholder, extraStyle) {
+    return '<div style="position:relative;">' +
+        '<textarea id="' + id + '" placeholder="' + (placeholder || '') + '" ' +
+        'style="padding-right:36px;' + (extraStyle || '') + '"></textarea>' +
+        '<button onclick="clearInput(\'' + id + '\')" title="Hapus" ' +
+        'style="position:absolute;top:10px;right:10px;background:transparent;' +
+        'border:none;cursor:pointer;color:var(--text-muted);padding:2px;display:flex;align-items:center;' +
+        'transition:color var(--dur-fast) var(--ease-out);" ' +
+        'onmouseenter="this.style.color=\'var(--accent-rose)\'" ' +
+        'onmouseleave="this.style.color=\'var(--text-muted)\'">' +
+        '<i data-lucide="x" style="width:14px;height:14px;"></i>' +
+        '</button>' +
+        '</div>';
+}
+
+window.clearInput = function (id) {
+    var el = document.getElementById(id);
+    if (el) { el.value = ''; el.focus(); }
+};
 
 // ── HONEST PROGRESS BAR ────────────────────────────────────────
 window.createProgress = function (wrapId, label) {
@@ -288,14 +362,14 @@ window.openTool = function (toolId) {
             html += '<label>Panjang Password</label>' +
                     '<input type="number" id="passLength" value="16" min="6" max="64">' +
                     '<button class="btn-primary" onclick="generatePassword()">Generate Password</button>' +
-                    '<div class="result-box" id="passResult">Klik generate untuk hasil</div>' +
+                    resultBoxWithCopy('passResult', 'Klik generate untuk hasil') +
                     '<small style="color:var(--text-muted); display:block; margin-top:8px; font-size:0.75rem;">Kombinasi huruf besar, kecil, angka & simbol</small>';
             break;
         case 'json':
             html += '<label>Masukkan JSON</label>' +
-                    '<textarea id="jsonInput" placeholder=\'{ "nama": "Leoo" }\'></textarea>' +
+                    textareaWithClear('jsonInput', '{ "nama": "Leoo" }') +
                     '<button class="btn-primary" onclick="formatJson()">Format & Validasi</button>' +
-                    '<div class="result-box" id="jsonResult">Hasil akan muncul di sini</div>';
+                    resultBoxWithCopy('jsonResult', 'Hasil akan muncul di sini');
             break;
         case 'unit':
             html += '<label>Arah Konversi</label>' +
@@ -312,16 +386,16 @@ window.openTool = function (toolId) {
             break;
         case 'base64':
             html += '<label>Teks / Base64</label>' +
-                    '<textarea id="base64Input" placeholder="Masukkan teks atau kode base64..."></textarea>' +
+                    textareaWithClear('base64Input', 'Masukkan teks atau kode base64...') +
                     '<div class="btn-group">' +
                     '<button class="btn-primary" onclick="encodeBase64()">Encode</button>' +
                     '<button class="btn-primary btn-secondary" onclick="decodeBase64()">Decode</button>' +
                     '</div>' +
-                    '<div class="result-box" id="base64Result">Hasil di sini</div>';
+                    resultBoxWithCopy('base64Result', 'Hasil di sini');
             break;
         case 'counter':
             html += '<label>Masukkan Teks</label>' +
-                    '<textarea id="counterInput" placeholder="Tulis sesuatu..."></textarea>' +
+                    textareaWithClear('counterInput', 'Tulis sesuatu...') +
                     '<button class="btn-primary" onclick="analyzeText()">Analisis Teks</button>' +
                     '<div class="result-box" id="counterResult">Klik analisis untuk lihat statistik</div>';
             break;
@@ -339,7 +413,7 @@ window.openTool = function (toolId) {
             break;
         case 'tiktok':
             html += '<label>Link TikTok</label>' +
-                    '<input type="text" id="tiktokLink" placeholder="https://www.tiktok.com/@user/video/...">' +
+                    inputWithClear('tiktokLink', 'text', 'https://www.tiktok.com/@user/video/...', 'onkeydown="if(event.key===\'Enter\') downloadTiktok()"') +
                     '<button class="btn-primary" onclick="downloadTiktok()">Download</button>' +
                     '<div id="tiktokProgressWrap"></div>' +
                     '<div id="tiktokResultWrap"></div>' +
@@ -347,7 +421,7 @@ window.openTool = function (toolId) {
             break;
         case 'youtube':
             html += '<label>Link YouTube</label>' +
-                    '<input type="text" id="youtubeLink" placeholder="https://youtube.com/watch?v=...">' +
+                    inputWithClear('youtubeLink', 'text', 'https://youtube.com/watch?v=...', 'onkeydown="if(event.key===\'Enter\') downloadYoutube()"') +
                     '<button class="btn-primary" onclick="downloadYoutube()">Download</button>' +
                     '<div id="youtubeProgressWrap"></div>' +
                     '<div id="youtubeResultWrap"></div>' +
@@ -355,7 +429,7 @@ window.openTool = function (toolId) {
             break;
         case 'instagram':
             html += '<label>Link Instagram</label>' +
-                    '<input type="text" id="instagramLink" placeholder="https://www.instagram.com/p/...">' +
+                    inputWithClear('instagramLink', 'text', 'https://www.instagram.com/p/...', 'onkeydown="if(event.key===\'Enter\') downloadInstagram()"') +
                     '<button class="btn-primary" onclick="downloadInstagram()">Download</button>' +
                     '<div id="instagramProgressWrap"></div>' +
                     '<div id="instagramResultWrap"></div>' +
@@ -363,7 +437,7 @@ window.openTool = function (toolId) {
             break;
         case 'facebook':
             html += '<label>Link Facebook</label>' +
-                    '<input type="text" id="facebookLink" placeholder="https://www.facebook.com/.../videos/...">' +
+                    inputWithClear('facebookLink', 'text', 'https://www.facebook.com/.../videos/...', 'onkeydown="if(event.key===\'Enter\') downloadFacebook()"') +
                     '<button class="btn-primary" onclick="downloadFacebook()">Download</button>' +
                     '<div id="facebookProgressWrap"></div>' +
                     '<div id="facebookResultWrap"></div>' +
@@ -371,17 +445,17 @@ window.openTool = function (toolId) {
             break;
         case 'weather':
             html += '<label>Nama Kota</label>' +
-                    '<input type="text" id="weatherCity" placeholder="Jakarta">' +
+                    inputWithClear('weatherCity', 'text', 'Jakarta', 'onkeydown="if(event.key===\'Enter\') checkWeather()"') +
                     '<button class="btn-primary" onclick="checkWeather()">Cek Cuaca</button>' +
                     '<div id="weatherProgressWrap"></div>' +
                     '<div class="result-box" id="weatherResult">Masukkan nama kota, lalu klik cek.</div>';
             break;
         case 'urlshort':
             html += '<label>Link Panjang</label>' +
-                    '<input type="text" id="urlInput" placeholder="https://...">' +
+                    inputWithClear('urlInput', 'text', 'https://...', 'onkeydown="if(event.key===\'Enter\') shortenUrl()"') +
                     '<button class="btn-primary" onclick="shortenUrl()">Persingkat</button>' +
                     '<div id="urlProgressWrap"></div>' +
-                    '<div class="result-box" id="urlResult">Hasil link pendek akan muncul di sini</div>';
+                    resultBoxWithCopy('urlResult', 'Hasil link pendek akan muncul di sini');
             break;
         case 'image':
             html += '<label>Upload Gambar</label>' +
@@ -403,7 +477,7 @@ window.openTool = function (toolId) {
     body.innerHTML = html;
     if (typeof lucide !== 'undefined') lucide.createIcons();
 
-    // ── Staggered animation pada semua elemen langsung di toolPageBody ──
+    // ── Staggered animation ──
     var children = body.children;
     for (var i = 0; i < children.length; i++) {
         (function (el, idx) {
