@@ -3,14 +3,18 @@
 // ==========================================
 window.getNews = function () {
     var result = document.getElementById('newsResult');
+    var btn    = document.querySelector('[onclick="getNews()"]');
 
     result.textContent = '';
+    if (btn) { btn.disabled = true; btn.style.opacity = '0.6'; }
+
     var pg = createProgress('newsProgressWrap', 'Mengambil berita terkini');
     pg.crawl(8, 78, 5000, 'Menghubungi server...');
 
     fetch('https://api.synoxcloud.xyz/berita/cnnindonesia')
     .then(function (res) {
-        if (!res.ok) throw new Error('Gagal mengambil berita');
+        if (res.status === 429) throw new Error('__ratelimit__');
+        if (!res.ok) throw new Error('Gagal mengambil berita (HTTP ' + res.status + ')');
         return res.json();
     })
     .then(function (data) {
@@ -20,19 +24,15 @@ window.getNews = function () {
         }
 
         // ── Deduplikasi berdasarkan link ────────────────────────
-        // Prioritaskan entry yang punya thumbnail
         var seen = {};
         var articles = [];
 
-        // Pass 1: entry dengan thumbnail
         data.result.forEach(function (item) {
             if (item.thumbnail && item.link && !seen[item.link]) {
                 seen[item.link] = true;
                 articles.push(item);
             }
         });
-
-        // Pass 2: entry tanpa thumbnail yang belum masuk
         data.result.forEach(function (item) {
             if (item.link && !seen[item.link]) {
                 seen[item.link] = true;
@@ -41,18 +41,14 @@ window.getNews = function () {
         });
 
         // ── Bersihkan title ─────────────────────────────────────
-        // Hapus: nomor urut di depan, whitespace berlebih, kategori di akhir
         var CATEGORIES = ['Nasional','Internasional','Ekonomi','Teknologi','Olahraga',
                           'Hiburan','Gaya Hidup','Otomotif','Travel','Edukasi'];
         var catPattern = new RegExp('\\s*(' + CATEGORIES.join('|') + ')\\s*$', 'i');
 
         articles = articles.map(function (item) {
             var t = item.title || '';
-            // Hapus nomor urut "01 \n", "02 \n", dll
             t = t.replace(/^\d{1,2}\s*\n\s*/g, '');
-            // Normalkan whitespace
             t = t.replace(/\s+/g, ' ').trim();
-            // Hapus kategori di akhir
             t = t.replace(catPattern, '').trim();
             return { title: t, link: item.link, thumbnail: item.thumbnail || '' };
         }).filter(function (item) {
@@ -62,16 +58,21 @@ window.getNews = function () {
         if (articles.length === 0) throw new Error('Tidak ada berita untuk ditampilkan.');
 
         pg.done('Berita dimuat!');
+        if (btn) { btn.disabled = false; btn.style.opacity = ''; }
 
         // ── Render artikel ──────────────────────────────────────
         var html = '<div class="news-list">';
         articles.forEach(function (art, i) {
-            var haThumb = art.thumbnail ? true : false;
-            html += '<a class="news-item" href="' + art.link + '" target="_blank" rel="noopener noreferrer">';
+            var safeTitle = escHtml(art.title);
+            var safeLink  = escHtml(art.link);
+            var safeThumb = escHtml(art.thumbnail);
+            var haThumb   = art.thumbnail ? true : false;
+
+            html += '<a class="news-item" href="' + safeLink + '" target="_blank" rel="noopener noreferrer">';
 
             if (haThumb) {
                 html += '<div class="news-thumb-wrap">' +
-                    '<img class="news-thumb" src="' + art.thumbnail + '" alt="" loading="lazy" ' +
+                    '<img class="news-thumb" src="' + safeThumb + '" alt="" loading="lazy" ' +
                     'onerror="this.parentNode.classList.add(\'news-thumb-error\')">' +
                     '</div>';
             } else {
@@ -85,7 +86,7 @@ window.getNews = function () {
 
             html += '<div class="news-content">' +
                 '<span class="news-index">' + String(i + 1).padStart(2, '0') + '</span>' +
-                '<p class="news-title">' + art.title + '</p>' +
+                '<p class="news-title">' + safeTitle + '</p>' +
                 '<span class="news-source">CNN Indonesia</span>' +
                 '</div>';
 
@@ -98,8 +99,27 @@ window.getNews = function () {
         incrementUsage();
     })
     .catch(function (err) {
-        pg.error('Gagal: ' + err.message);
-        result.textContent = 'Error: ' + err.message + '. Coba lagi nanti.';
-        showToast('Gagal memuat berita', 'error');
+        var isRateLimit = err.message === '__ratelimit__';
+        var msg = isRateLimit
+            ? 'Server sedang sibuk, coba lagi dalam beberapa detik.'
+            : err.message;
+
+        pg.error('Gagal: ' + msg);
+        result.innerHTML = '<div style="color:var(--text-secondary);font-size:0.875rem;">' +
+            escHtml(msg) +
+            '</div>';
+
+        if (btn) { btn.disabled = false; btn.style.opacity = ''; }
+        showToast(isRateLimit ? 'Server sibuk, coba lagi' : 'Gagal memuat berita', 'error');
     });
 };
+
+// ── HTML escape helper ─────────────────────────────────────────
+function escHtml(str) {
+    return String(str || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}

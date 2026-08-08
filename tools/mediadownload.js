@@ -16,6 +16,41 @@ var ICON_SHARE = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" str
 var ICON_TIME  = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" style="width:13px;height:13px;"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>';
 var ICON_MUSIC = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" style="width:13px;height:13px;flex-shrink:0;"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>';
 
+// ── HTML ESCAPE ────────────────────────────────────────────────
+function escHtml(str) {
+    return String(str || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
+// ── ATTR ESCAPE ────────────────────────────────────────────────
+function escAttr(str) {
+    return String(str || '')
+        .replace(/&/g, '&amp;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+}
+
+// ── RATE LIMIT / ERROR MESSAGE ─────────────────────────────────
+function friendlyError(status, fallback) {
+    if (status === 429) return 'Server sedang sibuk, tunggu beberapa detik lalu coba lagi.';
+    if (status === 403) return 'Akses ditolak oleh server. Coba lagi nanti.';
+    if (status === 404) return 'Video tidak ditemukan. Pastikan link benar dan konten masih publik.';
+    if (status === 500) return 'Server error, coba lagi dalam beberapa saat.';
+    if (status === 503) return 'Server sedang tidak tersedia, coba lagi nanti.';
+    return fallback || 'Terjadi kesalahan. Coba lagi.';
+}
+
+function parseHttpStatus(errMsg) {
+    var m = String(errMsg).match(/HTTP (\d+)/);
+    return m ? parseInt(m[1]) : null;
+}
+
 // ── HELPERS ────────────────────────────────────────────────────
 function fmtDuration(ms) {
     var totalSec = Math.floor(parseInt(ms) / 1000);
@@ -35,17 +70,35 @@ function buildStats(stats) {
     stats.forEach(function (s) {
         if (!s.value) return;
         html += '<div class="media-stat-item">' + s.icon +
-                ' <span>' + s.value + (s.label ? ' ' + s.label : '') + '</span></div>';
+                ' <span>' + escHtml(s.value) + (s.label ? ' ' + escHtml(s.label) : '') + '</span></div>';
     });
     return html ? '<div class="media-stats">' + html + '</div>' : '';
 }
 
-function showMediaError(wrapId, message) {
+// ── BUTTON HELPERS ─────────────────────────────────────────────
+function setMainBtn(platform, disabled) {
+    var fnMap = {
+        tiktok:    'downloadTiktok()',
+        youtube:   'downloadYoutube()',
+        instagram: 'downloadInstagram()',
+        facebook:  'downloadFacebook()',
+    };
+    var fn  = fnMap[platform];
+    var btn = fn ? document.querySelector('[onclick="' + fn + '"]') : null;
+    if (!btn) return;
+    btn.disabled     = disabled;
+    btn.style.opacity = disabled ? '0.6' : '';
+}
+
+function showMediaError(wrapId, message, platform) {
     var wrap = document.getElementById(wrapId);
     if (!wrap) return;
-    wrap.innerHTML = '<div class="result-box" style="color:var(--toast-error-text);' +
-                     'border-color:var(--toast-error-border);">❌ ' + message + '</div>';
+    wrap.innerHTML =
+        '<div class="result-box" style="color:var(--toast-error-text);border-color:var(--toast-error-border);">' +
+        escHtml(message) +
+        '</div>';
     showToast('Gagal proses link', 'error');
+    if (platform) setMainBtn(platform, false);
 }
 
 // ── TOAST WARNING ──────────────────────────────────────────────
@@ -105,7 +158,8 @@ function triggerProxyDownload(btn, url, filename) {
         showToast('Download selesai!', 'success');
     })
     .catch(function (err) {
-        showToast('Gagal download: ' + err.message, 'error');
+        var status = parseHttpStatus(err.message);
+        showToast('Gagal download: ' + friendlyError(status, err.message), 'error');
     })
     .finally(function () {
         btn._downloading = false;
@@ -116,7 +170,6 @@ function triggerProxyDownload(btn, url, filename) {
 }
 
 // ── BUILD DOWNLOAD LIST ────────────────────────────────────────
-// State terpilih per wrapId
 var _selectedDownload = {};
 
 function buildDownloadList(downloads, wrapId) {
@@ -129,17 +182,17 @@ function buildDownloadList(downloads, wrapId) {
 
     if (videoItems.length > 0) {
         html += '<div class="media-dl-label">Video</div><ul class="media-dl-list">';
-        videoItems.forEach(function (d, i) {
+        videoItems.forEach(function (d) {
             var idx = downloads.indexOf(d);
             html += '<li>' +
                 '<button class="media-dl-btn" ' +
                 'data-wrap="' + escAttr(wrapId) + '" ' +
                 'data-idx="' + idx + '" ' +
                 'onclick="selectDownloadItem(this)">' +
-                '<span style="display:flex;align-items:center;gap:8px;">' + ICON_DL + ' ' + d.label + '</span>' +
+                '<span style="display:flex;align-items:center;gap:8px;">' + ICON_DL + ' ' + escHtml(d.label) + '</span>' +
                 '<div class="media-dl-right">' +
                 (d.isBest ? '<span class="best-badge">✦ Terbaik</span>' : '') +
-                '<span class="quality-badge">' + (d.quality || '') + '</span>' +
+                '<span class="quality-badge">' + escHtml(d.quality || '') + '</span>' +
                 '</div></button></li>';
         });
         html += '</ul>';
@@ -154,17 +207,16 @@ function buildDownloadList(downloads, wrapId) {
                 'data-wrap="' + escAttr(wrapId) + '" ' +
                 'data-idx="' + idx + '" ' +
                 'onclick="selectDownloadItem(this)">' +
-                '<span style="display:flex;align-items:center;gap:8px;">' + ICON_MUSIC + ' ' + d.label + '</span>' +
+                '<span style="display:flex;align-items:center;gap:8px;">' + ICON_MUSIC + ' ' + escHtml(d.label) + '</span>' +
                 '<div class="media-dl-right">' +
-                '<span class="quality-badge">' + (d.quality || 'MP3') + '</span>' +
+                '<span class="quality-badge">' + escHtml(d.quality || 'MP3') + '</span>' +
                 '</div></button></li>';
         });
         html += '</ul>';
     }
 
-    // Tombol Download selalu tampil di bawah
-    html += '<button class="media-dl-confirm-btn" id="dlConfirmBtn_' + wrapId + '" ' +
-            'onclick="confirmDownload(\'' + wrapId + '\')">' +
+    html += '<button class="media-dl-confirm-btn" id="dlConfirmBtn_' + escAttr(wrapId) + '" ' +
+            'onclick="confirmDownload(\'' + escAttr(wrapId) + '\')">' +
             ICON_DL + ' <span>Download</span>' +
             '</button>';
 
@@ -172,16 +224,11 @@ function buildDownloadList(downloads, wrapId) {
     return html;
 }
 
-function escAttr(str) {
-    return (str || '').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
-}
-
 // ── SELECT ITEM ────────────────────────────────────────────────
 window.selectDownloadItem = function (btn) {
     var wrapId = btn.getAttribute('data-wrap');
     var idx    = parseInt(btn.getAttribute('data-idx'));
 
-    // Hapus selected dari semua item di wrapId ini
     var card = document.getElementById('card_' + wrapId);
     if (card) {
         card.querySelectorAll('.media-dl-btn').forEach(function (b) {
@@ -197,13 +244,13 @@ window.selectDownloadItem = function (btn) {
 window.confirmDownload = function (wrapId) {
     var idx = _selectedDownload[wrapId];
     if (idx === undefined || idx === null) {
-        showWarningToast('⚠️ Pilih resolusi dulu sebelum download!');
+        showWarningToast('Pilih resolusi dulu sebelum download!');
         return;
     }
 
     var downloads = _downloadsStore[wrapId];
     if (!downloads || !downloads[idx]) {
-        showWarningToast('⚠️ Pilih resolusi dulu sebelum download!');
+        showWarningToast('Pilih resolusi dulu sebelum download!');
         return;
     }
 
@@ -214,7 +261,7 @@ window.confirmDownload = function (wrapId) {
     triggerProxyDownload(btn, d.url, d.filename);
 };
 
-// ── DOWNLOADS STORE (per wrapId) ───────────────────────────────
+// ── DOWNLOADS STORE ────────────────────────────────────────────
 var _downloadsStore = {};
 
 // ── MEDIA CARD ─────────────────────────────────────────────────
@@ -222,17 +269,15 @@ function buildMediaCard(wrapId, options) {
     var wrap = document.getElementById(wrapId);
     if (!wrap) return;
 
-    // Simpan downloads ke store
     _downloadsStore[wrapId] = options.downloads || [];
-    // Reset pilihan
     delete _selectedDownload[wrapId];
 
     var thumbSection = '';
     if (options.thumb) {
         thumbSection =
-            '<div class="media-thumb-wrap" id="thumbWrap_' + wrapId + '" ' +
-            'onclick="playMediaInline(\'' + wrapId + '\',\'' + (options.videoUrl || '') + '\')">' +
-                '<img class="media-thumb-img" src="' + options.thumb + '" alt="thumbnail" ' +
+            '<div class="media-thumb-wrap" id="thumbWrap_' + escAttr(wrapId) + '" ' +
+            'onclick="playMediaInline(\'' + escAttr(wrapId) + '\',\'' + escAttr(options.videoUrl || '') + '\')">' +
+                '<img class="media-thumb-img" src="' + escAttr(options.thumb) + '" alt="thumbnail" ' +
                 'onerror="this.parentNode.style.display=\'none\'">' +
                 (options.videoUrl
                     ? '<div class="media-play-btn"><div class="media-play-circle">' + ICON_PLAY + '</div></div>'
@@ -243,13 +288,13 @@ function buildMediaCard(wrapId, options) {
     var infoSection = '';
     if (options.title || options.author) {
         infoSection = '<div class="media-info">';
-        if (options.title)  infoSection += '<div class="media-info-title">' + options.title + '</div>';
-        if (options.author) infoSection += '<div class="media-info-author">' + options.author + '</div>';
+        if (options.title)  infoSection += '<div class="media-info-title">'  + escHtml(options.title)  + '</div>';
+        if (options.author) infoSection += '<div class="media-info-author">' + escHtml(options.author) + '</div>';
         infoSection += '</div>';
     }
 
     wrap.innerHTML =
-        '<div class="media-result-card" id="card_' + wrapId + '">' +
+        '<div class="media-result-card" id="card_' + escAttr(wrapId) + '">' +
             thumbSection + infoSection +
             (options.stats || '') +
             buildDownloadList(options.downloads, wrapId) +
@@ -277,6 +322,7 @@ window.downloadTiktok = function () {
     if (!link) { showToast('Masukkan link dulu!', 'error'); return; }
 
     document.getElementById('tiktokResultWrap').innerHTML = '';
+    setMainBtn('tiktok', true);
     var pg = createProgress('tiktokProgressWrap', 'Mengambil video TikTok');
     pg.crawl(8, 80, 6000, 'Menghubungi server...');
 
@@ -285,7 +331,11 @@ window.downloadTiktok = function () {
             .then(function (r) { return r.ok ? r.json() : Promise.resolve(null); })
             .catch(function () { return null; }),
         fetch(SIPUTZX_BASE + '/api/d/ummy?url=' + encodeURIComponent(link))
-            .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+            .then(function (r) {
+                if (r.status === 429) throw new Error('HTTP 429');
+                if (!r.ok) throw new Error('HTTP ' + r.status);
+                return r.json();
+            })
     ])
     .then(function (results) {
         pg.set(90, 'Memproses data...');
@@ -355,6 +405,7 @@ window.downloadTiktok = function () {
                            : (stat ? '@' + stat.author_nickname : '');
 
         pg.done('Berhasil!');
+        setMainBtn('tiktok', false);
         buildMediaCard('tiktokResultWrap', {
             thumb:     u.thumb || '',
             title:     meta.title || (stat && stat.text) || 'TikTok Video',
@@ -367,8 +418,10 @@ window.downloadTiktok = function () {
         incrementUsage();
     })
     .catch(function (err) {
-        pg.error('Gagal: ' + err.message);
-        showMediaError('tiktokResultWrap', err.message);
+        var status = parseHttpStatus(err.message);
+        var msg    = friendlyError(status, err.message);
+        pg.error('Gagal: ' + msg);
+        showMediaError('tiktokResultWrap', msg, 'tiktok');
     });
 };
 
@@ -378,11 +431,16 @@ window.downloadYoutube = function () {
     if (!link) { showToast('Masukkan link dulu!', 'error'); return; }
 
     document.getElementById('youtubeResultWrap').innerHTML = '';
+    setMainBtn('youtube', true);
     var pg = createProgress('youtubeProgressWrap', 'Mengambil video YouTube');
     pg.crawl(8, 75, 9000, 'Menghubungi server...');
 
     fetch(SIPUTZX_BASE + '/api/d/ummy?url=' + encodeURIComponent(link))
-    .then(function (res) { if (!res.ok) throw new Error('HTTP ' + res.status); return res.json(); })
+    .then(function (res) {
+        if (res.status === 429) throw new Error('HTTP 429');
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        return res.json();
+    })
     .then(function (json) {
         pg.set(90, 'Memproses format video...');
         if (!json.status || !json.data) throw new Error('Data tidak ditemukan / link tidak valid.');
@@ -456,6 +514,7 @@ window.downloadYoutube = function () {
         ]);
 
         pg.done('Berhasil!');
+        setMainBtn('youtube', false);
         buildMediaCard('youtubeResultWrap', {
             thumb:     thumbUrl,
             title:     meta.title || 'YouTube Video',
@@ -468,8 +527,10 @@ window.downloadYoutube = function () {
         incrementUsage();
     })
     .catch(function (err) {
-        pg.error('Gagal: ' + err.message);
-        showMediaError('youtubeResultWrap', err.message);
+        var status = parseHttpStatus(err.message);
+        var msg    = friendlyError(status, err.message);
+        pg.error('Gagal: ' + msg);
+        showMediaError('youtubeResultWrap', msg, 'youtube');
     });
 };
 
@@ -479,11 +540,16 @@ window.downloadInstagram = function () {
     if (!link) { showToast('Masukkan link dulu!', 'error'); return; }
 
     document.getElementById('instagramResultWrap').innerHTML = '';
+    setMainBtn('instagram', true);
     var pg = createProgress('instagramProgressWrap', 'Mengambil media Instagram');
     pg.crawl(8, 78, 7000, 'Menghubungi server...');
 
     fetch(SIPUTZX_BASE + '/api/d/ummy?url=' + encodeURIComponent(link))
-    .then(function (res) { if (!res.ok) throw new Error('HTTP ' + res.status); return res.json(); })
+    .then(function (res) {
+        if (res.status === 429) throw new Error('HTTP 429');
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        return res.json();
+    })
     .then(function (json) {
         pg.set(90, 'Memproses media...');
         if (!json.status || !json.data) throw new Error('Data tidak ditemukan / link tidak valid.');
@@ -535,6 +601,7 @@ window.downloadInstagram = function () {
         ]);
 
         pg.done('Berhasil!');
+        setMainBtn('instagram', false);
         buildMediaCard('instagramResultWrap', {
             thumb:     d.thumb || meta.thumbnail || '',
             title:     title,
@@ -547,8 +614,10 @@ window.downloadInstagram = function () {
         incrementUsage();
     })
     .catch(function (err) {
-        pg.error('Gagal: ' + err.message);
-        showMediaError('instagramResultWrap', err.message);
+        var status = parseHttpStatus(err.message);
+        var msg    = friendlyError(status, err.message);
+        pg.error('Gagal: ' + msg);
+        showMediaError('instagramResultWrap', msg, 'instagram');
     });
 };
 
@@ -558,11 +627,16 @@ window.downloadFacebook = function () {
     if (!link) { showToast('Masukkan link dulu!', 'error'); return; }
 
     document.getElementById('facebookResultWrap').innerHTML = '';
+    setMainBtn('facebook', true);
     var pg = createProgress('facebookProgressWrap', 'Mengambil video Facebook');
     pg.crawl(8, 82, 6000, 'Menghubungi server...');
 
     fetch(SIPUTZX_BASE + '/api/d/facebook?url=' + encodeURIComponent(link))
-    .then(function (res) { if (!res.ok) throw new Error('HTTP ' + res.status); return res.json(); })
+    .then(function (res) {
+        if (res.status === 429) throw new Error('HTTP 429');
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        return res.json();
+    })
     .then(function (json) {
         pg.set(90, 'Memproses data...');
         if (!json.status || !json.data) throw new Error('Data tidak ditemukan / link tidak valid.');
@@ -604,6 +678,7 @@ window.downloadFacebook = function () {
         var stats = buildStats([{ icon: ICON_TIME, value: safeStatVal(d.duration) }]);
 
         pg.done('Berhasil!');
+        setMainBtn('facebook', false);
         buildMediaCard('facebookResultWrap', {
             thumb:     d.thumbnail || '',
             title:     d.title || 'Facebook Video',
@@ -616,7 +691,9 @@ window.downloadFacebook = function () {
         incrementUsage();
     })
     .catch(function (err) {
-        pg.error('Gagal: ' + err.message);
-        showMediaError('facebookResultWrap', err.message);
+        var status = parseHttpStatus(err.message);
+        var msg    = friendlyError(status, err.message);
+        pg.error('Gagal: ' + msg);
+        showMediaError('facebookResultWrap', msg, 'facebook');
     });
 };
