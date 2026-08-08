@@ -1394,6 +1394,49 @@ body.tool-open .tool-page { display: block !important; }
     flex-shrink: 0;
 }
 
+/* Selected resolusi */
+.media-dl-btn--selected {
+    border-color: var(--accent-primary) !important;
+    background: rgba(59,130,246,0.1) !important;
+    box-shadow: 0 0 0 2px rgba(59,130,246,0.2) !important;
+}
+
+/* Tombol konfirmasi download */
+.media-dl-confirm-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    margin-top: 14px;
+    height: 46px;
+    border-radius: var(--radius-pill);
+    background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-purple) 100%);
+    border: none;
+    color: #fff;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity var(--dur-fast) var(--ease-out),
+                transform var(--dur-fast) var(--ease-spring),
+                box-shadow var(--dur-fast) var(--ease-out);
+    box-shadow: 0 4px 16px rgba(59,130,246,0.25);
+}
+.media-dl-confirm-btn:hover {
+    opacity: 0.92;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 24px rgba(59,130,246,0.35);
+}
+.media-dl-confirm-btn:active { transform: translateY(0) scale(0.98); }
+
+/* Toast warning (kuning) */
+.toast.toast-warning {
+    background: rgba(120, 80, 0, 0.92);
+    border-color: rgba(251,191,36,0.4);
+    color: #fbbf24;
+    box-shadow: 0 0 16px rgba(251,191,36,0.1);
+}
 /* ===== WEATHER WIDGET ===== */
 .wx-header {
     display: flex;
