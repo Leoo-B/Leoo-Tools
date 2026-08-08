@@ -16,23 +16,21 @@ window.showToast = function (message, type) {
 };
 
 // ── HONEST PROGRESS BAR ────────────────────────────────────────
-// Usage:
-//   var pg = createProgress('progressWrapId', 'Menghubungi API...');
-//   pg.set(30);          // jump to 30%
-//   pg.crawl(30, 85, 8000); // crawl from 30→85% over 8s
-//   pg.done('Selesai!'); // snap to 100%, fade out
-//   pg.error('Gagal.');
-
 window.createProgress = function (wrapId, label) {
-    var wrap    = document.getElementById(wrapId);
-    if (!wrap) return { set: function(){}, crawl: function(){}, done: function(){}, error: function(){} };
+    var wrap = document.getElementById(wrapId);
+    if (!wrap) return { set: function(){}, crawl: function(){}, done: function(){}, error: function(){}, cancel: function(){} };
 
-    // Build DOM
+    var abortController = typeof AbortController !== 'undefined' ? new AbortController() : null;
+    var cancelled = false;
+
     wrap.innerHTML =
         '<div class="progress-wrap visible">' +
             '<div class="progress-header">' +
                 '<span class="progress-label">' + (label || 'Memproses...') + '</span>' +
-                '<span class="progress-pct" id="pg_pct_' + wrapId + '">0%</span>' +
+                '<div style="display:flex;align-items:center;gap:10px;">' +
+                    '<span class="progress-pct" id="pg_pct_' + wrapId + '">0%</span>' +
+                    '<button class="progress-cancel-btn" id="pg_cancel_' + wrapId + '" aria-label="Batalkan proses">Batal</button>' +
+                '</div>' +
             '</div>' +
             '<div class="progress-track">' +
                 '<div class="progress-fill" id="pg_fill_' + wrapId + '" style="width:0%"></div>' +
@@ -43,6 +41,7 @@ window.createProgress = function (wrapId, label) {
     var fillEl   = document.getElementById('pg_fill_' + wrapId);
     var pctEl    = document.getElementById('pg_pct_' + wrapId);
     var statusEl = document.getElementById('pg_status_' + wrapId);
+    var cancelBtn = document.getElementById('pg_cancel_' + wrapId);
     var crawlTimer = null;
     var current = 0;
 
@@ -58,7 +57,6 @@ window.createProgress = function (wrapId, label) {
         if (crawlTimer) { clearInterval(crawlTimer); crawlTimer = null; }
     }
 
-    // Crawl: smoothly move from `from` to `to` over `durationMs`
     function crawl(from, to, durationMs, statusText) {
         clearCrawl();
         setVal(from, statusText || null);
@@ -74,8 +72,8 @@ window.createProgress = function (wrapId, label) {
 
     function done(statusText) {
         clearCrawl();
+        if (cancelBtn) cancelBtn.style.display = 'none';
         setVal(100, statusText || 'Selesai!');
-        // Add success tint
         if (fillEl) fillEl.style.background = 'linear-gradient(90deg, #22c55e, #4ade80)';
         if (fillEl) fillEl.style.boxShadow  = '0 0 12px rgba(74,222,128,0.4)';
         setTimeout(function () {
@@ -87,15 +85,43 @@ window.createProgress = function (wrapId, label) {
 
     function error(statusText) {
         clearCrawl();
+        if (cancelBtn) cancelBtn.style.display = 'none';
         if (fillEl) fillEl.style.background = 'linear-gradient(90deg, #ef4444, #f87171)';
         if (fillEl) fillEl.style.boxShadow  = '0 0 12px rgba(239,68,68,0.4)';
         setVal(current, statusText || 'Terjadi kesalahan.');
     }
 
-    // Immediately jump to 8% so it doesn't look stuck
+    function cancel() {
+        if (cancelled) return;
+        cancelled = true;
+        clearCrawl();
+        if (abortController) abortController.abort();
+        if (fillEl) fillEl.style.background = 'linear-gradient(90deg, #f59e0b, #fbbf24)';
+        if (fillEl) fillEl.style.boxShadow  = '0 0 12px rgba(245,158,11,0.4)';
+        setVal(current, 'Dibatalkan.');
+        if (cancelBtn) cancelBtn.style.display = 'none';
+        setTimeout(function () {
+            var pw = wrap.querySelector('.progress-wrap');
+            if (pw) { pw.style.transition = 'opacity 0.5s ease'; pw.style.opacity = '0'; }
+            setTimeout(function () { if (pw) pw.style.display = 'none'; }, 520);
+        }, 1000);
+    }
+
+    if (cancelBtn) {
+        cancelBtn.addEventListener('click', function () { cancel(); });
+    }
+
     setVal(8, 'Menghubungi server...');
 
-    return { set: setVal, crawl: crawl, done: done, error: error };
+    return {
+        set: setVal,
+        crawl: crawl,
+        done: done,
+        error: error,
+        cancel: cancel,
+        signal: abortController ? abortController.signal : null,
+        isCancelled: function () { return cancelled; }
+    };
 };
 
 // ── NAVBAR SCROLL COLLAPSE ──────────────────────────────────────
@@ -180,7 +206,6 @@ window.renderTools = function () {
     var activeChip = document.querySelector('.chip.active');
     var currentCat = activeChip ? activeChip.dataset.cat : 'all';
 
-    // Show skeletons
     var skelHtml = '';
     for (var i = 0; i < 6; i++) {
         skelHtml += '<div class="skeleton"><div class="skeleton-icon"></div><div class="skeleton-title"></div><div class="skeleton-desc"></div></div>';
@@ -195,19 +220,31 @@ window.renderTools = function () {
 
     setTimeout(function () {
         if (filtered.length === 0) {
-            grid.innerHTML = '<div style="grid-column:1/-1; text-align:center; padding:64px 0; color:var(--text-muted); font-size:0.875rem;">Gak ada tool yang cocok...</div>';
+            grid.innerHTML =
+                '<div class="empty-state">' +
+                    '<div class="empty-state-box">' +
+                        '<svg class="empty-state-icon" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">' +
+                            '<rect x="8" y="16" width="48" height="36" rx="6" stroke="currentColor" stroke-width="1.5" stroke-dasharray="4 3"/>' +
+                            '<circle cx="32" cy="28" r="6" stroke="currentColor" stroke-width="1.5"/>' +
+                            '<path d="M20 44c0-6.627 5.373-10 12-10s12 3.373 12 10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>' +
+                            '<path d="M28 8h8M24 8h1M39 8h1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>' +
+                        '</svg>' +
+                        '<p class="empty-state-title">Tidak ada tool ditemukan</p>' +
+                        '<p class="empty-state-desc">Coba kata kunci lain atau pilih kategori berbeda.</p>' +
+                    '</div>' +
+                '</div>';
         } else {
             var html = '';
             filtered.forEach(function (t) {
                 var iconHtml = t.iconType === 'simple'
                     ? getSimpleIcon(t.icon, 26)
                     : '<i data-lucide="' + t.icon + '"></i>';
-                html += '<div class="tool-card" onclick="openTool(\'' + t.id + '\')">' +
+                html += '<button class="tool-card" onclick="openTool(\'' + t.id + '\')" aria-label="Buka ' + t.name + '">' +
                         '<span class="badge">' + t.cat + '</span>' +
                         iconHtml +
                         '<h4>' + t.name + '</h4>' +
                         '<p>' + t.desc + '</p>' +
-                        '</div>';
+                        '</button>';
             });
             grid.innerHTML = html;
         }
@@ -358,6 +395,22 @@ window.openTool = function (toolId) {
 
     body.innerHTML = html;
     if (typeof lucide !== 'undefined') lucide.createIcons();
+
+    // ── Staggered animation pada semua elemen langsung di toolPageBody ──
+    var children = body.children;
+    for (var i = 0; i < children.length; i++) {
+        (function (el, idx) {
+            el.style.opacity = '0';
+            el.style.transform = 'translateY(18px)';
+            el.style.transition = 'none';
+            setTimeout(function () {
+                el.style.transition = 'opacity 0.38s cubic-bezier(0.16,1,0.3,1), transform 0.38s cubic-bezier(0.16,1,0.3,1)';
+                el.style.opacity = '1';
+                el.style.transform = 'translateY(0)';
+            }, 60 + idx * 70);
+        })(children[i], i);
+    }
+
     window.scrollTo({ top: 0, behavior: 'smooth' });
 };
 
@@ -365,7 +418,11 @@ window.closeToolPage = function () {
     document.body.classList.remove('tool-open');
     var toolPage = document.getElementById('toolPage');
     toolPage.classList.remove('active');
-    toolPage.style.display = '';
+    // Bersihkan inline style agar tool bisa dibuka kembali
+    toolPage.removeAttribute('style');
+    // Reset konten agar tidak ada sisa hasil dari sesi sebelumnya
+    var body = document.getElementById('toolPageBody');
+    if (body) body.innerHTML = '';
     window.scrollTo({ top: 0, behavior: 'smooth' });
 };
 
