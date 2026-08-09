@@ -274,6 +274,114 @@ window.createProgress = function (wrapId, label) {
     }
 })();
 
+// ── SEARCH COMBOBOX ────────────────────────────────────────────
+(function () {
+    var inputs = [
+        document.getElementById('searchInput'),
+        document.getElementById('searchInputCollapsed'),
+    ];
+
+    function getOrCreateDropdown(inputEl) {
+        var wrap = inputEl.closest('.nav-search');
+        if (!wrap) return null;
+        var existing = wrap.querySelector('.search-dropdown');
+        if (existing) return existing;
+        var dd = document.createElement('div');
+        dd.className = 'search-dropdown';
+        dd.style.display = 'none';
+        wrap.appendChild(dd);
+        return dd;
+    }
+
+    function closeAll() {
+        document.querySelectorAll('.search-dropdown').forEach(function (dd) {
+            dd.style.display = 'none';
+        });
+    }
+
+    function renderDropdown(dd, query) {
+        if (!query) { dd.style.display = 'none'; return; }
+
+        var q = query.toLowerCase();
+        var matched = tools.filter(function (t) {
+            return t.name.toLowerCase().includes(q) || t.desc.toLowerCase().includes(q);
+        });
+
+        if (matched.length === 0) {
+            dd.innerHTML = '<div class="search-dropdown-empty">Tidak ada tool ditemukan</div>';
+        } else {
+            dd.innerHTML = matched.map(function (t) {
+                var iconHtml = t.iconType === 'simple'
+                    ? '<img src="https://cdn.simpleicons.org/' + t.icon + '" width="14" height="14" style="opacity:.7;filter:brightness(0) invert(1);">'
+                    : '<i data-lucide="' + t.icon + '"></i>';
+                return '<div class="search-dropdown-item" data-id="' + t.id + '">' +
+                    iconHtml + '<span>' + t.name + '</span></div>';
+            }).join('');
+        }
+
+        dd.style.display = 'block';
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+    }
+
+    function selectTool(toolId) {
+        // Reset chip ke "Semua"
+        document.querySelectorAll('.chip').forEach(function (c) { c.classList.remove('active'); });
+        var allChip = document.querySelector('.chip[data-cat="all"]');
+        if (allChip) allChip.classList.add('active');
+
+        // Clear semua input + tutup dropdown
+        inputs.forEach(function (inp) { if (inp) inp.value = ''; });
+        closeAll();
+
+        // Render ulang grid (semua tool)
+        if (typeof renderTools === 'function') renderTools();
+
+        // Tunggu render selesai lalu scroll + highlight
+        setTimeout(function () {
+            var card = document.querySelector('.tool-card[onclick*="\'' + toolId + '\'"]');
+            if (!card) return;
+            card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            card.classList.add('highlighted');
+            setTimeout(function () { card.classList.remove('highlighted'); }, 1000);
+        }, 320); // sedikit lebih dari timeout renderTools (280ms)
+    }
+
+    inputs.forEach(function (inputEl) {
+        if (!inputEl) return;
+        var dd = getOrCreateDropdown(inputEl);
+        if (!dd) return;
+
+        inputEl.addEventListener('input', function () {
+            // Sync ke input lainnya
+            inputs.forEach(function (other) {
+                if (other && other !== inputEl) other.value = inputEl.value;
+            });
+            renderDropdown(dd, inputEl.value.trim());
+            // Tutup dropdown di search lain
+            document.querySelectorAll('.search-dropdown').forEach(function (other) {
+                if (other !== dd) { other.style.display = 'none'; }
+            });
+            if (typeof renderTools === 'function') renderTools();
+        });
+
+        inputEl.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape') { closeAll(); inputEl.blur(); }
+        });
+
+        dd.addEventListener('mousedown', function (e) {
+            var item = e.target.closest('.search-dropdown-item');
+            if (!item) return;
+            e.preventDefault();
+            selectTool(item.dataset.id);
+        });
+    });
+
+    document.addEventListener('mousedown', function (e) {
+        var insideSearch = e.target.closest('.nav-search');
+        if (!insideSearch) closeAll();
+    });
+})();
+
 // ── ICON HELPER ────────────────────────────────────────────────
 function getSimpleIcon(slug, size) {
     size = size || 26;
