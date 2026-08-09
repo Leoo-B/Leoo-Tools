@@ -159,13 +159,11 @@ window.createProgress = function (wrapId, label) {
         }, 120);
     }
 
-    // ── #8: done() dengan glitch flash + animasi out ──────────
     function done(statusText) {
         clearCrawl();
         if (cancelBtn) cancelBtn.style.display = 'none';
         setVal(100, statusText || 'Selesai!');
 
-        // Hijau
         if (fillEl) {
             fillEl.style.background = 'linear-gradient(90deg, #22c55e, #4ade80)';
             fillEl.style.boxShadow  = '0 0 12px rgba(74,222,128,0.4)';
@@ -173,7 +171,6 @@ window.createProgress = function (wrapId, label) {
 
         var pw = wrap.querySelector('.progress-wrap');
 
-        // Flash putih + blink 2x, lalu fade out + scale down
         if (pw) {
             pw.classList.add('progress-done-flash');
             setTimeout(function () {
@@ -244,11 +241,9 @@ window.createProgress = function (wrapId, label) {
     if (mainSearch && collapsedSearch) {
         mainSearch.addEventListener('input', function () {
             collapsedSearch.value = this.value;
-            if (typeof renderTools === 'function') renderTools();
         });
         collapsedSearch.addEventListener('input', function () {
             mainSearch.value = this.value;
-            if (typeof renderTools === 'function') renderTools();
         });
     }
 
@@ -276,10 +271,14 @@ window.createProgress = function (wrapId, label) {
 
 // ── SEARCH COMBOBOX ────────────────────────────────────────────
 (function () {
-    var inputs = [
-        document.getElementById('searchInput'),
-        document.getElementById('searchInputCollapsed'),
-    ];
+    var _emptyStateTimer = null;
+
+    function getInputs() {
+        return [
+            document.getElementById('searchInput'),
+            document.getElementById('searchInputCollapsed'),
+        ].filter(Boolean);
+    }
 
     function getOrCreateDropdown(inputEl) {
         var wrap = inputEl.closest('.nav-search');
@@ -312,7 +311,7 @@ window.createProgress = function (wrapId, label) {
         } else {
             dd.innerHTML = matched.map(function (t) {
                 var iconHtml = t.iconType === 'simple'
-                    ? '<img src="https://cdn.simpleicons.org/' + t.icon + '" width="14" height="14" style="opacity:.7;filter:brightness(0) invert(1);">'
+                    ? '<img src="https://cdn.simpleicons.org/' + t.icon + '" width="14" height="14" style="opacity:.7;filter:brightness(0) invert(1);flex-shrink:0;">'
                     : '<i data-lucide="' + t.icon + '"></i>';
                 return '<div class="search-dropdown-item" data-id="' + t.id + '">' +
                     iconHtml + '<span>' + t.name + '</span></div>';
@@ -323,63 +322,147 @@ window.createProgress = function (wrapId, label) {
         if (typeof lucide !== 'undefined') lucide.createIcons();
     }
 
-    function selectTool(toolId) {
-        // Reset chip ke "Semua"
-        document.querySelectorAll('.chip').forEach(function (c) { c.classList.remove('active'); });
-        var allChip = document.querySelector('.chip[data-cat="all"]');
-        if (allChip) allChip.classList.add('active');
-
-        // Clear semua input + tutup dropdown
-        inputs.forEach(function (inp) { if (inp) inp.value = ''; });
-        closeAll();
-
-        // Render ulang grid (semua tool)
-        if (typeof renderTools === 'function') renderTools();
-
-        // Tunggu render selesai lalu scroll + highlight
-        setTimeout(function () {
-            var card = document.querySelector('.tool-card[onclick*="\'' + toolId + '\'"]');
-            if (!card) return;
+    function scrollAndHighlight(toolId) {
+        var card = document.querySelector('.tool-card[onclick*="\'' + toolId + '\'"]');
+        if (card) {
             card.scrollIntoView({ behavior: 'smooth', block: 'center' });
             card.classList.add('highlighted');
             setTimeout(function () { card.classList.remove('highlighted'); }, 1000);
-        }, 320); // sedikit lebih dari timeout renderTools (280ms)
+            return true;
+        }
+        return false;
     }
 
-    inputs.forEach(function (inputEl) {
-        if (!inputEl) return;
-        var dd = getOrCreateDropdown(inputEl);
-        if (!dd) return;
+    function selectTool(toolId) {
+        // Clear semua input + tutup dropdown
+        getInputs().forEach(function (inp) { inp.value = ''; });
+        closeAll();
 
-        inputEl.addEventListener('input', function () {
-            // Sync ke input lainnya
-            inputs.forEach(function (other) {
-                if (other && other !== inputEl) other.value = inputEl.value;
-            });
-            renderDropdown(dd, inputEl.value.trim());
-            // Tutup dropdown di search lain
-            document.querySelectorAll('.search-dropdown').forEach(function (other) {
-                if (other !== dd) { other.style.display = 'none'; }
-            });
+        // Coba scroll dan highlight langsung
+        var found = scrollAndHighlight(toolId);
+
+        if (!found) {
+            // Card tidak ada di grid — reset chip ke "Semua" lalu render ulang
+            document.querySelectorAll('.chip').forEach(function (c) { c.classList.remove('active'); });
+            var allChip = document.querySelector('.chip[data-cat="all"]');
+            if (allChip) allChip.classList.add('active');
+
             if (typeof renderTools === 'function') renderTools();
+
+            setTimeout(function () {
+                scrollAndHighlight(toolId);
+            }, 320);
+        }
+    }
+
+    function showEmptyStateThenRestore() {
+        // Clear timer sebelumnya jika ada
+        if (_emptyStateTimer) {
+            clearTimeout(_emptyStateTimer);
+            _emptyStateTimer = null;
+        }
+
+        var grid = document.getElementById('toolsGrid');
+        if (!grid) return;
+
+        // Tampilkan empty state
+        grid.innerHTML =
+            '<div class="empty-state">' +
+                '<div class="empty-state-box">' +
+                    '<svg class="empty-state-icon" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">' +
+                        '<rect x="8" y="16" width="48" height="36" rx="6" stroke="currentColor" stroke-width="1.5" stroke-dasharray="4 3"/>' +
+                        '<circle cx="32" cy="28" r="6" stroke="currentColor" stroke-width="1.5"/>' +
+                        '<path d="M20 44c0-6.627 5.373-10 12-10s12 3.373 12 10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>' +
+                        '<path d="M28 8h8M24 8h1M39 8h1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>' +
+                    '</svg>' +
+                    '<p class="empty-state-title">Tidak ada tool ditemukan</p>' +
+                    '<p class="empty-state-desc">Coba kata kunci lain atau pilih kategori berbeda.</p>' +
+                '</div>' +
+            '</div>';
+
+        // Setelah 3 detik, render ulang normal
+        _emptyStateTimer = setTimeout(function () {
+            _emptyStateTimer = null;
+            getInputs().forEach(function (inp) { inp.value = ''; });
+            closeAll();
+            if (typeof renderTools === 'function') renderTools();
+        }, 3000);
+    }
+
+    // Inisialisasi setelah DOM siap
+    function initCombobox() {
+        getInputs().forEach(function (inputEl) {
+            var dd = getOrCreateDropdown(inputEl);
+            if (!dd) return;
+
+            inputEl.addEventListener('input', function () {
+                // Sync ke input lain
+                var val = inputEl.value;
+                getInputs().forEach(function (other) {
+                    if (other !== inputEl) other.value = val;
+                });
+
+                // Render dropdown — grid tidak berubah
+                renderDropdown(dd, val.trim());
+
+                // Tutup dropdown milik input lain
+                document.querySelectorAll('.search-dropdown').forEach(function (other) {
+                    if (other !== dd) other.style.display = 'none';
+                });
+            });
+
+            inputEl.addEventListener('keydown', function (e) {
+                if (e.key === 'Escape') {
+                    closeAll();
+                    inputEl.blur();
+                    return;
+                }
+
+                if (e.key === 'Enter') {
+                    var query = inputEl.value.trim();
+                    if (!query) return;
+
+                    var q = query.toLowerCase();
+                    var matched = tools.filter(function (t) {
+                        return t.name.toLowerCase().includes(q) || t.desc.toLowerCase().includes(q);
+                    });
+
+                    if (matched.length > 0) {
+                        // Ada hasil — ambil item pertama
+                        e.preventDefault();
+                        selectTool(matched[0].id);
+                    } else {
+                        // Tidak ada hasil — tampilkan empty state lalu restore
+                        e.preventDefault();
+                        getInputs().forEach(function (inp) { inp.value = ''; });
+                        closeAll();
+                        showEmptyStateThenRestore();
+                    }
+                }
+            });
+
+            dd.addEventListener('mousedown', function (e) {
+                var item = e.target.closest('.search-dropdown-item');
+                if (!item) return;
+                e.preventDefault();
+                selectTool(item.dataset.id);
+            });
         });
 
-        inputEl.addEventListener('keydown', function (e) {
-            if (e.key === 'Escape') { closeAll(); inputEl.blur(); }
+        // Tutup saat klik luar
+        document.addEventListener('mousedown', function (e) {
+            var insideSearch = e.target.closest('.nav-search');
+            if (!insideSearch) closeAll();
         });
+    }
 
-        dd.addEventListener('mousedown', function (e) {
-            var item = e.target.closest('.search-dropdown-item');
-            if (!item) return;
-            e.preventDefault();
-            selectTool(item.dataset.id);
-        });
-    });
-
-    document.addEventListener('mousedown', function (e) {
-        var insideSearch = e.target.closest('.nav-search');
-        if (!insideSearch) closeAll();
-    });
+    // Tunggu tools tersedia (diinisialisasi setelah initAll)
+    var _initTimer = setInterval(function () {
+        if (typeof tools !== 'undefined' && document.getElementById('searchInput')) {
+            clearInterval(_initTimer);
+            initCombobox();
+        }
+    }, 100);
 })();
 
 // ── ICON HELPER ────────────────────────────────────────────────
@@ -466,7 +549,6 @@ window.renderTools = function () {
         }
         if (typeof lucide !== 'undefined') lucide.createIcons();
 
-        // ── #7: Cursor glow trail per card ──────────────────────
         var cards = grid.querySelectorAll('.tool-card');
         cards.forEach(function (card) {
             card.addEventListener('mousemove', function (e) {
@@ -617,7 +699,6 @@ window.openTool = function (toolId) {
     body.innerHTML = html;
     if (typeof lucide !== 'undefined') lucide.createIcons();
 
-    // ── Staggered animation ──
     var children = body.children;
     for (var i = 0; i < children.length; i++) {
         (function (el, idx) {
@@ -635,14 +716,9 @@ window.openTool = function (toolId) {
     window.scrollTo({ top: 0, behavior: 'smooth' });
 };
 
-// ── #1: Close tool page dengan animasi keluar ──────────────────
 window.closeToolPage = function () {
     var toolPage = document.getElementById('toolPage');
-
-    // Tambah class closing untuk animasi slide kanan + blur out
     toolPage.classList.add('closing');
-
-    // Tunggu animasi selesai (280ms sesuai keyframe toolPageOut)
     setTimeout(function () {
         document.body.classList.remove('tool-open');
         toolPage.classList.remove('active', 'closing');
@@ -667,19 +743,13 @@ window.initAll = function () {
     }
     updateThemeIcon(theme);
 
-    // ── #9: Theme toggle dengan crossfade transition ───────────
     toggle.addEventListener('click', function () {
         var next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
-
-        // Tambah class transitioning ke body
         document.body.classList.add('theme-transitioning');
-
         document.documentElement.setAttribute('data-theme', next);
         localStorage.setItem('theme', next);
         updateThemeIcon(next);
         showToast(next === 'dark' ? '🌙 Mode Gelap' : '☀️ Mode Terang', 'success');
-
-        // Hapus class setelah transisi selesai
         setTimeout(function () {
             document.body.classList.remove('theme-transitioning');
         }, 400);
