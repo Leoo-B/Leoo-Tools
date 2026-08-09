@@ -1,0 +1,110 @@
+/* Performance overrides — adapt visuals and animations based on device capability */
+
+/* Respect user reduced-motion preference first */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --dur-fast: 50ms;
+    --dur-mid: 80ms;
+    --dur-slow: 120ms;
+  }
+  * {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+  body::before,
+  #spaceCanvas,
+  .splash-mesh { display: none !important; }
+}
+
+/* ===== DATA-PERFORMANCE: entry (low), mid, high ===== */
+/* Entry: hide heavy decorations, remove expensive filters & anims */
+[data-performance="entry"] body {
+  background-attachment: scroll !important;
+}
+[data-performance="entry"] body::before,
+[data-performance="entry"] #spaceCanvas,
+[data-performance="entry"] .splash-mesh,
+[data-performance="entry"] .splash-screen::after {
+  display: none !important;
+}
+
+[data-performance="entry"] .navbar-wrapper,
+[data-performance="entry"] .tool-card,
+[data-performance="entry"] .nav-search,
+[data-performance="entry"] .footer-credit,
+[data-performance="entry"] .toast,
+[data-performance="entry"] .empty-state-box {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  box-shadow: none !important;
+  border-color: transparent !important;
+}
+
+/* Disable/flatten animations and expensive paints on entry */
+[data-performance="entry"] .tool-card {
+  animation: none !important;
+  opacity: 1 !important;
+  filter: none !important;
+  transform: none !important;
+}
+[data-performance="entry"] .splash-title,
+[data-performance="entry"] .splash-sub,
+[data-performance="entry"] .nx-status,
+[data-performance="entry"] .nx-bar-wrap {
+  animation: none !important;
+  opacity: 1 !important;
+  transform: none !important;
+}
+[data-performance="entry"] .nx-bar-track::before { animation: none !important; }
+
+/* Mid: lighter effects but keep glass & motion at reduced intensity */
+[data-performance="mid"] body::before { opacity: 0.35; }
+[data-performance="mid"] #spaceCanvas { opacity: 0.6; }
+[data-performance="mid"] .splash-mesh::before,
+[data-performance="mid"] .splash-mesh::after { filter: blur(48px); }
+[data-performance="mid"] .navbar-wrapper { backdrop-filter: blur(12px) saturate(140%); }
+[data-performance="mid"] .tool-card { backdrop-filter: blur(10px) saturate(140%); }
+
+/* High mode: full fidelity — default styles apply */
+
+/* ===== Transform-based progress fill (cheaper than width anim) ===== */
+.nx-bar-fill {
+  height: 100%;
+  transform-origin: left center;
+  transform: scaleX(0);
+  background: linear-gradient(90deg, var(--accent-primary), var(--accent-glow), var(--accent-cyan));
+  border-radius: 2px;
+  animation: nxBarFill 2.2s var(--ease-out) 0.6s forwards;
+  position: relative;
+  will-change: transform;
+}
+.nx-bar-fill::after {
+  content: '';
+  position: absolute;
+  right: 0; top: -3px;
+  width: 6px; height: 8px;
+  border-radius: 50%;
+  background: var(--accent-cyan);
+  box-shadow: 0 0 8px var(--accent-cyan);
+}
+@keyframes nxBarFill { to { transform: scaleX(1); } }
+
+/* Ensure entry devices show filled immediately (no anim) */
+[data-performance="entry"] .nx-bar-fill {
+  animation: none !important;
+  transform: scaleX(1) !important;
+  width: 100% !important;
+}
+
+/* Remove shimmer on entry devices */
+[data-performance="entry"] .nx-bar-track::before { display: none !important; }
+
+/* Defensive: if prefers-reduced-motion set via media, enforce no animations */
+@media (prefers-reduced-motion: reduce) {
+  .nx-bar-fill { animation: none !important; transform: scaleX(1) !important; }
+}
+
+/* Small utility: hidden class instead of !important display:none usage */
+.hidden { display: none !important; }
