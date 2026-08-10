@@ -281,15 +281,16 @@ window.createProgress = function (wrapId, label) {
     }
 
     function getOrCreateDropdown(inputEl) {
-        var wrap = inputEl.closest('.nav-search');
-        if (!wrap) return null;
-        var existing = wrap.querySelector('.search-dropdown');
-        if (existing) return existing;
-        var dd = document.createElement('div');
-        dd.className = 'search-dropdown';
-        dd.style.display = 'none';
-        wrap.appendChild(dd);
-        return dd;
+    var id = 'dd_' + inputEl.id;
+    var existing = document.getElementById(id);
+    if (existing) return existing;
+    var dd = document.createElement('div');
+    dd.id = id;
+    dd.className = 'search-dropdown';
+    dd.style.display = 'none';
+    dd.style.position = 'fixed';
+    document.body.appendChild(dd);
+    return dd;
     }
 
     function closeAll() {
@@ -318,6 +319,10 @@ window.createProgress = function (wrapId, label) {
             }).join('');
         }
 
+        var rect = inputEl.getBoundingClientRect();
+        dd.style.top    = (rect.bottom + 8) + 'px';
+        dd.style.left   = rect.left + 'px';
+        dd.style.width  = rect.width + 'px';
         dd.style.display = 'block';
         if (typeof lucide !== 'undefined') lucide.createIcons();
     }
