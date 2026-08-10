@@ -324,6 +324,8 @@ window.createProgress = function (wrapId, label) {
         dd.style.left   = rect.left + 'px';
         dd.style.width  = rect.width + 'px';
         dd.style.display = 'block';
+        dd.style.background = 'red';
+        dd.style.zIndex = '999999';
         if (typeof lucide !== 'undefined') lucide.createIcons();
     }
 
