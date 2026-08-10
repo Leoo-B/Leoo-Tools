@@ -304,7 +304,7 @@ window.createProgress = function (wrapId, label) {
 
         var q = query.toLowerCase();
         var matched = tools.filter(function (t) {
-            return t.name.toLowerCase().includes(q) || t.desc.toLowerCase().includes(q);
+            return t.name.toLowerCase().includes(q);
         });
 
         if (matched.length === 0) {
@@ -429,7 +429,7 @@ window.createProgress = function (wrapId, label) {
 
                     var q = query.toLowerCase();
                     var matched = tools.filter(function (t) {
-                        return t.name.toLowerCase().includes(q) || t.desc.toLowerCase().includes(q);
+                        return t.name.toLowerCase().includes(q);
                     });
 
                     if (matched.length > 0) {
