@@ -278,7 +278,7 @@ function buildMediaCard(wrapId, options) {
             '<div class="media-thumb-wrap" id="thumbWrap_' + escAttr(wrapId) + '" ' +
             'onclick="playMediaInline(\'' + escAttr(wrapId) + '\',\'' + escAttr(options.videoUrl || '') + '\')">' +
                 '<img class="media-thumb-img" src="' + escAttr(options.thumb) + '" alt="thumbnail" ' +
-                'onerror="this.parentNode.style.display=\'none\'">' +
+                'loading="lazy" onerror="this.parentNode.style.display=\'none\'">' +
                 (options.videoUrl
                     ? '<div class="media-play-btn"><div class="media-play-circle">' + ICON_PLAY + '</div></div>'
                     : '') +
