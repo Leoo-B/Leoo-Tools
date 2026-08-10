@@ -281,16 +281,16 @@ window.createProgress = function (wrapId, label) {
     }
 
     function getOrCreateDropdown(inputEl) {
-    var id = 'dd_' + inputEl.id;
-    var existing = document.getElementById(id);
-    if (existing) return existing;
-    var dd = document.createElement('div');
-    dd.id = id;
-    dd.className = 'search-dropdown';
-    dd.style.display = 'none';
-    dd.style.position = 'fixed';
-    document.body.appendChild(dd);
-    return dd;
+        var id = 'dd_' + inputEl.id;
+        var existing = document.getElementById(id);
+        if (existing) return existing;
+        var dd = document.createElement('div');
+        dd.id = id;
+        dd.className = 'search-dropdown';
+        dd.style.display = 'none';
+        dd.style.position = 'fixed';
+        document.body.appendChild(dd);
+        return dd;
     }
 
     function closeAll() {
@@ -299,7 +299,7 @@ window.createProgress = function (wrapId, label) {
         });
     }
 
-        function renderDropdown(dd, query, inputEl) {
+    function renderDropdown(dd, query, inputEl) {
         if (!query) { dd.style.display = 'none'; return; }
 
         var q = query.toLowerCase();
@@ -320,9 +320,9 @@ window.createProgress = function (wrapId, label) {
         }
 
         var rect = inputEl.getBoundingClientRect();
-        dd.style.top    = (rect.bottom + 8) + 'px';
-        dd.style.left   = rect.left + 'px';
-        dd.style.width  = rect.width + 'px';
+        dd.style.top   = (rect.bottom + 8) + 'px';
+        dd.style.left  = rect.left + 'px';
+        dd.style.width = rect.width + 'px';
         dd.style.display = 'block';
         if (typeof lucide !== 'undefined') lucide.createIcons();
     }
@@ -339,15 +339,12 @@ window.createProgress = function (wrapId, label) {
     }
 
     function selectTool(toolId) {
-        // Clear semua input + tutup dropdown
         getInputs().forEach(function (inp) { inp.value = ''; });
         closeAll();
 
-        // Coba scroll dan highlight langsung
         var found = scrollAndHighlight(toolId);
 
         if (!found) {
-            // Card tidak ada di grid — reset chip ke "Semua" lalu render ulang
             document.querySelectorAll('.chip').forEach(function (c) { c.classList.remove('active'); });
             var allChip = document.querySelector('.chip[data-cat="all"]');
             if (allChip) allChip.classList.add('active');
@@ -361,7 +358,6 @@ window.createProgress = function (wrapId, label) {
     }
 
     function showEmptyStateThenRestore() {
-        // Clear timer sebelumnya jika ada
         if (_emptyStateTimer) {
             clearTimeout(_emptyStateTimer);
             _emptyStateTimer = null;
@@ -370,7 +366,6 @@ window.createProgress = function (wrapId, label) {
         var grid = document.getElementById('toolsGrid');
         if (!grid) return;
 
-        // Tampilkan empty state
         grid.innerHTML =
             '<div class="empty-state">' +
                 '<div class="empty-state-box">' +
@@ -385,7 +380,6 @@ window.createProgress = function (wrapId, label) {
                 '</div>' +
             '</div>';
 
-        // Setelah 3 detik, render ulang normal
         _emptyStateTimer = setTimeout(function () {
             _emptyStateTimer = null;
             getInputs().forEach(function (inp) { inp.value = ''; });
@@ -394,23 +388,19 @@ window.createProgress = function (wrapId, label) {
         }, 3000);
     }
 
-    // Inisialisasi setelah DOM siap
     function initCombobox() {
         getInputs().forEach(function (inputEl) {
             var dd = getOrCreateDropdown(inputEl);
             if (!dd) return;
 
             inputEl.addEventListener('input', function () {
-                // Sync ke input lain
                 var val = inputEl.value;
                 getInputs().forEach(function (other) {
                     if (other !== inputEl) other.value = val;
                 });
 
-                // Render dropdown — grid tidak berubah
                 renderDropdown(dd, val.trim(), inputEl);
 
-                // Tutup dropdown milik input lain
                 document.querySelectorAll('.search-dropdown').forEach(function (other) {
                     if (other !== dd) other.style.display = 'none';
                 });
@@ -433,11 +423,9 @@ window.createProgress = function (wrapId, label) {
                     });
 
                     if (matched.length > 0) {
-                        // Ada hasil — ambil item pertama
                         e.preventDefault();
                         selectTool(matched[0].id);
                     } else {
-                        // Tidak ada hasil — tampilkan empty state lalu restore
                         e.preventDefault();
                         getInputs().forEach(function (inp) { inp.value = ''; });
                         closeAll();
@@ -454,14 +442,12 @@ window.createProgress = function (wrapId, label) {
             });
         });
 
-        // Tutup saat klik luar
         document.addEventListener('mousedown', function (e) {
             var insideSearch = e.target.closest('.nav-search');
             if (!insideSearch) closeAll();
         });
     }
 
-    // Tunggu tools tersedia (diinisialisasi setelah initAll)
     var _initTimer = setInterval(function () {
         if (typeof tools !== 'undefined' && document.getElementById('searchInput')) {
             clearInterval(_initTimer);
@@ -503,6 +489,47 @@ window.incrementUsage = function () {
     localStorage.setItem('totalUsage', totalUsage);
 };
 
+// ── TOOL SCRIPT MAP ────────────────────────────────────────────
+var toolScriptMap = {
+    password:  'tools/password.js',
+    json:      'tools/json.js',
+    unit:      'tools/unit.js',
+    base64:    'tools/base64.js',
+    counter:   'tools/counter.js',
+    color:     'tools/color.js',
+    tiktok:    'tools/mediadownload.js',
+    youtube:   'tools/mediadownload.js',
+    instagram: 'tools/mediadownload.js',
+    facebook:  'tools/mediadownload.js',
+    weather:   'tools/weather.js',
+    urlshort:  'tools/urlshort.js',
+    image:     'tools/image.js',
+    news:      'tools/news.js',
+};
+
+// ── LOADED SCRIPTS CACHE ───────────────────────────────────────
+var loadedScripts = {};
+
+// ── LOAD TOOL SCRIPT ───────────────────────────────────────────
+function loadToolScript(toolId, callback) {
+    var src = toolScriptMap[toolId];
+    if (!src) return callback();
+
+    if (loadedScripts[src]) return callback();
+
+    var script = document.createElement('script');
+    script.src = src;
+    script.onload = function () {
+        loadedScripts[src] = true;
+        callback();
+    };
+    script.onerror = function () {
+        console.error('❌ Gagal memuat:', src);
+        callback();
+    };
+    document.body.appendChild(script);
+}
+
 // ── RENDER GRID ────────────────────────────────────────────────
 window.renderTools = function () {
     var grid = document.getElementById('toolsGrid');
@@ -518,7 +545,7 @@ window.renderTools = function () {
 
     var filtered = tools.filter(function (t) {
         var matchCat    = currentCat === 'all' || t.cat === currentCat;
-        var matchSearch = t.name.toLowerCase().includes(searchVal) || t.desc.toLowerCase().includes(searchVal);
+        var matchSearch = t.name.toLowerCase().includes(searchVal);
         return matchCat && matchSearch;
     });
 
@@ -568,7 +595,7 @@ window.renderTools = function () {
     }, 280);
 };
 
-// ── OPEN / CLOSE TOOL ──────────────────────────────────────────
+// ── OPEN TOOL ──────────────────────────────────────────────────
 window.openTool = function (toolId) {
     var tool = tools.find(function (t) { return t.id === toolId; });
     if (!tool) return;
@@ -576,6 +603,13 @@ window.openTool = function (toolId) {
     localStorage.setItem('lastOpened', tool.name);
     document.body.classList.add('tool-open');
 
+    loadToolScript(toolId, function () {
+        _renderToolPage(toolId, tool);
+    });
+};
+
+// ── RENDER TOOL PAGE ───────────────────────────────────────────
+function _renderToolPage(toolId, tool) {
     var toolPage = document.getElementById('toolPage');
     toolPage.style.display = '';
     toolPage.classList.add('active');
@@ -719,8 +753,9 @@ window.openTool = function (toolId) {
     }
 
     window.scrollTo({ top: 0, behavior: 'smooth' });
-};
+}
 
+// ── CLOSE TOOL ─────────────────────────────────────────────────
 window.closeToolPage = function () {
     var toolPage = document.getElementById('toolPage');
     toolPage.classList.add('closing');
