@@ -2,6 +2,34 @@
 // CORE – Toast, Navbar, Progress, Render, Init
 // ==========================================
 
+// ── CSRF TOKEN ─────────────────────────────────────────────────
+var _csrfToken = null;
+
+function fetchCsrfToken() {
+    return fetch('/api/token')
+        .then(function (res) { return res.json(); })
+        .then(function (data) {
+            if (data.status && data.token) {
+                _csrfToken = data.token;
+            }
+        })
+        .catch(function () {
+            // Gagal fetch token — API call akan ditolak server, biarkan saja
+            _csrfToken = null;
+        });
+}
+
+// Refresh token setiap 4.5 menit (sebelum window 5 menit habis)
+setInterval(fetchCsrfToken, 4.5 * 60 * 1000);
+
+// Helper: tambah CSRF header ke fetch options
+function withCsrf(options) {
+    options = options || {};
+    options.headers = options.headers || {};
+    if (_csrfToken) options.headers['X-CSRF-Token'] = _csrfToken;
+    return options;
+}
+
 // ── TOAST ──────────────────────────────────────────────────────
 window.showToast = function (message, type) {
     var container = document.getElementById('toastContainer');
@@ -14,7 +42,6 @@ window.showToast = function (message, type) {
     toast.className = 'toast' + (type === 'success' ? ' toast-success' : type === 'error' ? ' toast-error' : '');
     toast.textContent = message;
     container.appendChild(toast);
-
     var timer = setTimeout(function () { dismissToast(toast); }, 2800);
     toast._dismissTimer = timer;
 };
@@ -33,8 +60,7 @@ function dismissToast(toast) {
 window.copyResultBox = function (btnEl, resultId) {
     var el = document.getElementById(resultId);
     if (!el) return;
-    var text = el.innerText || el.textContent || '';
-    text = text.trim();
+    var text = (el.innerText || el.textContent || '').trim();
     if (!text) { showToast('Tidak ada teks untuk disalin', 'error'); return; }
     navigator.clipboard.writeText(text).then(function () {
         showToast('Berhasil disalin!', 'success');
@@ -127,9 +153,9 @@ window.createProgress = function (wrapId, label) {
             '<div class="progress-status" id="pg_status_' + wrapId + '">&nbsp;</div>' +
         '</div>';
 
-    var fillEl   = document.getElementById('pg_fill_' + wrapId);
-    var pctEl    = document.getElementById('pg_pct_' + wrapId);
-    var statusEl = document.getElementById('pg_status_' + wrapId);
+    var fillEl    = document.getElementById('pg_fill_' + wrapId);
+    var pctEl     = document.getElementById('pg_pct_' + wrapId);
+    var statusEl  = document.getElementById('pg_status_' + wrapId);
     var cancelBtn = document.getElementById('pg_cancel_' + wrapId);
     var crawlTimer = null;
     var current = 0;
@@ -137,8 +163,8 @@ window.createProgress = function (wrapId, label) {
     function setVal(pct, statusText) {
         pct = Math.max(0, Math.min(100, Math.round(pct)));
         current = pct;
-        if (fillEl)   fillEl.style.width  = pct + '%';
-        if (pctEl)    pctEl.textContent   = pct + '%';
+        if (fillEl)  fillEl.style.width  = pct + '%';
+        if (pctEl)   pctEl.textContent   = pct + '%';
         if (statusEl && statusText) statusEl.textContent = statusText;
     }
 
@@ -163,14 +189,11 @@ window.createProgress = function (wrapId, label) {
         clearCrawl();
         if (cancelBtn) cancelBtn.style.display = 'none';
         setVal(100, statusText || 'Selesai!');
-
         if (fillEl) {
             fillEl.style.background = 'linear-gradient(90deg, #22c55e, #4ade80)';
             fillEl.style.boxShadow  = '0 0 12px rgba(74,222,128,0.4)';
         }
-
         var pw = wrap.querySelector('.progress-wrap');
-
         if (pw) {
             pw.classList.add('progress-done-flash');
             setTimeout(function () {
@@ -191,8 +214,10 @@ window.createProgress = function (wrapId, label) {
     function error(statusText) {
         clearCrawl();
         if (cancelBtn) cancelBtn.style.display = 'none';
-        if (fillEl) fillEl.style.background = 'linear-gradient(90deg, #ef4444, #f87171)';
-        if (fillEl) fillEl.style.boxShadow  = '0 0 12px rgba(239,68,68,0.4)';
+        if (fillEl) {
+            fillEl.style.background = 'linear-gradient(90deg, #ef4444, #f87171)';
+            fillEl.style.boxShadow  = '0 0 12px rgba(239,68,68,0.4)';
+        }
         setVal(current, statusText || 'Terjadi kesalahan.');
     }
 
@@ -201,8 +226,10 @@ window.createProgress = function (wrapId, label) {
         cancelled = true;
         clearCrawl();
         if (abortController) abortController.abort();
-        if (fillEl) fillEl.style.background = 'linear-gradient(90deg, #f59e0b, #fbbf24)';
-        if (fillEl) fillEl.style.boxShadow  = '0 0 12px rgba(245,158,11,0.4)';
+        if (fillEl) {
+            fillEl.style.background = 'linear-gradient(90deg, #f59e0b, #fbbf24)';
+            fillEl.style.boxShadow  = '0 0 12px rgba(245,158,11,0.4)';
+        }
         setVal(current, 'Dibatalkan.');
         if (cancelBtn) cancelBtn.style.display = 'none';
         setTimeout(function () {
@@ -212,9 +239,7 @@ window.createProgress = function (wrapId, label) {
         }, 1000);
     }
 
-    if (cancelBtn) {
-        cancelBtn.addEventListener('click', function () { cancel(); });
-    }
+    if (cancelBtn) cancelBtn.addEventListener('click', function () { cancel(); });
 
     setVal(8, 'Menghubungi server...');
 
@@ -229,22 +254,58 @@ window.createProgress = function (wrapId, label) {
     };
 };
 
+// ── CEK APAKAH ADA PROGRESS AKTIF ─────────────────────────────
+function hasActiveProgress() {
+    return !!document.querySelector('.progress-wrap.visible');
+}
+
+// ── CANCEL SEMUA PROGRESS ──────────────────────────────────────
+function cancelAllProgress() {
+    document.querySelectorAll('.progress-cancel-btn').forEach(function (btn) {
+        if (btn.style.display !== 'none') btn.click();
+    });
+}
+
+// ── MODAL KONFIRMASI ───────────────────────────────────────────
+var _confirmCallback = null;
+
+function showConfirmModal(onLeave) {
+    _confirmCallback = onLeave;
+    var overlay = document.getElementById('confirmOverlay');
+    if (!overlay) { onLeave(); return; }
+    overlay.classList.add('active');
+    if (typeof lucide !== 'undefined') lucide.createIcons();
+}
+
+function hideConfirmModal() {
+    var overlay = document.getElementById('confirmOverlay');
+    if (overlay) overlay.classList.remove('active');
+    _confirmCallback = null;
+}
+
+// Tombol "Tetap di Sini"
+document.addEventListener('DOMContentLoaded', function () {
+    var stayBtn  = document.getElementById('confirmStay');
+    var leaveBtn = document.getElementById('confirmLeave');
+    if (stayBtn)  stayBtn.addEventListener('click', hideConfirmModal);
+    if (leaveBtn) leaveBtn.addEventListener('click', function () {
+        hideConfirmModal();
+        cancelAllProgress();
+        if (typeof _confirmCallback === 'function') _confirmCallback();
+    });
+});
+
 // ── NAVBAR SCROLL COLLAPSE ──────────────────────────────────────
 (function () {
     var wrapper         = document.getElementById('navbarWrapper');
     var scrollBtn       = document.getElementById('scrollTopBtn');
     var mainSearch      = document.getElementById('searchInput');
     var collapsedSearch = document.getElementById('searchInputCollapsed');
-
     var COLLAPSE_THRESHOLD = 60;
 
     if (mainSearch && collapsedSearch) {
-        mainSearch.addEventListener('input', function () {
-            collapsedSearch.value = this.value;
-        });
-        collapsedSearch.addEventListener('input', function () {
-            mainSearch.value = this.value;
-        });
+        mainSearch.addEventListener('input', function () { collapsedSearch.value = this.value; });
+        collapsedSearch.addEventListener('input', function () { mainSearch.value = this.value; });
     }
 
     window.addEventListener('scroll', function () {
@@ -262,17 +323,13 @@ window.createProgress = function (wrapId, label) {
         }
     }, { passive: true });
 
-    if (scrollBtn) {
-        scrollBtn.addEventListener('click', function () {
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        });
-    }
+    if (scrollBtn) scrollBtn.addEventListener('click', function () {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
 })();
 
 // ── SEARCH COMBOBOX ────────────────────────────────────────────
 (function () {
-    var _emptyStateTimer = null;
-
     function getInputs() {
         return [
             document.getElementById('searchInput'),
@@ -301,11 +358,8 @@ window.createProgress = function (wrapId, label) {
 
     function renderDropdown(dd, query, inputEl) {
         if (!query) { dd.style.display = 'none'; return; }
-
         var q = query.toLowerCase();
-        var matched = tools.filter(function (t) {
-            return t.name.toLowerCase().includes(q);
-        });
+        var matched = tools.filter(function (t) { return t.name.toLowerCase().includes(q); });
 
         if (matched.length === 0) {
             dd.innerHTML = '<div class="search-dropdown-empty">Tidak ada tool ditemukan</div>';
@@ -341,31 +395,29 @@ window.createProgress = function (wrapId, label) {
     function selectTool(toolId) {
         getInputs().forEach(function (inp) { inp.value = ''; });
         closeAll();
-
         var found = scrollAndHighlight(toolId);
-
         if (!found) {
             document.querySelectorAll('.chip').forEach(function (c) { c.classList.remove('active'); });
             var allChip = document.querySelector('.chip[data-cat="all"]');
             if (allChip) allChip.classList.add('active');
-
             if (typeof renderTools === 'function') renderTools();
-
-            setTimeout(function () {
-                scrollAndHighlight(toolId);
-            }, 320);
+            setTimeout(function () { scrollAndHighlight(toolId); }, 320);
         }
     }
 
-    function showEmptyStateThenRestore() {
-        if (_emptyStateTimer) {
-            clearTimeout(_emptyStateTimer);
-            _emptyStateTimer = null;
-        }
+    // ── RESET PENCARIAN (ganti auto-restore) ──────────────────
+    window.resetSearch = function () {
+        getInputs().forEach(function (inp) { inp.value = ''; });
+        closeAll();
+        document.querySelectorAll('.chip').forEach(function (c) { c.classList.remove('active'); });
+        var allChip = document.querySelector('.chip[data-cat="all"]');
+        if (allChip) allChip.classList.add('active');
+        if (typeof renderTools === 'function') renderTools();
+    };
 
+    function showEmptyState() {
         var grid = document.getElementById('toolsGrid');
         if (!grid) return;
-
         grid.innerHTML =
             '<div class="empty-state">' +
                 '<div class="empty-state-box">' +
@@ -377,15 +429,9 @@ window.createProgress = function (wrapId, label) {
                     '</svg>' +
                     '<p class="empty-state-title">Tidak ada tool ditemukan</p>' +
                     '<p class="empty-state-desc">Coba kata kunci lain atau pilih kategori berbeda.</p>' +
+                    '<button class="btn-reset-search" onclick="resetSearch()">Reset Pencarian</button>' +
                 '</div>' +
             '</div>';
-
-        _emptyStateTimer = setTimeout(function () {
-            _emptyStateTimer = null;
-            getInputs().forEach(function (inp) { inp.value = ''; });
-            closeAll();
-            if (typeof renderTools === 'function') renderTools();
-        }, 3000);
     }
 
     function initCombobox() {
@@ -398,30 +444,20 @@ window.createProgress = function (wrapId, label) {
                 getInputs().forEach(function (other) {
                     if (other !== inputEl) other.value = val;
                 });
-
                 renderDropdown(dd, val.trim(), inputEl);
-
                 document.querySelectorAll('.search-dropdown').forEach(function (other) {
                     if (other !== dd) other.style.display = 'none';
                 });
             });
 
             inputEl.addEventListener('keydown', function (e) {
-                if (e.key === 'Escape') {
-                    closeAll();
-                    inputEl.blur();
-                    return;
-                }
-
+                if (e.key === 'Escape') { closeAll(); inputEl.blur(); return; }
                 if (e.key === 'Enter') {
                     var query = inputEl.value.trim();
                     if (!query) return;
-
-                    var q = query.toLowerCase();
                     var matched = tools.filter(function (t) {
-                        return t.name.toLowerCase().includes(q);
+                        return t.name.toLowerCase().includes(query.toLowerCase());
                     });
-
                     if (matched.length > 0) {
                         e.preventDefault();
                         selectTool(matched[0].id);
@@ -429,7 +465,7 @@ window.createProgress = function (wrapId, label) {
                         e.preventDefault();
                         getInputs().forEach(function (inp) { inp.value = ''; });
                         closeAll();
-                        showEmptyStateThenRestore();
+                        showEmptyState();
                     }
                 }
             });
@@ -443,8 +479,7 @@ window.createProgress = function (wrapId, label) {
         });
 
         document.addEventListener('mousedown', function (e) {
-            var insideSearch = e.target.closest('.nav-search');
-            if (!insideSearch) closeAll();
+            if (!e.target.closest('.nav-search')) closeAll();
         });
     }
 
@@ -467,7 +502,7 @@ function getSimpleIcon(slug, size) {
 var tools = [
     { name: 'Password Generator',      icon: 'key-round',         iconType: 'lucide', cat: 'utility', desc: 'Bikin password super kuat.',                   id: 'password'  },
     { name: 'JSON Formatter',          icon: 'braces',            iconType: 'lucide', cat: 'dev',     desc: 'Rapihin & validasi JSON.',                     id: 'json'      },
-    { name: 'Unit Converter',          icon: 'thermometer',       iconType: 'lucide', cat: 'utility', desc: 'Celcius, Fahrenheit, Kelvin.',                 id: 'unit'      },
+    { name: 'Unit Converter',          icon: 'thermometer',       iconType: 'lucide', cat: 'utility', desc: 'Konversi suhu, panjang, berat, dan lainnya.',  id: 'unit'      },
     { name: 'Base64 Encoder/Decoder',  icon: 'lock-keyhole',      iconType: 'lucide', cat: 'text',    desc: 'Encode/decode teks base64.',                   id: 'base64'    },
     { name: 'Text Analyzer',           icon: 'text-cursor-input', iconType: 'lucide', cat: 'text',    desc: 'Hitung huruf, kata, kalimat.',                 id: 'counter'   },
     { name: 'Color Picker Pro',        icon: 'pipette',           iconType: 'lucide', cat: 'utility', desc: 'Pilih warna + salin kode.',                    id: 'color'     },
@@ -507,26 +542,16 @@ var toolScriptMap = {
     news:      'tools/news.js',
 };
 
-// ── LOADED SCRIPTS CACHE ───────────────────────────────────────
 var loadedScripts = {};
 
-// ── LOAD TOOL SCRIPT ───────────────────────────────────────────
 function loadToolScript(toolId, callback) {
     var src = toolScriptMap[toolId];
     if (!src) return callback();
-
     if (loadedScripts[src]) return callback();
-
     var script = document.createElement('script');
     script.src = src;
-    script.onload = function () {
-        loadedScripts[src] = true;
-        callback();
-    };
-    script.onerror = function () {
-        console.error('❌ Gagal memuat:', src);
-        callback();
-    };
+    script.onload = function () { loadedScripts[src] = true; callback(); };
+    script.onerror = function () { console.error('❌ Gagal memuat:', src); callback(); };
     document.body.appendChild(script);
 }
 
@@ -562,6 +587,7 @@ window.renderTools = function () {
                         '</svg>' +
                         '<p class="empty-state-title">Tidak ada tool ditemukan</p>' +
                         '<p class="empty-state-desc">Coba kata kunci lain atau pilih kategori berbeda.</p>' +
+                        '<button class="btn-reset-search" onclick="resetSearch()">Reset Pencarian</button>' +
                     '</div>' +
                 '</div>';
         } else {
@@ -585,14 +611,11 @@ window.renderTools = function () {
         cards.forEach(function (card) {
             card.addEventListener('mousemove', function (e) {
                 var rect = card.getBoundingClientRect();
-                var x = e.clientX - rect.left;
-                var y = e.clientY - rect.top;
-                card.style.setProperty('--mx', x + 'px');
-                card.style.setProperty('--my', y + 'px');
+                card.style.setProperty('--mx', (e.clientX - rect.left) + 'px');
+                card.style.setProperty('--my', (e.clientY - rect.top) + 'px');
             });
         });
-
-    }, 280);
+    }, 100);
 };
 
 // ── OPEN TOOL ──────────────────────────────────────────────────
@@ -602,6 +625,20 @@ window.openTool = function (toolId) {
 
     localStorage.setItem('lastOpened', tool.name);
     document.body.classList.add('tool-open');
+
+    // Spinner saat script loading
+    var toolPage = document.getElementById('toolPage');
+    var body     = document.getElementById('toolPageBody');
+    toolPage.style.display = '';
+    toolPage.classList.add('active');
+    document.getElementById('toolPageTitle').textContent = tool.name;
+    body.innerHTML =
+        '<div style="display:flex;align-items:center;justify-content:center;padding:60px 0;">' +
+            '<div class="tool-load-spinner"></div>' +
+        '</div>';
+
+    // Push URL state
+    history.pushState({ tool: toolId }, '', '/?tool=' + toolId);
 
     loadToolScript(toolId, function () {
         _renderToolPage(toolId, tool);
@@ -616,8 +653,6 @@ function _renderToolPage(toolId, tool) {
     document.getElementById('toolPageTitle').textContent = tool.name;
 
     var body = document.getElementById('toolPageBody');
-
-    // Ambil template dari fungsi getTemplate_ yang ada di tool JS masing-masing
     var getTemplateFn = window['getTemplate_' + toolId];
     var html = typeof getTemplateFn === 'function'
         ? getTemplateFn(tool)
@@ -629,22 +664,21 @@ function _renderToolPage(toolId, tool) {
     var children = body.children;
     for (var i = 0; i < children.length; i++) {
         (function (el, idx) {
-            el.style.opacity = '0';
-            el.style.transform = 'translateY(18px)';
+            el.style.opacity    = '0';
+            el.style.transform  = 'translateY(18px)';
             el.style.transition = 'none';
             setTimeout(function () {
                 el.style.transition = 'opacity 0.38s cubic-bezier(0.16,1,0.3,1), transform 0.38s cubic-bezier(0.16,1,0.3,1)';
-                el.style.opacity = '1';
-                el.style.transform = 'translateY(0)';
+                el.style.opacity    = '1';
+                el.style.transform  = 'translateY(0)';
             }, 60 + idx * 70);
         })(children[i], i);
     }
-
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 // ── CLOSE TOOL ─────────────────────────────────────────────────
-window.closeToolPage = function () {
+function _doCloseToolPage() {
     var toolPage = document.getElementById('toolPage');
     toolPage.classList.add('closing');
     setTimeout(function () {
@@ -655,10 +689,65 @@ window.closeToolPage = function () {
         if (body) body.innerHTML = '';
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }, 280);
+}
+
+window.closeToolPage = function () {
+    if (hasActiveProgress()) {
+        showConfirmModal(function () {
+            history.pushState(null, '', '/');
+            _doCloseToolPage();
+        });
+        return;
+    }
+    history.pushState(null, '', '/');
+    _doCloseToolPage();
 };
+
+// ── POPSTATE (browser back/forward) ───────────────────────────
+window.addEventListener('popstate', function (e) {
+    if (e.state && e.state.tool) {
+        // Forward ke tool
+        var tool = tools.find(function (t) { return t.id === e.state.tool; });
+        if (tool) {
+            document.body.classList.add('tool-open');
+            var toolPage = document.getElementById('toolPage');
+            var body     = document.getElementById('toolPageBody');
+            toolPage.style.display = '';
+            toolPage.classList.add('active');
+            document.getElementById('toolPageTitle').textContent = tool.name;
+            body.innerHTML =
+                '<div style="display:flex;align-items:center;justify-content:center;padding:60px 0;">' +
+                    '<div class="tool-load-spinner"></div>' +
+                '</div>';
+            loadToolScript(e.state.tool, function () {
+                _renderToolPage(e.state.tool, tool);
+            });
+        }
+    } else {
+        // Back ke home
+        if (hasActiveProgress()) {
+            // Cegah navigasi dulu, push state balik
+            history.pushState(
+                document.body.classList.contains('tool-open')
+                    ? { tool: new URLSearchParams(location.search).get('tool') }
+                    : null,
+                '',
+                location.href
+            );
+            showConfirmModal(function () {
+                history.back();
+            });
+            return;
+        }
+        _doCloseToolPage();
+    }
+});
 
 // ── INIT ───────────────────────────────────────────────────────
 window.initAll = function () {
+    // Fetch CSRF token pertama kali
+    fetchCsrfToken();
+
     var theme  = localStorage.getItem('theme') || 'dark';
     document.documentElement.setAttribute('data-theme', theme);
     var toggle = document.getElementById('themeToggle');
@@ -678,9 +767,7 @@ window.initAll = function () {
         localStorage.setItem('theme', next);
         updateThemeIcon(next);
         showToast(next === 'dark' ? '🌙 Mode Gelap' : '☀️ Mode Terang', 'success');
-        setTimeout(function () {
-            document.body.classList.remove('theme-transitioning');
-        }, 400);
+        setTimeout(function () { document.body.classList.remove('theme-transitioning'); }, 400);
     });
 
     document.querySelectorAll('.chip').forEach(function (chip) {
@@ -693,4 +780,24 @@ window.initAll = function () {
 
     if (typeof lucide !== 'undefined') lucide.createIcons();
     renderTools();
+
+    // Cek URL apakah ada ?tool=xxx saat pertama load
+    var params = new URLSearchParams(window.location.search);
+    var toolFromUrl = params.get('tool');
+    if (toolFromUrl && tools.find(function (t) { return t.id === toolFromUrl; })) {
+        // Tunggu splash selesai dulu — splash.js hide splash setelah hideDelay
+        // Kita detect kapan splash hidden lewat MutationObserver
+        var splash = document.getElementById('splash');
+        if (!splash || splash.style.display === 'none') {
+            openTool(toolFromUrl);
+        } else {
+            var observer = new MutationObserver(function () {
+                if (splash.style.display === 'none' || splash.classList.contains('hide')) {
+                    observer.disconnect();
+                    setTimeout(function () { openTool(toolFromUrl); }, 100);
+                }
+            });
+            observer.observe(splash, { attributes: true, attributeFilter: ['style', 'class'] });
+        }
+    }
 };
