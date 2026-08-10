@@ -1,28 +1,81 @@
 // ==========================================
 // Vercel Serverless Function — Proxy ExsalAPI Enhance
 // Endpoint: /api/enhance?image_url=...
+// Security:
+//   - Layer 1: Origin / Referer whitelist
+//   - Layer 2: CSRF token (X-CSRF-Token header)
 // ==========================================
+
+import { createHmac } from 'crypto';
 
 const EXSAL_ENHANCE = 'https://exsalapi.my.id/api/ai/image/enhance';
 const EXSAL_KEY     = 'exs_leoob_1a593ef4';
 
+// ── ALLOWED ORIGINS (Layer 1) ──────────────────────────────────
+const ALLOWED_ORIGINS = [
+    'https://leoo-tools.vercel.app', // ganti dengan domain production kamu
+    'http://localhost:3000',
+    'http://localhost:5500',
+    'http://127.0.0.1:5500',
+];
+
+// ── CSRF VERIFY (Layer 2) ──────────────────────────────────────
+const SECRET = process.env.CSRF_SECRET;
+
+function getWindowedToken(secret) {
+    const window = Math.floor(Date.now() / (5 * 60 * 1000));
+    return createHmac('sha256', secret)
+        .update('leoo-tools:' + window)
+        .digest('hex');
+}
+
+function getPrevWindowedToken(secret) {
+    const window = Math.floor(Date.now() / (5 * 60 * 1000)) - 1;
+    return createHmac('sha256', secret)
+        .update('leoo-tools:' + window)
+        .digest('hex');
+}
+
+function isValidCsrfToken(token) {
+    if (!SECRET || !token) return false;
+    return token === getWindowedToken(SECRET) || token === getPrevWindowedToken(SECRET);
+}
+
+function isAllowedOrigin(req) {
+    const origin  = req.headers['origin']  || '';
+    const referer = req.headers['referer'] || '';
+    return ALLOWED_ORIGINS.some(function (o) {
+        return origin.startsWith(o) || referer.startsWith(o);
+    });
+}
+
+// ── HANDLER ────────────────────────────────────────────────────
 export default async function handler(req, res) {
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, X-CSRF-Token');
 
     if (req.method === 'OPTIONS') return res.status(200).end();
+
+    // ── Layer 1: Origin check ──────────────────────────────────
+    if (!isAllowedOrigin(req)) {
+        return res.status(403).json({ status: false, message: 'Akses tidak diizinkan.' });
+    }
+
+    // ── Layer 2: CSRF token check ──────────────────────────────
+    const csrfToken = req.headers['x-csrf-token'] || '';
+    if (!isValidCsrfToken(csrfToken)) {
+        return res.status(403).json({ status: false, message: 'Token tidak valid.' });
+    }
 
     const { image_url, dl } = req.query;
 
     // ── Mode download: /api/enhance?dl=URL_GAMBAR ──────────────
-    // Browser tidak pernah hit exsalapi langsung — Vercel yang fetch lalu stream balik
     if (dl) {
         try {
             const imgRes = await fetch(dl, {
                 headers: {
-                    // Pura-pura request datang dari browser biasa di exsalapi.my.id
-                    'Referer': 'https://exsalapi.my.id/',
+                    'Referer':    'https://exsalapi.my.id/',
                     'User-Agent': 'Mozilla/5.0 (Linux; Android 12) AppleWebKit/537.36 Chrome/120 Mobile Safari/537.36'
                 }
             });

@@ -1,10 +1,55 @@
 // ==========================================
 // Vercel Serverless Function — Proxy Video Download
 // Endpoint: /api/download?url=VIDEO_URL&filename=namafile.mp4
-// Keamanan:
+// Security:
+//   - Layer 1: Origin / Referer whitelist
+//   - Layer 2: CSRF token (X-CSRF-Token header)
 //   - Whitelist domain yang diizinkan
 //   - Rate limit 30 req/IP/menit (in-memory, best-effort)
 // ==========================================
+
+import { createHmac } from 'crypto';
+
+// ── ALLOWED ORIGINS (Layer 1) ──────────────────────────────────
+const ALLOWED_ORIGINS = [
+    'https://leoo-tools.vercel.app', // ganti dengan domain production kamu
+    'http://localhost:3000',
+    'http://localhost:5500',
+    'http://127.0.0.1:5500',
+];
+
+// ── CSRF VERIFY (Layer 2) ──────────────────────────────────────
+const SECRET = process.env.CSRF_SECRET;
+
+function getWindowedToken(secret) {
+    const window = Math.floor(Date.now() / (5 * 60 * 1000));
+    return createHmac('sha256', secret)
+        .update('leoo-tools:' + window)
+        .digest('hex');
+}
+
+function getPrevWindowedToken(secret) {
+    // Toleransi 1 window sebelumnya agar tidak gagal saat window baru mulai
+    const window = Math.floor(Date.now() / (5 * 60 * 1000)) - 1;
+    return createHmac('sha256', secret)
+        .update('leoo-tools:' + window)
+        .digest('hex');
+}
+
+function isValidCsrfToken(token) {
+    if (!SECRET || !token) return false;
+    const current  = getWindowedToken(SECRET);
+    const previous = getPrevWindowedToken(SECRET);
+    return token === current || token === previous;
+}
+
+function isAllowedOrigin(req) {
+    const origin  = req.headers['origin']  || '';
+    const referer = req.headers['referer'] || '';
+    return ALLOWED_ORIGINS.some(function (o) {
+        return origin.startsWith(o) || referer.startsWith(o);
+    });
+}
 
 // ── WHITELIST DOMAIN ───────────────────────────────────────────
 const ALLOWED_DOMAINS = [
@@ -32,39 +77,26 @@ function isDomainAllowed(urlStr) {
 }
 
 // ── RATE LIMIT (in-memory, best-effort) ───────────────────────
-// Catatan: di Vercel serverless, Map ini tidak shared antar instance.
-// Efeknya adalah rate limit yang longgar tapi tetap berguna sebagai
-// pengaman dasar pada instance yang sama.
 var rateLimitMap = new Map();
-var RATE_LIMIT   = 30;   // maks request per window
-var RATE_WINDOW  = 60000; // 1 menit dalam ms
+var RATE_LIMIT   = 30;
+var RATE_WINDOW  = 60000;
 
 function isRateLimited(ip) {
     var now  = Date.now();
     var data = rateLimitMap.get(ip);
-
     if (!data || now - data.windowStart > RATE_WINDOW) {
-        // Window baru atau sudah expired
         rateLimitMap.set(ip, { windowStart: now, count: 1 });
         return false;
     }
-
     data.count += 1;
-    if (data.count > RATE_LIMIT) {
-        return true;
-    }
-
-    return false;
+    return data.count > RATE_LIMIT;
 }
 
-// Bersihkan entri lama dari Map setiap 5 menit agar tidak memory leak
 if (typeof setInterval !== 'undefined') {
     setInterval(function () {
         var now = Date.now();
         rateLimitMap.forEach(function (data, ip) {
-            if (now - data.windowStart > RATE_WINDOW * 2) {
-                rateLimitMap.delete(ip);
-            }
+            if (now - data.windowStart > RATE_WINDOW * 2) rateLimitMap.delete(ip);
         });
     }, 5 * 60 * 1000);
 }
@@ -73,11 +105,22 @@ if (typeof setInterval !== 'undefined') {
 export default async function handler(req, res) {
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, X-CSRF-Token');
 
     if (req.method === 'OPTIONS') return res.status(200).end();
 
-    // ── Ambil IP client ────────────────────────────────────────
+    // ── Layer 1: Origin check ──────────────────────────────────
+    if (!isAllowedOrigin(req)) {
+        return res.status(403).json({ status: false, message: 'Akses tidak diizinkan.' });
+    }
+
+    // ── Layer 2: CSRF token check ──────────────────────────────
+    const csrfToken = req.headers['x-csrf-token'] || '';
+    if (!isValidCsrfToken(csrfToken)) {
+        return res.status(403).json({ status: false, message: 'Token tidak valid.' });
+    }
+
+    // ── IP + Rate limit ────────────────────────────────────────
     var ip = (
         req.headers['x-forwarded-for'] ||
         req.headers['x-real-ip'] ||
@@ -85,21 +128,13 @@ export default async function handler(req, res) {
         'unknown'
     ).split(',')[0].trim();
 
-    // ── Rate limit check ───────────────────────────────────────
     if (isRateLimited(ip)) {
-        return res.status(429).json({
-            status:  false,
-            message: 'Terlalu banyak request, tunggu sebentar.',
-        });
+        return res.status(429).json({ status: false, message: 'Terlalu banyak request, tunggu sebentar.' });
     }
 
     const { url, filename } = req.query;
+    if (!url) return res.status(400).json({ status: false, message: 'Parameter url wajib diisi.' });
 
-    if (!url) {
-        return res.status(400).json({ status: false, message: 'Parameter url wajib diisi.' });
-    }
-
-    // ── Decode & validasi URL ──────────────────────────────────
     var decodedUrl;
     try {
         decodedUrl = decodeURIComponent(url);
@@ -107,12 +142,8 @@ export default async function handler(req, res) {
         return res.status(400).json({ status: false, message: 'URL tidak valid.' });
     }
 
-    // ── Whitelist check ────────────────────────────────────────
     if (!isDomainAllowed(decodedUrl)) {
-        return res.status(403).json({
-            status:  false,
-            message: 'Domain tidak diizinkan.',
-        });
+        return res.status(403).json({ status: false, message: 'Domain tidak diizinkan.' });
     }
 
     try {
