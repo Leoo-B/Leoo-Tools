@@ -518,10 +518,7 @@ body::before {
 }
 /* ===== SEARCH COMBOBOX DROPDOWN ===== */
 .search-dropdown {
-    position: absolute;
-    top: calc(100% + 8px);
-    left: 0;
-    right: 0;
+    position: fixed;
     background: transparent;
     backdrop-filter: blur(24px) saturate(180%);
     -webkit-backdrop-filter: blur(24px) saturate(180%);
