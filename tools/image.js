@@ -83,7 +83,6 @@ window.enhanceImage = function () {
 
     var pg = createProgress('imageProgressWrap', 'Meningkatkan kualitas gambar');
 
-    // ── Step 1: Upload via /api/imgbb proxy (0→40%) ──────────
     pg.crawl(5, 38, 4000, 'Step 1/2 · Mengupload ke server...');
 
     var formData = new FormData();
@@ -92,7 +91,6 @@ window.enhanceImage = function () {
 
     var originalUrl = '';
 
-    // Fetch ke proxy serverless — bukan langsung ke ImgBB
     fetch('/api/imgbb', { method: 'POST', body: formData })
     .then(function (res) {
         if (!res.ok) throw new Error('Gagal upload ke server (HTTP ' + res.status + ')');
@@ -104,7 +102,6 @@ window.enhanceImage = function () {
         }
         originalUrl = json.data.display_url;
 
-        // ── Step 2: Enhance via proxy (40→90%) ──────────────
         pg.crawl(42, 88, 18000, 'Step 2/2 · AI sedang memproses gambar...');
         return fetch('/api/enhance?image_url=' + encodeURIComponent(originalUrl), { method: 'GET' });
     })
@@ -137,4 +134,14 @@ window.enhanceImage = function () {
         result.textContent = '❌ Error: ' + err.message;
         showToast('Gagal enhance gambar', 'error');
     });
+};
+
+window.getTemplate_image = function(tool) {
+    return '<div class="tool-desc">' + tool.desc + '</div>' +
+        '<label>Upload Gambar</label>' +
+        '<input type="file" id="imageInput" accept="image/*">' +
+        '<button class="btn-primary" onclick="enhanceImage()">Enhance Gambar</button>' +
+        '<div id="imageProgressWrap"></div>' +
+        '<div class="result-box" id="imageResult">Upload gambar, lalu klik Enhance.</div>' +
+        '<div id="imagePreview" style="margin-top:12px;"></div>';
 };

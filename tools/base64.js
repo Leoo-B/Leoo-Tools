@@ -24,3 +24,14 @@ window.decodeBase64 = function() {
         showToast('Gagal decode', 'error');
     }
 };
+
+window.getTemplate_base64 = function(tool) {
+    return '<div class="tool-desc">' + tool.desc + '</div>' +
+        '<label>Teks / Base64</label>' +
+        textareaWithClear('base64Input', 'Masukkan teks atau kode base64...') +
+        '<div class="btn-group">' +
+        '<button class="btn-primary" onclick="encodeBase64()">Encode</button>' +
+        '<button class="btn-primary btn-secondary" onclick="decodeBase64()">Decode</button>' +
+        '</div>' +
+        resultBoxWithCopy('base64Result', 'Hasil di sini');
+};

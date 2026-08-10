@@ -15,3 +15,11 @@ window.formatJson = function() {
         showToast('Error JSON: ' + e.message, 'error');
     }
 };
+
+window.getTemplate_json = function(tool) {
+    return '<div class="tool-desc">' + tool.desc + '</div>' +
+        '<label>Masukkan JSON</label>' +
+        textareaWithClear('jsonInput', '{ "nama": "Leoo" }') +
+        '<button class="btn-primary" onclick="formatJson()">Format & Validasi</button>' +
+        resultBoxWithCopy('jsonResult', 'Hasil akan muncul di sini');
+};

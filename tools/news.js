@@ -23,7 +23,6 @@ window.getNews = function () {
             throw new Error('Tidak ada berita tersedia.');
         }
 
-        // ── Deduplikasi berdasarkan link ────────────────────────
         var seen = {};
         var articles = [];
 
@@ -40,7 +39,6 @@ window.getNews = function () {
             }
         });
 
-        // ── Bersihkan title ─────────────────────────────────────
         var CATEGORIES = ['Nasional','Internasional','Ekonomi','Teknologi','Olahraga',
                           'Hiburan','Gaya Hidup','Otomotif','Travel','Edukasi'];
         var catPattern = new RegExp('\\s*(' + CATEGORIES.join('|') + ')\\s*$', 'i');
@@ -60,7 +58,6 @@ window.getNews = function () {
         pg.done('Berita dimuat!');
         if (btn) { btn.disabled = false; btn.style.opacity = ''; }
 
-        // ── Render artikel ──────────────────────────────────────
         var html = '<div class="news-list">';
         articles.forEach(function (art, i) {
             var safeTitle = escHtml(art.title);
@@ -114,7 +111,6 @@ window.getNews = function () {
     });
 };
 
-// ── HTML escape helper ─────────────────────────────────────────
 function escHtml(str) {
     return String(str || '')
         .replace(/&/g, '&amp;')
@@ -123,3 +119,10 @@ function escHtml(str) {
         .replace(/"/g, '&quot;')
         .replace(/'/g, '&#39;');
 }
+
+window.getTemplate_news = function(tool) {
+    return '<div class="tool-desc">' + tool.desc + '</div>' +
+        '<button class="btn-primary" onclick="getNews()">Lihat Berita</button>' +
+        '<div id="newsProgressWrap"></div>' +
+        '<div class="result-box" id="newsResult">Klik untuk memuat berita terkini.</div>';
+};

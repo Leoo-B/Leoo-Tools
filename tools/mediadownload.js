@@ -697,3 +697,44 @@ window.downloadFacebook = function () {
         showMediaError('facebookResultWrap', msg, 'facebook');
     });
 };
+
+// ── TEMPLATES ─────────────────────────────────────────────────
+window.getTemplate_tiktok = function(tool) {
+    return '<div class="tool-desc">' + tool.desc + '</div>' +
+        '<label>Link TikTok</label>' +
+        inputWithClear('tiktokLink', 'text', 'https://www.tiktok.com/@user/video/...', 'onkeydown="if(event.key===\'Enter\') downloadTiktok()"') +
+        '<button class="btn-primary" onclick="downloadTiktok()">Download</button>' +
+        '<div id="tiktokProgressWrap"></div>' +
+        '<div id="tiktokResultWrap"></div>' +
+        '<small style="color:var(--text-muted); display:block; margin-top:8px; font-size:0.75rem;">Hanya untuk konten publik & legal.</small>';
+};
+
+window.getTemplate_youtube = function(tool) {
+    return '<div class="tool-desc">' + tool.desc + '</div>' +
+        '<label>Link YouTube</label>' +
+        inputWithClear('youtubeLink', 'text', 'https://youtube.com/watch?v=...', 'onkeydown="if(event.key===\'Enter\') downloadYoutube()"') +
+        '<button class="btn-primary" onclick="downloadYoutube()">Download</button>' +
+        '<div id="youtubeProgressWrap"></div>' +
+        '<div id="youtubeResultWrap"></div>' +
+        '<small style="color:var(--text-muted); display:block; margin-top:8px; font-size:0.75rem;">Hanya untuk konten publik & legal.</small>';
+};
+
+window.getTemplate_instagram = function(tool) {
+    return '<div class="tool-desc">' + tool.desc + '</div>' +
+        '<label>Link Instagram</label>' +
+        inputWithClear('instagramLink', 'text', 'https://www.instagram.com/p/...', 'onkeydown="if(event.key===\'Enter\') downloadInstagram()"') +
+        '<button class="btn-primary" onclick="downloadInstagram()">Download</button>' +
+        '<div id="instagramProgressWrap"></div>' +
+        '<div id="instagramResultWrap"></div>' +
+        '<small style="color:var(--text-muted); display:block; margin-top:8px; font-size:0.75rem;">Hanya untuk konten publik & legal.</small>';
+};
+
+window.getTemplate_facebook = function(tool) {
+    return '<div class="tool-desc">' + tool.desc + '</div>' +
+        '<label>Link Facebook</label>' +
+        inputWithClear('facebookLink', 'text', 'https://www.facebook.com/.../videos/...', 'onkeydown="if(event.key===\'Enter\') downloadFacebook()"') +
+        '<button class="btn-primary" onclick="downloadFacebook()">Download</button>' +
+        '<div id="facebookProgressWrap"></div>' +
+        '<div id="facebookResultWrap"></div>' +
+        '<small style="color:var(--text-muted); display:block; margin-top:8px; font-size:0.75rem;">Hanya untuk konten publik & legal.</small>';
+};

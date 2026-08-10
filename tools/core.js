@@ -616,124 +616,12 @@ function _renderToolPage(toolId, tool) {
     document.getElementById('toolPageTitle').textContent = tool.name;
 
     var body = document.getElementById('toolPageBody');
-    var html = '<div class="tool-desc">' + tool.desc + '</div>';
 
-    switch (toolId) {
-        case 'password':
-            html += '<label>Panjang Password</label>' +
-                    '<input type="number" id="passLength" value="16" min="6" max="64">' +
-                    '<button class="btn-primary" onclick="generatePassword()">Generate Password</button>' +
-                    resultBoxWithCopy('passResult', 'Klik generate untuk hasil') +
-                    '<small style="color:var(--text-muted); display:block; margin-top:8px; font-size:0.75rem;">Kombinasi huruf besar, kecil, angka & simbol</small>';
-            break;
-        case 'json':
-            html += '<label>Masukkan JSON</label>' +
-                    textareaWithClear('jsonInput', '{ "nama": "Leoo" }') +
-                    '<button class="btn-primary" onclick="formatJson()">Format & Validasi</button>' +
-                    resultBoxWithCopy('jsonResult', 'Hasil akan muncul di sini');
-            break;
-        case 'unit':
-            html += '<label>Arah Konversi</label>' +
-                    '<select id="unitDirection">' +
-                    '<option value="CF">Celcius → Fahrenheit</option>' +
-                    '<option value="FC">Fahrenheit → Celcius</option>' +
-                    '<option value="CK">Celcius → Kelvin</option>' +
-                    '<option value="KC">Kelvin → Celcius</option>' +
-                    '</select>' +
-                    '<label>Masukkan Nilai</label>' +
-                    '<input type="number" id="unitInput" placeholder="0" step="any">' +
-                    '<button class="btn-primary" onclick="convertUnit()">Konversi</button>' +
-                    '<div class="result-box" id="unitResult">Hasil konversi</div>';
-            break;
-        case 'base64':
-            html += '<label>Teks / Base64</label>' +
-                    textareaWithClear('base64Input', 'Masukkan teks atau kode base64...') +
-                    '<div class="btn-group">' +
-                    '<button class="btn-primary" onclick="encodeBase64()">Encode</button>' +
-                    '<button class="btn-primary btn-secondary" onclick="decodeBase64()">Decode</button>' +
-                    '</div>' +
-                    resultBoxWithCopy('base64Result', 'Hasil di sini');
-            break;
-        case 'counter':
-            html += '<label>Masukkan Teks</label>' +
-                    textareaWithClear('counterInput', 'Tulis sesuatu...') +
-                    '<button class="btn-primary" onclick="analyzeText()">Analisis Teks</button>' +
-                    '<div class="result-box" id="counterResult">Klik analisis untuk lihat statistik</div>';
-            break;
-        case 'color':
-            html += '<label>Pilih Warna</label>' +
-                    '<input type="color" id="colorPicker" value="#3b82f6" ' +
-                    'style="height:56px; padding:4px; cursor:pointer; border-radius:var(--radius-sm); width:100%;" ' +
-                    'oninput="updateColorPreview(this.value)">' +
-                    '<div class="color-preview" id="colorPreview" style="background:#3b82f6;"></div>' +
-                    '<div class="btn-group">' +
-                    '<button class="btn-primary" onclick="copyColor(\'hex\')">Copy HEX</button>' +
-                    '<button class="btn-primary btn-secondary" onclick="copyColor(\'rgb\')">Copy RGB</button>' +
-                    '</div>' +
-                    '<div class="result-box" id="colorResult">HEX: #3b82f6 | RGB: rgb(59, 130, 246)</div>';
-            break;
-        case 'tiktok':
-            html += '<label>Link TikTok</label>' +
-                    inputWithClear('tiktokLink', 'text', 'https://www.tiktok.com/@user/video/...', 'onkeydown="if(event.key===\'Enter\') downloadTiktok()"') +
-                    '<button class="btn-primary" onclick="downloadTiktok()">Download</button>' +
-                    '<div id="tiktokProgressWrap"></div>' +
-                    '<div id="tiktokResultWrap"></div>' +
-                    '<small style="color:var(--text-muted); display:block; margin-top:8px; font-size:0.75rem;">Hanya untuk konten publik & legal.</small>';
-            break;
-        case 'youtube':
-            html += '<label>Link YouTube</label>' +
-                    inputWithClear('youtubeLink', 'text', 'https://youtube.com/watch?v=...', 'onkeydown="if(event.key===\'Enter\') downloadYoutube()"') +
-                    '<button class="btn-primary" onclick="downloadYoutube()">Download</button>' +
-                    '<div id="youtubeProgressWrap"></div>' +
-                    '<div id="youtubeResultWrap"></div>' +
-                    '<small style="color:var(--text-muted); display:block; margin-top:8px; font-size:0.75rem;">Hanya untuk konten publik & legal.</small>';
-            break;
-        case 'instagram':
-            html += '<label>Link Instagram</label>' +
-                    inputWithClear('instagramLink', 'text', 'https://www.instagram.com/p/...', 'onkeydown="if(event.key===\'Enter\') downloadInstagram()"') +
-                    '<button class="btn-primary" onclick="downloadInstagram()">Download</button>' +
-                    '<div id="instagramProgressWrap"></div>' +
-                    '<div id="instagramResultWrap"></div>' +
-                    '<small style="color:var(--text-muted); display:block; margin-top:8px; font-size:0.75rem;">Hanya untuk konten publik & legal.</small>';
-            break;
-        case 'facebook':
-            html += '<label>Link Facebook</label>' +
-                    inputWithClear('facebookLink', 'text', 'https://www.facebook.com/.../videos/...', 'onkeydown="if(event.key===\'Enter\') downloadFacebook()"') +
-                    '<button class="btn-primary" onclick="downloadFacebook()">Download</button>' +
-                    '<div id="facebookProgressWrap"></div>' +
-                    '<div id="facebookResultWrap"></div>' +
-                    '<small style="color:var(--text-muted); display:block; margin-top:8px; font-size:0.75rem;">Hanya untuk konten publik & legal.</small>';
-            break;
-        case 'weather':
-            html += '<label>Nama Kota</label>' +
-                    inputWithClear('weatherCity', 'text', 'Jakarta', 'onkeydown="if(event.key===\'Enter\') checkWeather()"') +
-                    '<button class="btn-primary" onclick="checkWeather()">Cek Cuaca</button>' +
-                    '<div id="weatherProgressWrap"></div>' +
-                    '<div class="result-box" id="weatherResult">Masukkan nama kota, lalu klik cek.</div>';
-            break;
-        case 'urlshort':
-            html += '<label>Link Panjang</label>' +
-                    inputWithClear('urlInput', 'text', 'https://...', 'onkeydown="if(event.key===\'Enter\') shortenUrl()"') +
-                    '<button class="btn-primary" onclick="shortenUrl()">Persingkat</button>' +
-                    '<div id="urlProgressWrap"></div>' +
-                    resultBoxWithCopy('urlResult', 'Hasil link pendek akan muncul di sini');
-            break;
-        case 'image':
-            html += '<label>Upload Gambar</label>' +
-                    '<input type="file" id="imageInput" accept="image/*">' +
-                    '<button class="btn-primary" onclick="enhanceImage()">Enhance Gambar</button>' +
-                    '<div id="imageProgressWrap"></div>' +
-                    '<div class="result-box" id="imageResult">Upload gambar, lalu klik Enhance.</div>' +
-                    '<div id="imagePreview" style="margin-top:12px;"></div>';
-            break;
-        case 'news':
-            html += '<button class="btn-primary" onclick="getNews()">Lihat Berita</button>' +
-                    '<div id="newsProgressWrap"></div>' +
-                    '<div class="result-box" id="newsResult">Klik untuk memuat berita terkini.</div>';
-            break;
-        default:
-            html += '<p style="color:var(--text-muted);">Tool ini belum siap.</p>';
-    }
+    // Ambil template dari fungsi getTemplate_ yang ada di tool JS masing-masing
+    var getTemplateFn = window['getTemplate_' + toolId];
+    var html = typeof getTemplateFn === 'function'
+        ? getTemplateFn(tool)
+        : '<div class="tool-desc">' + tool.desc + '</div><p style="color:var(--text-muted);">Tool ini belum siap.</p>';
 
     body.innerHTML = html;
     if (typeof lucide !== 'undefined') lucide.createIcons();

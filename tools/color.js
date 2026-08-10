@@ -29,3 +29,17 @@ window.copyColor = function(type) {
         showToast('Gagal copy, silakan salin manual', 'error');
     });
 };
+
+window.getTemplate_color = function(tool) {
+    return '<div class="tool-desc">' + tool.desc + '</div>' +
+        '<label>Pilih Warna</label>' +
+        '<input type="color" id="colorPicker" value="#3b82f6" ' +
+        'style="height:56px; padding:4px; cursor:pointer; border-radius:var(--radius-sm); width:100%;" ' +
+        'oninput="updateColorPreview(this.value)">' +
+        '<div class="color-preview" id="colorPreview" style="background:#3b82f6;"></div>' +
+        '<div class="btn-group">' +
+        '<button class="btn-primary" onclick="copyColor(\'hex\')">Copy HEX</button>' +
+        '<button class="btn-primary btn-secondary" onclick="copyColor(\'rgb\')">Copy RGB</button>' +
+        '</div>' +
+        '<div class="result-box" id="colorResult">HEX: #3b82f6 | RGB: rgb(59, 130, 246)</div>';
+};

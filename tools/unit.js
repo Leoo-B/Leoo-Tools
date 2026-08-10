@@ -22,3 +22,18 @@ window.convertUnit = function() {
     showToast('Konversi selesai!', 'success');
     incrementUsage();
 };
+
+window.getTemplate_unit = function(tool) {
+    return '<div class="tool-desc">' + tool.desc + '</div>' +
+        '<label>Arah Konversi</label>' +
+        '<select id="unitDirection">' +
+        '<option value="CF">Celcius → Fahrenheit</option>' +
+        '<option value="FC">Fahrenheit → Celcius</option>' +
+        '<option value="CK">Celcius → Kelvin</option>' +
+        '<option value="KC">Kelvin → Celcius</option>' +
+        '</select>' +
+        '<label>Masukkan Nilai</label>' +
+        '<input type="number" id="unitInput" placeholder="0" step="any">' +
+        '<button class="btn-primary" onclick="convertUnit()">Konversi</button>' +
+        '<div class="result-box" id="unitResult">Hasil konversi</div>';
+};

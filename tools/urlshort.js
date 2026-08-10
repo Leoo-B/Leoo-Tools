@@ -36,3 +36,12 @@ window.shortenUrl = function () {
         showToast('Gagal pendekin link', 'error');
     });
 };
+
+window.getTemplate_urlshort = function(tool) {
+    return '<div class="tool-desc">' + tool.desc + '</div>' +
+        '<label>Link Panjang</label>' +
+        inputWithClear('urlInput', 'text', 'https://...', 'onkeydown="if(event.key===\'Enter\') shortenUrl()"') +
+        '<button class="btn-primary" onclick="shortenUrl()">Persingkat</button>' +
+        '<div id="urlProgressWrap"></div>' +
+        resultBoxWithCopy('urlResult', 'Hasil link pendek akan muncul di sini');
+};

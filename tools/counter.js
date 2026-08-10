@@ -15,3 +15,11 @@ window.analyzeText = function() {
     showToast('Analisis teks selesai!', 'success');
     incrementUsage();
 };
+
+window.getTemplate_counter = function(tool) {
+    return '<div class="tool-desc">' + tool.desc + '</div>' +
+        '<label>Masukkan Teks</label>' +
+        textareaWithClear('counterInput', 'Tulis sesuatu...') +
+        '<button class="btn-primary" onclick="analyzeText()">Analisis Teks</button>' +
+        '<div class="result-box" id="counterResult">Klik analisis untuk lihat statistik</div>';
+};

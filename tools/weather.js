@@ -27,7 +27,6 @@ window.checkWeather = function () {
         var cur  = data.result.current  || {};
         var day  = data.result.today    || {};
 
-        // ── UV index label ──────────────────────────────────────
         var uvVal   = parseInt(cur.uv_index) || 0;
         var uvLabel = uvVal <= 2  ? 'Rendah' :
                       uvVal <= 5  ? 'Sedang' :
@@ -38,7 +37,6 @@ window.checkWeather = function () {
                       uvVal <= 7  ? '#fb923c' :
                       uvVal <= 10 ? '#f87171' : '#c084fc';
 
-        // ── Wind direction arrow ────────────────────────────────
         var dirArrow = {
             N:'↑', NNE:'↑↗', NE:'↗', ENE:'↗', E:'→', ESE:'↘', SE:'↘',
             SSE:'↓↘', S:'↓', SSW:'↓↙', SW:'↙', WSW:'↙', W:'←',
@@ -46,7 +44,6 @@ window.checkWeather = function () {
         };
         var windArrow = dirArrow[cur.wind_dir] || cur.wind_dir || '';
 
-        // ── Rain label ──────────────────────────────────────────
         var rainMm  = parseFloat(day.rain_mm) || 0;
         var rainLabel = rainMm === 0    ? 'Tidak ada' :
                         rainMm < 1     ? 'Gerimis ringan' :
@@ -56,7 +53,6 @@ window.checkWeather = function () {
         pg.done('Data diterima!');
 
         result.innerHTML =
-            // ── Header lokasi ───────────────────────────────────
             '<div class="wx-header">' +
                 '<div class="wx-location">' +
                     '<span class="wx-city">' + (loc.city || city) + '</span>' +
@@ -65,7 +61,6 @@ window.checkWeather = function () {
                 '<div class="wx-condition-badge">' + cur.condition + '</div>' +
             '</div>' +
 
-            // ── Suhu utama ──────────────────────────────────────
             '<div class="wx-temp-wrap">' +
                 '<div class="wx-temp-main">' + cur.temp_c + '°C</div>' +
                 '<div class="wx-temp-sub">' +
@@ -75,7 +70,6 @@ window.checkWeather = function () {
                 '<div class="wx-minmax">↑ ' + day.max_c + '° &nbsp; ↓ ' + day.min_c + '°</div>' +
             '</div>' +
 
-            // ── Grid detail ─────────────────────────────────────
             '<div class="wx-grid">' +
                 wxCard('💧', 'Kelembapan',   cur.humidity) +
                 wxCard('💨', 'Angin',        windArrow + ' ' + cur.wind_dir + ' ' + cur.wind_kph + ' km/h') +
@@ -105,3 +99,12 @@ function wxCard(icon, label, value) {
         '<span class="wx-card-value">' + (value || '—') + '</span>' +
         '</div>';
 }
+
+window.getTemplate_weather = function(tool) {
+    return '<div class="tool-desc">' + tool.desc + '</div>' +
+        '<label>Nama Kota</label>' +
+        inputWithClear('weatherCity', 'text', 'Jakarta', 'onkeydown="if(event.key===\'Enter\') checkWeather()"') +
+        '<button class="btn-primary" onclick="checkWeather()">Cek Cuaca</button>' +
+        '<div id="weatherProgressWrap"></div>' +
+        '<div class="result-box" id="weatherResult">Masukkan nama kota, lalu klik cek.</div>';
+};
