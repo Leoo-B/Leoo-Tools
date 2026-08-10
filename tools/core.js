@@ -299,7 +299,7 @@ window.createProgress = function (wrapId, label) {
         });
     }
 
-    function renderDropdown(dd, query) {
+        function renderDropdown(dd, query, inputEl) {
         if (!query) { dd.style.display = 'none'; return; }
 
         var q = query.toLowerCase();
@@ -324,8 +324,6 @@ window.createProgress = function (wrapId, label) {
         dd.style.left   = rect.left + 'px';
         dd.style.width  = rect.width + 'px';
         dd.style.display = 'block';
-        dd.style.background = 'red';
-        dd.style.zIndex = '999999';
         if (typeof lucide !== 'undefined') lucide.createIcons();
     }
 
@@ -410,7 +408,7 @@ window.createProgress = function (wrapId, label) {
                 });
 
                 // Render dropdown — grid tidak berubah
-                renderDropdown(dd, val.trim());
+                renderDropdown(dd, val.trim(), inputEl);
 
                 // Tutup dropdown milik input lain
                 document.querySelectorAll('.search-dropdown').forEach(function (other) {
