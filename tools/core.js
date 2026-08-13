@@ -334,6 +334,7 @@ document.addEventListener('DOMContentLoaded', function () {
         return [
             document.getElementById('searchInput'),
             document.getElementById('searchInputCollapsed'),
+            document.getElementById('heroSearchInput')
         ].filter(Boolean);
     }
 
