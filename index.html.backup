@@ -6,14 +6,6 @@
     <meta name="theme-color" content="#070b18">
     <title>Leoo Tools Pro</title>
     <link rel="icon" type="image/jpeg" href="wmremove-transformed.jpeg">
-<!-- IMPECCABLE DIRECTION CONTRACT
-THESIS: A toolbox that feels like a craftsman's leather-bound reading shelf — every tool a loved physical object you handle — but the navigation lives in a bioluminescent sea where your pointer awakens electric-blue plankton trails, revealing currents and depth. Refuses the sterile glass-card dashboard default.
-OWN-WORLD: Saddle-tan leather headers with visible cream stitching over warm gray linen ground; walnut wood shelves for content; torn paper edges for pages; deep leather brown ink. Palette: leather #8B6B4A, stitch #F5F0E8, linen #D4C8B8, walnut #4A3728, paper #FAF6F0, ink #2D1B0E. Type: embossed serif titles (Cormorant Garamond) pressed into leather; body copy on paper texture in humanist sans (DM Sans). Materials: CSS textures, layered box-shadows, 3D page-turn transforms. Components: machined metal toggles for switches, torn-paper deletion, stitched seam progress, raised active item with true drop shadow.
-STORY: The visitor arrives at a reading shelf in lamplight. Tools sit as books with embossed spines. Opening a tool peels a page corner that curls under the finger. The shelf breathes — pointer proximity ignites bioluminescent wakes across the linen, revealing the current tool's depth. No sterile cards, no glassmorphism. Craft earns trust.
-FIRST VIEWPORT: Desktop — leather header bar (64px) with embossed "Leoo Tools" + version badge; walnut shelf grid (3-4 columns) holding tool books with torn-paper spines; pointer proximity → electric-blue plankton bloom trails on linen ground, fading in 2s. Mobile — single spine list, shelf reflows to vertical stack; touch trails same plankton bloom. Primary action: tap a book → page-turn curl → tool opens as torn paper page on linen.
-FORM: Assigned direction #6 (Leather Reading Shelf) + challenger s1 (Bioluminescent Sea). Seed keys: 260ecf80 / 9d81ba47. Mode: persuade.
-FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, and DESIGN.md
--->
     <script>
         (function () {
             // Set performance mode early so CSS and scripts can adapt.
@@ -41,7 +33,6 @@ FINISH: unreviewed and undocumented is unfinished; this build ends with the fini
         })();
     </script>
     <link rel="stylesheet" href="style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
 </head>
 <body>
@@ -53,7 +44,7 @@ FINISH: unreviewed and undocumented is unfinished; this build ends with the fini
 <button class="scroll-top" id="scrollTopBtn" title="Ke Atas">
     <i data-lucide="arrow-up"></i>
 </button>
-
+    
 <!-- MODAL KONFIRMASI KELUAR -->
 <div class="confirm-overlay" id="confirmOverlay">
     <div class="confirm-card">
@@ -68,7 +59,7 @@ FINISH: unreviewed and undocumented is unfinished; this build ends with the fini
         </div>
     </div>
 </div>
-
+    
 <!-- SPACE CANVAS (orbit rings + meteor) -->
 <canvas id="spaceCanvas"></canvas>
 
@@ -78,8 +69,9 @@ FINISH: unreviewed and undocumented is unfinished; this build ends with the fini
     <div class="splash-title">Leoo Tools</div>
     <div class="splash-sub">By Galang</div>
     <div class="nx-bar-wrap">
-        <div class="nx-bar-track"></div>
-        <div class="nx-bar-fill"></div>
+        <div class="nx-bar-track">
+            <div class="nx-bar-fill"></div>
+        </div>
     </div>
     <div class="nx-status" id="nexusShellStatus">menginisialisasi sistem</div>
 </div>
@@ -138,28 +130,24 @@ FINISH: unreviewed and undocumented is unfinished; this build ends with the fini
 <!-- SPACE CANVAS — Adaptive performance -->
 <script>
 (function () {
-    // Set performance mode early so CSS and scripts can adapt.
-    var prefersReduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    var saveData = navigator.connection && navigator.connection.saveData;
-    var cores = navigator.hardwareConcurrency || 2;
-    var mem = navigator.deviceMemory || 2;
-
+    // Use data-performance attribute if present, else fallback to hardware detection
+    var perfAttr = document.documentElement.getAttribute('data-performance');
     var mode;
-    if (prefersReduced || saveData) {
-        mode = 'entry';
-    } else if (cores <= 2 || mem <= 2) {
-        mode = 'entry';
-    } else if (cores <= 4 || mem <= 4) {
-        mode = 'mid';
+    if (perfAttr) {
+        mode = perfAttr; // 'entry' | 'mid' | 'high'
     } else {
-        mode = 'high';
+        var cores  = navigator.hardwareConcurrency  || 2;
+        var mem    = navigator.deviceMemory         || 2; // GB, undefined di Firefox
+        if (cores <= 2 || mem <= 2) mode = 'entry';
+        else if (cores <= 4 || mem <= 4) mode = 'mid';
+        else mode = 'high';
     }
 
     // Map to configuration
     var CFG = {
-        entry: { ringCount: 3, meteors: true,  fps: 20 },
-        mid:   { ringCount: 4, meteors: true,  fps: 30, meteorIntervalMin: 4000, meteorIntervalMax: 8000 },
-        high:  { ringCount: 5, meteors: true,  fps: 60, meteorIntervalMin: 2800, meteorIntervalMax: 6000  }
+        entry: { ringCount: 2, meteors: false, fps: 20 },
+        mid:   { ringCount: 3, meteors: true,  fps: 30, meteorIntervalMin: 5000, meteorIntervalMax: 10000 },
+        high:  { ringCount: 5, meteors: true,  fps: 60, meteorIntervalMin: 2800, meteorIntervalMax: 6000  },
     };
     var cfg = CFG[mode] || CFG.high;
     var frameDuration = 1000 / cfg.fps;
@@ -179,7 +167,7 @@ FINISH: unreviewed and undocumented is unfinished; this build ends with the fini
         { cx: 0.20, cy: 0.65, rx: 170, ry: 65,  angle: 1.2,  speed: 0.00012, color: 'rgba(129,140,248,0.06)', width: 1.0 },
         { cx: 0.85, cy: 0.75, rx: 130, ry: 50,  angle: 2.5,  speed: 0.00022, color: 'rgba(34,211,238,0.05)',  width: 0.8 },
         { cx: 0.40, cy: 0.30, rx: 260, ry: 95,  angle: 0.7,  speed: 0.00010, color: 'rgba(96,165,250,0.04)',  width: 1.5 },
-        { cx: 0.60, cy: 0.88, rx: 190, ry: 70,  angle: 3.8,  speed: 0.00015, color: 'rgba(244,114,182,0.04)', width: 0.9 }
+        { cx: 0.60, cy: 0.88, rx: 190, ry: 70,  angle: 3.8,  speed: 0.00015, color: 'rgba(244,114,182,0.04)', width: 0.9 },
     ];
     var rings = allRings.slice(0, cfg.ringCount);
     var dots  = rings.map(function (r) {
@@ -218,11 +206,14 @@ FINISH: unreviewed and undocumented is unfinished; this build ends with the fini
 
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+        var W = canvas.width;
+        var H = canvas.height;
+
         rings.forEach(function (r, i) {
             r.angle += r.speed;
 
             ctx.save();
-            ctx.translate(r.cx * canvas.width, r.cy * canvas.height);
+            ctx.translate(r.cx * W, r.cy * H);
             ctx.rotate(r.angle);
 
             ctx.beginPath();
@@ -237,8 +228,8 @@ FINISH: unreviewed and undocumented is unfinished; this build ends with the fini
             var dy = Math.sin(d.angle) * r.ry;
 
             var grad = ctx.createRadialGradient(dx, dy, 0, dx, dy, 5);
-            grad.addColorStop(0, r.color.replace(/[\\d.]+\\)$/, '0.9)'));
-            grad.addColorStop(1, r.color.replace(/[\\d.]+\\)$/, '0)'));
+            grad.addColorStop(0, r.color.replace(/[\d.]+\)$/, '0.9)'));
+            grad.addColorStop(1, r.color.replace(/[\d.]+\)$/, '0)'));
             ctx.beginPath();
             ctx.arc(dx, dy, 4, 0, Math.PI * 2);
             ctx.fillStyle = grad;
@@ -280,7 +271,7 @@ FINISH: unreviewed and undocumented is unfinished; this build ends with the fini
         }
     }
 
-    var raf = requestAnimationFrame(draw);
+    raf = requestAnimationFrame(draw);
 
     document.addEventListener('visibilitychange', function () {
         if (document.hidden) {
@@ -292,5 +283,6 @@ FINISH: unreviewed and undocumented is unfinished; this build ends with the fini
     });
 })();
 </script>
+
 </body>
 </html>
