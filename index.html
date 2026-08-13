@@ -3,50 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="theme-color" content="#070b18">
+    <meta name="theme-color" content="#0a0a14">
     <title>Leoo Tools Pro</title>
     <link rel="icon" type="image/jpeg" href="wmremove-transformed.jpeg">
-<!-- IMPECCABLE DIRECTION CONTRACT
-THESIS: A toolbox that feels like a craftsman's leather-bound reading shelf — every tool a loved physical object you handle — but the navigation lives in a bioluminescent sea where your pointer awakens electric-blue plankton trails, revealing currents and depth. Refuses the sterile glass-card dashboard default.
-OWN-WORLD: Saddle-tan leather headers with visible cream stitching over warm gray linen ground; walnut wood shelves for content; torn paper edges for pages; deep leather brown ink. Palette: leather #8B6B4A, stitch #F5F0E8, linen #D4C8B8, walnut #4A3728, paper #FAF6F0, ink #2D1B0E. Type: embossed serif titles (Cormorant Garamond) pressed into leather; body copy on paper texture in humanist sans (DM Sans). Materials: CSS textures, layered box-shadows, 3D page-turn transforms. Components: machined metal toggles for switches, torn-paper deletion, stitched seam progress, raised active item with true drop shadow.
-STORY: The visitor arrives at a reading shelf in lamplight. Tools sit as books with embossed spines. Opening a tool peels a page corner that curls under the finger. The shelf breathes — pointer proximity ignites bioluminescent wakes across the linen, revealing the current tool's depth. No sterile cards, no glassmorphism. Craft earns trust.
-FIRST VIEWPORT: Desktop — leather header bar (64px) with embossed "Leoo Tools" + version badge; walnut shelf grid (3-4 columns) holding tool books with torn-paper spines; pointer proximity → electric-blue plankton bloom trails on linen ground, fading in 2s. Mobile — single spine list, shelf reflows to vertical stack; touch trails same plankton bloom. Primary action: tap a book → page-turn curl → tool opens as torn paper page on linen.
-FORM: Assigned direction #6 (Leather Reading Shelf) + challenger s1 (Bioluminescent Sea). Seed keys: 260ecf80 / 9d81ba47. Mode: persuade.
-FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, and DESIGN.md
--->
-    <script>
-        (function () {
-            // Set performance mode early so CSS and scripts can adapt.
-            var prefersReduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-            var saveData = navigator.connection && navigator.connection.saveData;
-            var cores = navigator.hardwareConcurrency || 2;
-            var mem = navigator.deviceMemory || 2;
-
-            var mode;
-            if (prefersReduced || saveData) {
-                mode = 'entry';
-            } else if (cores <= 2 || mem <= 2) {
-                mode = 'entry';
-            } else if (cores <= 4 || mem <= 4) {
-                mode = 'mid';
-            } else {
-                mode = 'high';
-            }
-
-            document.documentElement.setAttribute('data-performance', mode);
-
-            // Preserve existing theme behavior
-            var theme = localStorage.getItem('theme') || 'dark';
-            document.documentElement.setAttribute('data-theme', theme);
-        })();
-    </script>
     <link rel="stylesheet" href="style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
 </head>
 <body>
 
-<!-- TOAST -->
+<!-- TOAST CONTAINER -->
 <div class="toast-container" id="toastContainer"></div>
 
 <!-- SCROLL TOP -->
@@ -69,25 +34,10 @@ FINISH: unreviewed and undocumented is unfinished; this build ends with the fini
     </div>
 </div>
 
-<!-- SPACE CANVAS (orbit rings + meteor) -->
-<canvas id="spaceCanvas"></canvas>
-
-<!-- SPLASH SCREEN -->
-<div class="splash-screen" id="splash">
-    <div class="splash-mesh"></div>
-    <div class="splash-title">Leoo Tools</div>
-    <div class="splash-sub">By Galang</div>
-    <div class="nx-bar-wrap">
-        <div class="nx-bar-track"></div>
-        <div class="nx-bar-fill"></div>
-    </div>
-    <div class="nx-status" id="nexusShellStatus">menginisialisasi sistem</div>
-</div>
-
 <!-- FIXED HEADER -->
-<div class="navbar-wrapper" id="navbarWrapper">
+<header class="navbar-wrapper" id="navbarWrapper">
     <div class="navbar" id="navbarFull">
-        <div class="brand">Leoo Tools <small>V 1.0</small></div>
+        <div class="brand">Leoo Tools <small>Pro</small></div>
         <div class="nav-search">
             <i data-lucide="search"></i>
             <input type="text" id="searchInput" placeholder="Cari tools..." autocomplete="off">
@@ -104,20 +54,33 @@ FINISH: unreviewed and undocumented is unfinished; this build ends with the fini
             <input type="text" id="searchInputCollapsed" placeholder="Cari tools..." autocomplete="off">
         </div>
     </div>
-</div>
+</header>
 
-<!-- DASHBOARD -->
-<div class="dashboard" id="dashboard">
-    <div class="categories" id="categoryFilter">
-        <span class="chip active" data-cat="all">Semua</span>
-        <span class="chip" data-cat="utility">Utility</span>
-        <span class="chip" data-cat="dev">Dev</span>
-        <span class="chip" data-cat="text">Text</span>
+<!-- HERO SECTION -->
+<section class="hero" aria-labelledby="hero-title">
+    <div class="hero-content">
+        <h1 id="hero-title">Leoo Tools Pro</h1>
+        <p class="hero-tagline">Free, no-login web toolbox</p>
+        <div class="hero-search">
+            <i data-lucide="search"></i>
+            <input type="text" id="heroSearchInput" placeholder="Cari tools..." autocomplete="off">
+        </div>
+    </div>
+    <div class="hero-glow" aria-hidden="true"></div>
+</section>
+
+<!-- DASHBOARD / TOOL GRID -->
+<main class="dashboard" id="dashboard">
+    <div class="categories" id="categoryFilter" role="tablist" aria-label="Kategori tools">
+        <span class="chip active" data-cat="all" role="tab" aria-selected="true">Semua</span>
+        <span class="chip" data-cat="utility" role="tab" aria-selected="false">Utility</span>
+        <span class="chip" data-cat="dev" role="tab" aria-selected="false">Dev</span>
+        <span class="chip" data-cat="text" role="tab" aria-selected="false">Text</span>
     </div>
 
-    <div class="tools-grid" id="toolsGrid"></div>
+    <div class="tools-grid" id="toolsGrid" role="list"></div>
 
-    <div class="tool-page" id="toolPage" style="display:none;">
+    <div class="tool-page" id="toolPage" style="display:none;" role="region" aria-label="Halaman tool">
         <div class="tool-page-header">
             <button class="btn-back" onclick="closeToolPage()">
                 <i data-lucide="arrow-left"></i>
@@ -127,170 +90,65 @@ FINISH: unreviewed and undocumented is unfinished; this build ends with the fini
         </div>
         <div class="tool-page-body" id="toolPageBody"></div>
     </div>
-</div>
+</main>
 
 <!-- FIXED FOOTER -->
-<div class="footer-credit">Leoo Tools · Dihidupkan oleh <span>Galang</span></div>
+<footer class="footer" role="contentinfo">
+    <p>Leoo Tools Pro &middot; Free, no-login web toolbox &middot; Built with <span class="heart">&#9829;</span> by Galang</p>
+    <nav class="footer-links" aria-label="Footer links">
+        <a href="#" rel="noopener">GitHub</a>
+        <span class="divider" aria-hidden="true">|</span>
+        <a href="#" rel="noopener">Issues</a>
+        <span class="divider" aria-hidden="true">|</span>
+        <a href="#" rel="noopener">License</a>
+    </nav>
+</footer>
 
 <script src="splash.js"></script>
 <script src="loader.js"></script>
 
-<!-- SPACE CANVAS — Adaptive performance -->
+<!-- NAVBAR SCROLL & SCROLL TOP -->
 <script>
 (function () {
-    // Set performance mode early so CSS and scripts can adapt.
-    var prefersReduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    var saveData = navigator.connection && navigator.connection.saveData;
-    var cores = navigator.hardwareConcurrency || 2;
-    var mem = navigator.deviceMemory || 2;
+    var wrapper         = document.getElementById('navbarWrapper');
+    var scrollBtn       = document.getElementById('scrollTopBtn');
+    var mainSearch      = document.getElementById('searchInput');
+    var collapsedSearch = document.getElementById('searchInputCollapsed');
+    var heroSearch      = document.getElementById('heroSearchInput');
+    var COLLAPSE_THRESHOLD = 60;
 
-    var mode;
-    if (prefersReduced || saveData) {
-        mode = 'entry';
-    } else if (cores <= 2 || mem <= 2) {
-        mode = 'entry';
-    } else if (cores <= 4 || mem <= 4) {
-        mode = 'mid';
-    } else {
-        mode = 'high';
+    // Sync search inputs
+    function syncSearch(source) {
+        var val = source.value;
+        [mainSearch, collapsedSearch, heroSearch].forEach(function (inp) {
+            if (inp && inp !== source) inp.value = val;
+        });
     }
 
-    // Map to configuration
-    var CFG = {
-        entry: { ringCount: 3, meteors: true,  fps: 20 },
-        mid:   { ringCount: 4, meteors: true,  fps: 30, meteorIntervalMin: 4000, meteorIntervalMax: 8000 },
-        high:  { ringCount: 5, meteors: true,  fps: 60, meteorIntervalMin: 2800, meteorIntervalMax: 6000  }
-    };
-    var cfg = CFG[mode] || CFG.high;
-    var frameDuration = 1000 / cfg.fps;
-
-    var canvas = document.getElementById('spaceCanvas');
-    var ctx    = canvas.getContext('2d');
-
-    function resize() {
-        canvas.width  = window.innerWidth;
-        canvas.height = window.innerHeight;
-    }
-    resize();
-    window.addEventListener('resize', resize, { passive: true });
-
-    var allRings = [
-        { cx: 0.72, cy: 0.18, rx: 220, ry: 80,  angle: 0,    speed: 0.00018, color: 'rgba(96,165,250,0.07)',  width: 1.2 },
-        { cx: 0.20, cy: 0.65, rx: 170, ry: 65,  angle: 1.2,  speed: 0.00012, color: 'rgba(129,140,248,0.06)', width: 1.0 },
-        { cx: 0.85, cy: 0.75, rx: 130, ry: 50,  angle: 2.5,  speed: 0.00022, color: 'rgba(34,211,238,0.05)',  width: 0.8 },
-        { cx: 0.40, cy: 0.30, rx: 260, ry: 95,  angle: 0.7,  speed: 0.00010, color: 'rgba(96,165,250,0.04)',  width: 1.5 },
-        { cx: 0.60, cy: 0.88, rx: 190, ry: 70,  angle: 3.8,  speed: 0.00015, color: 'rgba(244,114,182,0.04)', width: 0.9 }
-    ];
-    var rings = allRings.slice(0, cfg.ringCount);
-    var dots  = rings.map(function (r) {
-        return { angle: Math.random() * Math.PI * 2, speed: r.speed * 18 };
+    [mainSearch, collapsedSearch, heroSearch].forEach(function (inp) {
+        if (inp) inp.addEventListener('input', function () { syncSearch(this); });
     });
 
-    var meteors = [];
-    var nextMeteorIn = cfg.meteors ? cfg.meteorIntervalMin : Infinity;
-    var lastMeteorTime = 0;
-
-    function spawnMeteor(now) {
-        var startX = Math.random() * canvas.width * 0.8;
-        var startY = Math.random() * canvas.height * 0.3;
-        var len    = 80 + Math.random() * 120;
-        var speed  = 2.2 + Math.random() * 2.0;
-        meteors.push({
-            x: startX, y: startY,
-            dx: speed * 1.6,
-            dy: speed * 0.9,
-            len: len,
-            life: 1.0,
-            decay: 0.022 + Math.random() * 0.014,
-        });
-        lastMeteorTime = now;
-        nextMeteorIn   = cfg.meteorIntervalMin +
-            Math.random() * (cfg.meteorIntervalMax - cfg.meteorIntervalMin);
-    }
-
-    var raf;
-    var lastFrameTime = 0;
-
-    function draw(now) {
-        raf = requestAnimationFrame(draw);
-        if (now - lastFrameTime < frameDuration) return;
-        lastFrameTime = now;
-
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-        rings.forEach(function (r, i) {
-            r.angle += r.speed;
-
-            ctx.save();
-            ctx.translate(r.cx * canvas.width, r.cy * canvas.height);
-            ctx.rotate(r.angle);
-
-            ctx.beginPath();
-            ctx.ellipse(0, 0, r.rx, r.ry, 0, 0, Math.PI * 2);
-            ctx.strokeStyle = r.color;
-            ctx.lineWidth   = r.width;
-            ctx.stroke();
-
-            var d = dots[i];
-            d.angle += d.speed;
-            var dx = Math.cos(d.angle) * r.rx;
-            var dy = Math.sin(d.angle) * r.ry;
-
-            var grad = ctx.createRadialGradient(dx, dy, 0, dx, dy, 5);
-            grad.addColorStop(0, r.color.replace(/[\\d.]+\\)$/, '0.9)'));
-            grad.addColorStop(1, r.color.replace(/[\\d.]+\\)$/, '0)'));
-            ctx.beginPath();
-            ctx.arc(dx, dy, 4, 0, Math.PI * 2);
-            ctx.fillStyle = grad;
-            ctx.fill();
-
-            ctx.restore();
-        });
-
-        if (cfg.meteors) {
-            if (now - lastMeteorTime > nextMeteorIn) spawnMeteor(now);
-
-            meteors = meteors.filter(function (m) { return m.life > 0; });
-            meteors.forEach(function (m) {
-                var tailX = m.x - m.dx * (m.len / (m.dx || 4));
-                var tailY = m.y - m.dy * (m.len / (m.dy || 4));
-
-                var grad = ctx.createLinearGradient(tailX, tailY, m.x, m.y);
-                grad.addColorStop(0, 'rgba(255,255,255,0)');
-                grad.addColorStop(0.6, 'rgba(180,220,255,' + (m.life * 0.35) + ')');
-                grad.addColorStop(1,   'rgba(255,255,255,' + (m.life * 0.85) + ')');
-
-                ctx.beginPath();
-                ctx.moveTo(tailX, tailY);
-                ctx.lineTo(m.x, m.y);
-                ctx.strokeStyle = grad;
-                ctx.lineWidth   = 1.5;
-                ctx.lineCap     = 'round';
-                ctx.stroke();
-
-                ctx.beginPath();
-                ctx.arc(m.x, m.y, 1.5, 0, Math.PI * 2);
-                ctx.fillStyle = 'rgba(255,255,255,' + (m.life * 0.9) + ')';
-                ctx.fill();
-
-                m.x    += m.dx;
-                m.y    += m.dy;
-                m.life -= m.decay;
-            });
+    window.addEventListener('scroll', function () {
+        var y = window.scrollY;
+        if (wrapper) {
+            if (y > COLLAPSE_THRESHOLD) wrapper.classList.add('is-collapsed', 'scrolled');
+            else {
+                wrapper.classList.remove('is-collapsed');
+                if (y === 0) wrapper.classList.remove('scrolled');
+            }
         }
-    }
-
-    var raf = requestAnimationFrame(draw);
-
-    document.addEventListener('visibilitychange', function () {
-        if (document.hidden) {
-            cancelAnimationFrame(raf);
-        } else {
-            lastFrameTime = 0;
-            raf = requestAnimationFrame(draw);
+        if (scrollBtn) {
+            if (y > 300) scrollBtn.classList.add('show');
+            else scrollBtn.classList.remove('show');
         }
+    }, { passive: true });
+
+    if (scrollBtn) scrollBtn.addEventListener('click', function () {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
     });
 })();
 </script>
+
 </body>
 </html>
